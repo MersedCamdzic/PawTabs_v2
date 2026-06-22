@@ -185,22 +185,24 @@ function GroupHeader({
           aria-hidden="true"
         />
       )}
-      <span
-        class={`text-[12px] uppercase tracking-wide truncate flex-1 text-left ${titleClass}`}
-      >
-        {group.title}
-      </span>
-      {isWindow && (
-        <button
-          type="button"
-          onClick={startEdit}
-          aria-label="Rename window"
-          title="Rename window"
-          class="size-5 inline-flex items-center justify-center rounded text-fg-subtle opacity-0 group-hover:opacity-100 hover:text-accent transition-all"
+      <div class="flex-1 min-w-0 inline-flex items-center gap-1">
+        <span
+          class={`text-[12px] uppercase tracking-wide truncate text-left ${titleClass}`}
         >
-          <PencilSimple size={10} />
-        </button>
-      )}
+          {group.title}
+        </span>
+        {isWindow && (
+          <button
+            type="button"
+            onClick={startEdit}
+            aria-label="Rename window"
+            title="Rename window"
+            class="size-4 inline-flex items-center justify-center rounded text-fg-subtle opacity-0 group-hover:opacity-100 hover:text-accent transition-all shrink-0"
+          >
+            <PencilSimple size={9} />
+          </button>
+        )}
+      </div>
       <GroupActions tabs={group.tabs} onAction={onAction} />
     </div>
   );
