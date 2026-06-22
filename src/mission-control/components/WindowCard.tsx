@@ -17,6 +17,7 @@ import {
   ArrowSquareUpRight,
   Moon,
   XCircle,
+  Palette,
   PawPrint,
   SpeakerHigh,
   SpeakerSlash,
@@ -86,10 +87,22 @@ export function WindowCard({
 }: Props) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState("");
-  const [draftColor, setDraftColor] = useState<WindowColor | null>(null);
+  const [colorOpen, setColorOpen] = useState(false);
   const [mode, setMode] = useState<CardMode>("view");
   const [splitSize, setSplitSize] = useState(5);
   const menuRef = useRef<HTMLDivElement>(null);
+  const colorRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!colorOpen) return;
+    const handler = (e: MouseEvent) => {
+      if (colorRef.current && !colorRef.current.contains(e.target as Node)) {
+        setColorOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [colorOpen]);
 
   useEffect(() => {
     if (mode !== "menu") return;
@@ -108,20 +121,22 @@ export function WindowCard({
 
   const startEdit = () => {
     setDraft(window.customTitle ?? "");
-    setDraftColor(window.color);
     setEditing(true);
   };
   const cancelEdit = () => {
     setEditing(false);
     setDraft("");
-    setDraftColor(null);
   };
   const commitEdit = async () => {
     await setWindowTitle(window.id, draft);
-    await setWindowColor(window.id, draftColor);
     setEditing(false);
     setDraft("");
-    setDraftColor(null);
+    onReload();
+  };
+
+  const handlePickColor = async (color: WindowColor | null) => {
+    await setWindowColor(window.id, color);
+    setColorOpen(false);
     onReload();
   };
 
@@ -227,84 +242,54 @@ export function WindowCard({
           />
         )}
         {editing ? (
-          <div class="flex-1 space-y-2" onClick={(e) => e.stopPropagation()}>
-            <div class="flex items-center gap-2">
-              <input
-                type="text"
-                autoFocus
-                value={draft}
-                onInput={(e) =>
-                  setDraft((e.currentTarget as HTMLInputElement).value)
+          <>
+            <input
+              type="text"
+              autoFocus
+              value={draft}
+              onClick={(e) => e.stopPropagation()}
+              onInput={(e) =>
+                setDraft((e.currentTarget as HTMLInputElement).value)
+              }
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  commitEdit();
+                } else if (e.key === "Escape") {
+                  e.preventDefault();
+                  cancelEdit();
                 }
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    commitEdit();
-                  } else if (e.key === "Escape") {
-                    e.preventDefault();
-                    cancelEdit();
-                  }
-                }}
-                placeholder={`Window ${window.id}`}
-                class="flex-1 h-7 px-2 bg-bg-elevated border border-accent rounded text-[12px] font-medium focus:outline-none focus:ring-4 focus:ring-accent/10"
-              />
-              <button
-                type="button"
-                onClick={commitEdit}
-                aria-label="Save"
-                data-tooltip="Save"
-                data-tooltip-pos="above"
-                class="size-7 inline-flex items-center justify-center rounded text-fg-muted hover:bg-success-subtle hover:text-success transition-colors"
-              >
-                <Check size={13} weight="bold" />
-              </button>
-              <button
-                type="button"
-                onClick={cancelEdit}
-                aria-label="Cancel"
-                data-tooltip="Cancel"
-                data-tooltip-pos="above"
-                class="size-7 inline-flex items-center justify-center rounded text-fg-muted hover:bg-surface hover:text-fg transition-colors"
-              >
-                <X size={13} weight="bold" />
-              </button>
-            </div>
-            <div class="flex items-center gap-1">
-              <button
-                type="button"
-                onClick={() => setDraftColor(null)}
-                data-tooltip="No color"
-                data-tooltip-pos="above"
-                aria-label="No color"
-                class={`size-5 rounded-full border-2 inline-flex items-center justify-center transition-all ${
-                  draftColor === null
-                    ? "border-fg"
-                    : "border-border hover:border-border-strong"
-                }`}
-              >
-                <span class="text-[9px] text-fg-subtle leading-none">×</span>
-              </button>
-              {WINDOW_COLOR_PALETTE.map((c) => {
-                const s = WINDOW_COLOR_STYLES[c.value];
-                const selected = draftColor === c.value;
-                return (
-                  <button
-                    key={c.value}
-                    type="button"
-                    onClick={() => setDraftColor(c.value)}
-                    data-tooltip={c.label}
-                    data-tooltip-pos="above"
-                    aria-label={c.label}
-                    class={`size-5 rounded-full ${s.swatch} transition-all ${
-                      selected
-                        ? "ring-2 ring-offset-2 ring-offset-bg ring-fg scale-110"
-                        : "hover:scale-110"
-                    }`}
-                  />
-                );
-              })}
-            </div>
-          </div>
+              }}
+              placeholder={`Window ${window.id}`}
+              class="flex-1 h-7 px-2 bg-bg-elevated border border-accent rounded text-[12px] font-medium focus:outline-none focus:ring-4 focus:ring-accent/10"
+            />
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                commitEdit();
+              }}
+              aria-label="Save"
+              data-tooltip="Save"
+              data-tooltip-pos="above"
+              class="size-7 inline-flex items-center justify-center rounded text-fg-muted hover:bg-success-subtle hover:text-success transition-colors"
+            >
+              <Check size={13} weight="bold" />
+            </button>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                cancelEdit();
+              }}
+              aria-label="Cancel"
+              data-tooltip="Cancel"
+              data-tooltip-pos="above"
+              class="size-7 inline-flex items-center justify-center rounded text-fg-muted hover:bg-surface hover:text-fg transition-colors"
+            >
+              <X size={13} weight="bold" />
+            </button>
+          </>
         ) : (
           <>
             <div class="flex-1 min-w-0">
@@ -343,6 +328,81 @@ export function WindowCard({
                 >
                   <PencilSimple size={12} />
                 </button>
+                <div ref={colorRef} class="relative">
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setColorOpen((o) => !o);
+                    }}
+                    aria-label="Set color"
+                    data-tooltip="Set color"
+                    data-tooltip-pos="above"
+                    class={`size-7 inline-flex items-center justify-center rounded transition-colors ${
+                      colorOpen
+                        ? "bg-surface text-fg"
+                        : "text-fg-muted hover:bg-accent-subtle hover:text-accent"
+                    }`}
+                  >
+                    {window.color ? (
+                      <span
+                        class={`size-3.5 rounded-full ${WINDOW_COLOR_STYLES[window.color].swatch} ring-1 ring-fg/20`}
+                      />
+                    ) : (
+                      <Palette size={12} />
+                    )}
+                  </button>
+                  {colorOpen && (
+                    <div class="absolute right-0 top-full mt-1 z-20 bg-bg-elevated border border-border rounded-md shadow-md p-2">
+                      <div class="text-[10px] text-fg-subtle uppercase tracking-wide font-medium mb-1.5">
+                        Window color
+                      </div>
+                      <div class="flex items-center gap-1">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handlePickColor(null);
+                          }}
+                          data-tooltip="No color"
+                          data-tooltip-pos="above"
+                          aria-label="No color"
+                          class={`size-6 rounded-full border-2 inline-flex items-center justify-center transition-all ${
+                            window.color === null
+                              ? "border-fg"
+                              : "border-border hover:border-border-strong"
+                          }`}
+                        >
+                          <span class="text-[10px] text-fg-subtle leading-none">
+                            ×
+                          </span>
+                        </button>
+                        {WINDOW_COLOR_PALETTE.map((c) => {
+                          const s = WINDOW_COLOR_STYLES[c.value];
+                          const selected = window.color === c.value;
+                          return (
+                            <button
+                              key={c.value}
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handlePickColor(c.value);
+                              }}
+                              data-tooltip={c.label}
+                              data-tooltip-pos="above"
+                              aria-label={c.label}
+                              class={`size-6 rounded-full ${s.swatch} transition-all ${
+                                selected
+                                  ? "ring-2 ring-offset-2 ring-offset-bg-elevated ring-fg scale-110"
+                                  : "hover:scale-110"
+                              }`}
+                            />
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
                 <button
                   type="button"
                   onClick={handleFocusWindow}
