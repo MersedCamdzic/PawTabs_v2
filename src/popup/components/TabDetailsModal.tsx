@@ -10,6 +10,13 @@ import {
   ArrowSquareOut,
   CaretDown,
   MagnifyingGlass,
+  PawPrint,
+  PushPin,
+  SpeakerHigh,
+  SpeakerSlash,
+  Globe,
+  Copy,
+  Check,
 } from "@phosphor-icons/react";
 import { Modal } from "./Modal";
 import {
@@ -21,7 +28,13 @@ import {
   moveTabToNewWindow,
   listWindowsForMove,
 } from "@/lib/tabs";
-import { focusTab } from "@/lib/chrome";
+import {
+  focusTab,
+  closeTab,
+  togglePinned,
+  toggleMuted,
+  toggleStarred,
+} from "@/lib/chrome";
 import { getRootDomain } from "@/lib/utils";
 import { formatRelativeTime } from "@/lib/sessions";
 import type { PawTab } from "@/types";
@@ -46,6 +59,7 @@ export function TabDetailsModal({ tab, open, onClose, onAction }: Props) {
   const [windows, setWindows] = useState<WindowItem[]>([]);
   const [windowQuery, setWindowQuery] = useState("");
   const [moveOpen, setMoveOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     if (!open || !tab) return;
@@ -53,6 +67,7 @@ export function TabDetailsModal({ tab, open, onClose, onAction }: Props) {
     setNoteInput("");
     setWindowQuery("");
     setMoveOpen(false);
+    setCopied(false);
     listWindowsForMove(tab.id).then(setWindows);
   }, [open, tab]);
 
@@ -101,6 +116,36 @@ export function TabDetailsModal({ tab, open, onClose, onAction }: Props) {
     onClose();
   };
 
+  const handlePaw = async () => {
+    await toggleStarred(tab.id);
+    onAction();
+  };
+
+  const handlePin = async () => {
+    await togglePinned(tab.id, !tab.pinned);
+    onAction();
+  };
+
+  const handleMute = async () => {
+    await toggleMuted(tab.id, !tab.muted);
+    onAction();
+  };
+
+  const handleCloseTab = async () => {
+    await closeTab(tab.id);
+    onClose();
+  };
+
+  const handleCopyUrl = async () => {
+    try {
+      await navigator.clipboard.writeText(tab.url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      // ignore
+    }
+  };
+
   const domain = getRootDomain(tab.url);
   const currentWindow = windows.find((w) => w.id === tab.windowId);
   const currentWindowDisplay = currentWindow
@@ -126,20 +171,114 @@ export function TabDetailsModal({ tab, open, onClose, onAction }: Props) {
       }
     >
       <div class="space-y-4">
-        <div class="flex items-center gap-2.5 px-2.5 py-2 bg-surface rounded-md border border-border">
-          <Favicon url={tab.favIconUrl} />
-          <div class="flex-1 min-w-0">
-            <div class="text-[13px] font-medium truncate">
-              {tab.title || domain || "Untitled"}
+        <div class="relative overflow-hidden rounded-lg border border-border bg-gradient-to-br from-accent-subtle/40 via-surface to-bg p-3.5">
+          <div class="flex items-start gap-3">
+            <div class="size-10 shrink-0 rounded-md bg-bg border border-border flex items-center justify-center overflow-hidden shadow-sm">
+              {tab.favIconUrl ? (
+                <img
+                  src={tab.favIconUrl}
+                  alt=""
+                  class="size-6"
+                  onError={(e) => {
+                    (e.currentTarget as HTMLImageElement).style.display = "none";
+                  }}
+                />
+              ) : (
+                <Globe size={18} class="text-fg-subtle" />
+              )}
             </div>
-            <div class="text-[11px] text-fg-subtle truncate mt-0.5 flex items-center gap-1.5">
-              <span class="truncate">{domain}</span>
-              <span class="text-border-strong">·</span>
-              <span class="inline-flex items-center gap-1 text-accent font-medium shrink-0">
-                <Browsers size={10} weight="fill" />
-                {currentWindowDisplay}
-              </span>
+            <div class="flex-1 min-w-0">
+              <div class="text-[14px] font-semibold text-fg line-clamp-2 leading-snug">
+                {tab.title || domain || "Untitled"}
+              </div>
+              <div class="text-[11px] text-fg-subtle mt-1 flex items-center gap-1.5 flex-wrap">
+                <span class="font-medium text-fg-muted">{domain}</span>
+                <span class="text-border-strong">·</span>
+                <span class="inline-flex items-center gap-1 px-1.5 h-4 bg-accent-subtle text-accent text-[10px] font-medium rounded">
+                  <Browsers size={9} weight="fill" />
+                  {currentWindowDisplay}
+                </span>
+              </div>
+              <div class="text-[10px] text-fg-subtle/70 mt-1.5 font-mono truncate flex items-center gap-1.5">
+                <span class="truncate">{tab.url}</span>
+                <button
+                  type="button"
+                  onClick={handleCopyUrl}
+                  data-tooltip={copied ? "Copied!" : "Copy URL"}
+                  data-tooltip-pos="above"
+                  aria-label="Copy URL"
+                  class="size-5 shrink-0 inline-flex items-center justify-center rounded text-fg-subtle hover:bg-surface hover:text-accent transition-colors"
+                >
+                  {copied ? (
+                    <Check size={11} weight="bold" class="text-success" />
+                  ) : (
+                    <Copy size={11} />
+                  )}
+                </button>
+              </div>
             </div>
+          </div>
+
+          <div class="flex items-center gap-1 mt-3 pt-3 border-t border-border/60">
+            <QuickAction
+              title={tab.starred ? "Unpaw" : "Paw this tab"}
+              active={tab.starred}
+              tone="accent"
+              onClick={handlePaw}
+            >
+              <PawPrint
+                size={13}
+                weight={tab.starred ? "fill" : "regular"}
+              />
+            </QuickAction>
+            <QuickAction
+              title={tab.pinned ? "Unpin" : "Pin"}
+              active={tab.pinned}
+              tone="warning"
+              onClick={handlePin}
+            >
+              <PushPin
+                size={13}
+                weight={tab.pinned ? "fill" : "regular"}
+              />
+            </QuickAction>
+            {(tab.audible || tab.muted) && (
+              <QuickAction
+                title={tab.muted ? "Unmute" : "Mute"}
+                active={tab.muted ? true : tab.audible}
+                tone={tab.muted ? "danger" : "success"}
+                onClick={handleMute}
+              >
+                {tab.muted ? (
+                  <SpeakerSlash size={13} />
+                ) : (
+                  <SpeakerHigh size={13} />
+                )}
+              </QuickAction>
+            )}
+            <div class="flex-1" />
+            <div class="flex items-center gap-3 text-[10px] text-fg-subtle">
+              {tab.tags.length > 0 && (
+                <span class="inline-flex items-center gap-1">
+                  <Tag size={10} weight="fill" class="text-accent" />
+                  {tab.tags.length}
+                </span>
+              )}
+              {tab.notes.length > 0 && (
+                <span class="inline-flex items-center gap-1">
+                  <NotePencil size={10} weight="fill" class="text-accent" />
+                  {tab.notes.length}
+                </span>
+              )}
+            </div>
+            <span class="w-px h-4 bg-border mx-1" />
+            <QuickAction
+              title="Close tab"
+              tone="danger"
+              onClick={handleCloseTab}
+            >
+              <X size={13} />
+            </QuickAction>
           </div>
         </div>
 
@@ -389,17 +528,47 @@ function TagChip(props: { label: string; onRemove: () => void }) {
   );
 }
 
-function Favicon({ url }: { url: string }) {
-  if (!url) return <div class="size-4 shrink-0 rounded-sm bg-border" />;
+const QUICK_TONE = {
+  accent: {
+    active: "bg-accent-subtle text-accent",
+    hover: "hover:bg-accent-subtle hover:text-accent",
+  },
+  warning: {
+    active: "bg-warning-subtle text-warning",
+    hover: "hover:bg-warning-subtle hover:text-warning",
+  },
+  success: {
+    active: "bg-success-subtle text-success",
+    hover: "hover:bg-success-subtle hover:text-success",
+  },
+  danger: {
+    active: "bg-danger-subtle text-danger",
+    hover: "hover:bg-danger-subtle hover:text-danger",
+  },
+} as const;
+
+function QuickAction(props: {
+  title: string;
+  tone: keyof typeof QUICK_TONE;
+  active?: boolean;
+  onClick: () => void;
+  children: preact.ComponentChildren;
+}) {
+  const t = QUICK_TONE[props.tone];
+  const cls = props.active
+    ? t.active
+    : `text-fg-muted bg-bg ${t.hover}`;
   return (
-    <img
-      src={url}
-      alt=""
-      class="size-4 shrink-0 rounded-sm"
-      onError={(e) => {
-        (e.currentTarget as HTMLImageElement).style.display = "none";
-      }}
-    />
+    <button
+      type="button"
+      onClick={props.onClick}
+      data-tooltip={props.title}
+      data-tooltip-pos="above"
+      aria-label={props.title}
+      class={`size-7 inline-flex items-center justify-center rounded-md border border-border transition-colors ${cls}`}
+    >
+      {props.children}
+    </button>
   );
 }
 
