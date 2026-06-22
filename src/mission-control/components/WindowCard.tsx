@@ -12,14 +12,25 @@ import {
   ArrowsSplit,
   ArrowsMerge,
   ArrowRight,
-  Trash,
   XCircle,
+  PawPrint,
+  SpeakerHigh,
+  SpeakerSlash,
+  Tag,
+  NotePencil,
 } from "@phosphor-icons/react";
-import { setWindowTitle, type WindowWithMeta } from "@/lib/windows";
-import { focusTab } from "@/lib/chrome";
+import { setWindowTitle, type WindowWithPawTabs } from "@/lib/windows";
+import {
+  focusTab,
+  closeTab,
+  togglePinned,
+  toggleMuted,
+  toggleStarred,
+} from "@/lib/chrome";
+import type { PawTab } from "@/types";
 
 interface Props {
-  window: WindowWithMeta;
+  window: WindowWithPawTabs;
   isSelectionSource: boolean;
   isMoveTarget: boolean;
   selectedIds: Set<number>;
@@ -32,6 +43,7 @@ interface Props {
   onSplit: (windowId: number, chunkSize: number) => Promise<void>;
   onCloseNonPinned: (windowId: number) => Promise<void>;
   onCloseWindow: (windowId: number) => Promise<void>;
+  onAction: () => void;
   onReload: () => void;
 }
 
@@ -51,6 +63,7 @@ export function WindowCard({
   onSplit,
   onCloseNonPinned,
   onCloseWindow,
+  onAction,
   onReload,
 }: Props) {
   const [editing, setEditing] = useState(false);
@@ -400,14 +413,13 @@ export function WindowCard({
       <div class="flex-1 max-h-[280px] overflow-y-auto p-1 space-y-0.5">
         {window.tabs.map((tab) => (
           <CompactTabRow
-            key={tab.id ?? Math.random()}
+            key={tab.id}
             tab={tab}
             inSelectMode={isSelectionSource}
             isOtherCardSelectMode={isMoveTarget}
-            selected={tab.id !== undefined && selectedIds.has(tab.id)}
-            onToggleSelect={() => {
-              if (tab.id !== undefined) onToggleTab(tab.id);
-            }}
+            selected={selectedIds.has(tab.id)}
+            onToggleSelect={() => onToggleTab(tab.id)}
+            onAction={onAction}
           />
         ))}
         {window.tabs.length === 0 && (
@@ -445,31 +457,49 @@ function MenuItem(props: {
 }
 
 function CompactTabRow(props: {
-  tab: chrome.tabs.Tab;
+  tab: PawTab;
   inSelectMode: boolean;
   isOtherCardSelectMode: boolean;
   selected: boolean;
   onToggleSelect: () => void;
+  onAction: () => void;
 }) {
-  const handleClick = async (e: MouseEvent) => {
+  const handleClick = (e: MouseEvent) => {
     if (props.isOtherCardSelectMode) {
-      // Let click bubble up to the WindowCard so the entire target
-      // card acts as a drop zone.
+      // Let the target card receive the click for move destination
       return;
     }
     e.stopPropagation();
     if (props.inSelectMode) {
       props.onToggleSelect();
-      return;
     }
-    if (props.tab.id === undefined) return;
-    await focusTab(props.tab.id, props.tab.windowId ?? 0);
+    // Otherwise: do nothing. Use explicit Jump button to focus the tab.
   };
+
+  const stop = (e: Event) => e.stopPropagation();
+  const wrap = (fn: () => Promise<void>) => async (e: MouseEvent) => {
+    stop(e);
+    await fn();
+    props.onAction();
+  };
+
+  const handleJump = async (e: MouseEvent) => {
+    stop(e);
+    await focusTab(props.tab.id, props.tab.windowId);
+  };
+  const handlePaw = wrap(async () => {
+    await toggleStarred(props.tab.id);
+  });
+  const handlePin = wrap(() => togglePinned(props.tab.id, !props.tab.pinned));
+  const handleMute = wrap(() => toggleMuted(props.tab.id, !props.tab.muted));
+  const handleClose = wrap(() => closeTab(props.tab.id));
 
   let rowClass = "hover:bg-surface cursor-pointer";
   if (props.selected) rowClass = "bg-accent-subtle ring-1 ring-accent/40";
   else if (props.isOtherCardSelectMode)
     rowClass = "opacity-70 pointer-events-none";
+
+  const showActions = !props.inSelectMode && !props.isOtherCardSelectMode;
 
   return (
     <div
@@ -518,9 +548,122 @@ function CompactTabRow(props: {
       <span class="flex-1 truncate text-fg">
         {props.tab.title || props.tab.url}
       </span>
-      {props.tab.pinned && (
+
+      {(props.tab.tags.length > 0 || props.tab.notes.length > 0) && (
+        <span class="flex items-center gap-0.5 text-accent shrink-0">
+          {props.tab.tags.length > 0 && (
+            <span class="inline-flex items-center gap-0.5">
+              <Tag size={9} weight="fill" />
+              {props.tab.tags.length}
+            </span>
+          )}
+          {props.tab.notes.length > 0 && (
+            <span class="inline-flex items-center gap-0.5">
+              <NotePencil size={9} weight="fill" />
+              {props.tab.notes.length}
+            </span>
+          )}
+        </span>
+      )}
+
+      {showActions && (
+        <div class="flex items-center gap-0 shrink-0">
+          <TinyActionBtn
+            title={props.tab.starred ? "Unpaw" : "Paw"}
+            active={props.tab.starred}
+            tone="accent"
+            onClick={handlePaw}
+          >
+            <PawPrint
+              size={11}
+              weight={props.tab.starred ? "fill" : "regular"}
+            />
+          </TinyActionBtn>
+          <TinyActionBtn
+            title={props.tab.pinned ? "Unpin" : "Pin"}
+            active={props.tab.pinned}
+            tone="warning"
+            onClick={handlePin}
+          >
+            <PushPin
+              size={11}
+              weight={props.tab.pinned ? "fill" : "regular"}
+            />
+          </TinyActionBtn>
+          {(props.tab.audible || props.tab.muted) && (
+            <TinyActionBtn
+              title={props.tab.muted ? "Unmute" : "Mute"}
+              active={props.tab.muted || props.tab.audible}
+              tone={props.tab.muted ? "danger" : "success"}
+              forceVisible
+              onClick={handleMute}
+            >
+              {props.tab.muted ? (
+                <SpeakerSlash size={11} />
+              ) : (
+                <SpeakerHigh size={11} />
+              )}
+            </TinyActionBtn>
+          )}
+          <TinyActionBtn
+            title="Jump to tab"
+            tone="accent"
+            onClick={handleJump}
+          >
+            <ArrowSquareOut size={11} />
+          </TinyActionBtn>
+          <TinyActionBtn
+            title="Close tab"
+            tone="danger"
+            onClick={handleClose}
+          >
+            <X size={11} />
+          </TinyActionBtn>
+        </div>
+      )}
+
+      {!showActions && props.tab.pinned && (
         <PushPin size={10} weight="fill" class="text-warning shrink-0" />
       )}
     </div>
+  );
+}
+
+const TONE_ACTIVE = {
+  accent: "text-accent",
+  warning: "text-warning",
+  success: "text-success",
+  danger: "text-danger",
+} as const;
+const TONE_HOVER = {
+  accent: "hover:bg-accent-subtle hover:text-accent",
+  warning: "hover:bg-warning-subtle hover:text-warning",
+  success: "hover:bg-success-subtle hover:text-success",
+  danger: "hover:bg-danger-subtle hover:text-danger",
+} as const;
+
+function TinyActionBtn(props: {
+  title: string;
+  tone: keyof typeof TONE_ACTIVE;
+  active?: boolean;
+  forceVisible?: boolean;
+  onClick: (e: MouseEvent) => void;
+  children: preact.ComponentChildren;
+}) {
+  const activeCls = props.active ? TONE_ACTIVE[props.tone] : "text-fg-subtle";
+  const visibility =
+    props.active || props.forceVisible
+      ? "opacity-100"
+      : "opacity-0 group-hover:opacity-100";
+  return (
+    <button
+      type="button"
+      onClick={props.onClick}
+      title={props.title}
+      aria-label={props.title}
+      class={`size-5 inline-flex items-center justify-center rounded ${activeCls} ${visibility} ${TONE_HOVER[props.tone]} transition-all`}
+    >
+      {props.children}
+    </button>
   );
 }

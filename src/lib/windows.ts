@@ -51,3 +51,40 @@ export async function getWindowsWithMeta(): Promise<WindowWithMeta[]> {
       focused: w.focused ?? false,
     }));
 }
+
+import type { PawTab } from "@/types";
+import { fetchAllTabs } from "./chrome";
+
+export interface WindowWithPawTabs {
+  id: number;
+  customTitle: string | null;
+  tabs: PawTab[];
+  focused: boolean;
+}
+
+export async function getWindowsWithPawTabs(): Promise<WindowWithPawTabs[]> {
+  const [snapshot, titles, chromeWindows] = await Promise.all([
+    fetchAllTabs(),
+    getAllWindowTitles(),
+    chrome.windows.getAll(),
+  ]);
+
+  const focusedById = new Map<number, boolean>();
+  for (const w of chromeWindows) {
+    if (w.id !== undefined) focusedById.set(w.id, w.focused ?? false);
+  }
+
+  const grouped = new Map<number, PawTab[]>();
+  for (const tab of snapshot.tabs) {
+    const arr = grouped.get(tab.windowId) ?? [];
+    arr.push(tab);
+    grouped.set(tab.windowId, arr);
+  }
+
+  return Array.from(grouped.entries()).map(([id, tabs]) => ({
+    id,
+    customTitle: titles[id] ?? null,
+    tabs,
+    focused: focusedById.get(id) ?? false,
+  }));
+}

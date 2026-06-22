@@ -1,10 +1,10 @@
 import { useState, useEffect, useMemo, useCallback } from "preact/hooks";
 import { Plus } from "@phosphor-icons/react";
 import {
-  getWindowsWithMeta,
+  getWindowsWithPawTabs,
   getWindowTitle,
   setWindowTitle,
-  type WindowWithMeta,
+  type WindowWithPawTabs,
 } from "@/lib/windows";
 import { WindowCard } from "../WindowCard";
 
@@ -19,11 +19,11 @@ interface SelectionState {
 }
 
 export function WindowsView({ query, onAction }: Props) {
-  const [windows, setWindows] = useState<WindowWithMeta[]>([]);
+  const [windows, setWindows] = useState<WindowWithPawTabs[]>([]);
   const [selection, setSelection] = useState<SelectionState | null>(null);
 
   const refresh = useCallback(async () => {
-    setWindows(await getWindowsWithMeta());
+    setWindows(await getWindowsWithPawTabs());
   }, []);
 
   useEffect(() => {
@@ -99,8 +99,8 @@ export function WindowsView({ query, onAction }: Props) {
         ...w,
         tabs: w.tabs.filter(
           (t) =>
-            t.title?.toLowerCase().includes(q) ||
-            t.url?.toLowerCase().includes(q),
+            t.title.toLowerCase().includes(q) ||
+            t.url.toLowerCase().includes(q),
         ),
       }))
       .filter(
@@ -169,7 +169,7 @@ export function WindowsView({ query, onAction }: Props) {
       const ids = Array.from(selection.selectedIds);
       const [first, ...rest] = ids;
       if (first === undefined) return;
-      const win = await chrome.windows.create({ tabId: first });
+      const win = await chrome.windows.create({ tabId: first, focused: false });
       if (rest.length > 0 && win?.id !== undefined) {
         await chrome.tabs.move(rest, { windowId: win.id, index: -1 });
       }
@@ -191,7 +191,10 @@ export function WindowsView({ query, onAction }: Props) {
       const chunk = sorted.slice(i, i + chunkSize);
       const firstId = chunk[0]?.id;
       if (firstId === undefined) continue;
-      const newWindow = await chrome.windows.create({ tabId: firstId });
+      const newWindow = await chrome.windows.create({
+        tabId: firstId,
+        focused: false,
+      });
       const targetId = newWindow?.id;
       if (targetId === undefined) continue;
       const restIds = chunk
@@ -269,6 +272,7 @@ export function WindowsView({ query, onAction }: Props) {
             onSplit={handleSplit}
             onCloseNonPinned={handleCloseNonPinned}
             onCloseWindow={handleCloseWindow}
+            onAction={onAction}
             onReload={refresh}
           />
         ))}
