@@ -54,12 +54,26 @@ export interface WindowMeta {
   title?: string;
 }
 
+export type GroupBy =
+  | "none"
+  | "window"
+  | "domain"
+  | "pinned"
+  | "pawed"
+  | "audible";
+
+export interface Preferences {
+  grouping: GroupBy;
+  collapsedGroups: string[];
+}
+
 export interface StorageSchema {
   savedPages: Record<number, SavedPage>;
   savedSessions: SavedSession[];
   savedGroups: SavedGroup[];
   windows: Record<number, WindowMeta>;
   backups: Backup[];
+  preferences: Preferences;
 }
 
 export interface PawTab {

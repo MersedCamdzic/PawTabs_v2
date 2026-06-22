@@ -1,4 +1,4 @@
-import { useMemo, useState } from "preact/hooks";
+import { useMemo, useState, useEffect } from "preact/hooks";
 import {
   MagnifyingGlass,
   Gear,
@@ -7,12 +7,43 @@ import {
   PawPrint,
 } from "@phosphor-icons/react";
 import { useTabSnapshot } from "./hooks";
-import { TabRow } from "./components/TabRow";
-import type { PawTab } from "@/types";
+import { TabGroupSection } from "./components/TabGroupSection";
+import { GroupBy } from "./components/GroupBy";
+import { groupTabs } from "@/lib/grouping";
+import { storage } from "@/lib/storage";
+import type { GroupBy as GroupByType, PawTab } from "@/types";
 
 export function Popup() {
   const { snapshot, error, reload } = useTabSnapshot();
   const [query, setQuery] = useState("");
+  const [grouping, setGrouping] = useState<GroupByType>("window");
+  const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    storage.get("preferences").then((prefs) => {
+      if (prefs?.grouping) setGrouping(prefs.grouping);
+      if (prefs?.collapsedGroups) setCollapsed(new Set(prefs.collapsedGroups));
+    });
+  }, []);
+
+  const updateGrouping = (next: GroupByType) => {
+    setGrouping(next);
+    storage.update("preferences", (prev) => ({
+      grouping: next,
+      collapsedGroups: prev?.collapsedGroups ?? [],
+    }));
+  };
+
+  const toggleCollapsed = (key: string) => {
+    const next = new Set(collapsed);
+    if (next.has(key)) next.delete(key);
+    else next.add(key);
+    setCollapsed(next);
+    storage.update("preferences", (prev) => ({
+      grouping: prev?.grouping ?? "window",
+      collapsedGroups: Array.from(next),
+    }));
+  };
 
   const filtered = useMemo<PawTab[]>(() => {
     if (!snapshot) return [];
@@ -23,6 +54,11 @@ export function Popup() {
         t.title.toLowerCase().includes(q) || t.url.toLowerCase().includes(q),
     );
   }, [snapshot, query]);
+
+  const groups = useMemo(
+    () => groupTabs(filtered, grouping),
+    [filtered, grouping],
+  );
 
   const openMissionControl = async () => {
     const url = chrome.runtime.getURL("src/mission-control/index.html");
@@ -73,11 +109,20 @@ export function Popup() {
           <input
             type="text"
             value={query}
-            onInput={(e) => setQuery((e.currentTarget as HTMLInputElement).value)}
+            onInput={(e) =>
+              setQuery((e.currentTarget as HTMLInputElement).value)
+            }
             placeholder="Search tabs"
             class="peer w-full h-9 pl-8 pr-3 bg-surface border border-border rounded-md text-[13px] placeholder:text-fg-subtle focus:outline-none focus:bg-bg-elevated focus:border-accent focus:ring-4 focus:ring-accent/10 transition-colors"
           />
         </div>
+      </section>
+
+      <section class="px-4 pb-2 flex items-center justify-between">
+        <span class="text-[11px] text-fg-subtle">
+          {snapshot ? `${filtered.length} of ${snapshot.tabCount}` : ""}
+        </span>
+        <GroupBy value={grouping} onChange={updateGrouping} />
       </section>
 
       <div class="border-t border-border" />
@@ -101,21 +146,21 @@ export function Popup() {
           </div>
         )}
 
-        {snapshot && filtered.length > 0 && (
-          <div class="space-y-0.5">
-            {filtered.map((tab) => (
-              <TabRow key={tab.id} tab={tab} onAction={reload} />
-            ))}
-          </div>
-        )}
+        {snapshot &&
+          groups.map((group) => (
+            <TabGroupSection
+              key={group.key}
+              group={group}
+              showHeader={grouping !== "none"}
+              collapsed={collapsed.has(group.key)}
+              onToggle={() => toggleCollapsed(group.key)}
+              onAction={reload}
+            />
+          ))}
       </div>
 
       <footer class="border-t border-border px-4 py-2 flex items-center justify-between text-[11px] text-fg-subtle">
-        <span>
-          {snapshot
-            ? `${filtered.length} of ${snapshot.tabCount}`
-            : ""}
-        </span>
+        <span>PawTabs v2</span>
         <span class="font-mono">⌘⇧Y</span>
       </footer>
     </div>

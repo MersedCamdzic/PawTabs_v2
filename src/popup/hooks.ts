@@ -21,14 +21,31 @@ export function useTabSnapshot() {
   }, [reload]);
 
   useEffect(() => {
-    const handler = () => reload();
-    chrome.tabs.onCreated.addListener(handler);
-    chrome.tabs.onRemoved.addListener(handler);
-    chrome.tabs.onUpdated.addListener(handler);
+    const onCreated = () => reload();
+    const onRemoved = () => reload();
+    const onUpdated = (
+      _id: number,
+      changeInfo: chrome.tabs.TabChangeInfo,
+    ) => {
+      if (
+        changeInfo.pinned !== undefined ||
+        changeInfo.mutedInfo !== undefined ||
+        changeInfo.audible !== undefined ||
+        changeInfo.discarded !== undefined ||
+        changeInfo.title !== undefined ||
+        changeInfo.favIconUrl !== undefined ||
+        changeInfo.url !== undefined
+      ) {
+        reload();
+      }
+    };
+    chrome.tabs.onCreated.addListener(onCreated);
+    chrome.tabs.onRemoved.addListener(onRemoved);
+    chrome.tabs.onUpdated.addListener(onUpdated);
     return () => {
-      chrome.tabs.onCreated.removeListener(handler);
-      chrome.tabs.onRemoved.removeListener(handler);
-      chrome.tabs.onUpdated.removeListener(handler);
+      chrome.tabs.onCreated.removeListener(onCreated);
+      chrome.tabs.onRemoved.removeListener(onRemoved);
+      chrome.tabs.onUpdated.removeListener(onUpdated);
     };
   }, [reload]);
 

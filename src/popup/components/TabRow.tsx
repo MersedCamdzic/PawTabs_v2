@@ -7,7 +7,13 @@ import {
   X,
   Globe,
 } from "@phosphor-icons/react";
-import { focusTab, closeTab } from "@/lib/chrome";
+import {
+  focusTab,
+  closeTab,
+  togglePinned,
+  toggleMuted,
+  toggleStarred,
+} from "@/lib/chrome";
 import { getRootDomain } from "@/lib/utils";
 import type { PawTab } from "@/types";
 
@@ -24,8 +30,30 @@ export function TabRow({ tab, onAction }: Props) {
     window.close();
   };
 
-  const handleClose = async (e: MouseEvent) => {
+  const stop = (e: Event) => {
     e.stopPropagation();
+  };
+
+  const handlePaw = async (e: MouseEvent) => {
+    stop(e);
+    await toggleStarred(tab.id);
+    onAction();
+  };
+
+  const handlePin = async (e: MouseEvent) => {
+    stop(e);
+    await togglePinned(tab.id, !tab.pinned);
+    onAction();
+  };
+
+  const handleMute = async (e: MouseEvent) => {
+    stop(e);
+    await toggleMuted(tab.id, !tab.muted);
+    onAction();
+  };
+
+  const handleClose = async (e: MouseEvent) => {
+    stop(e);
     await closeTab(tab.id);
     onAction();
   };
@@ -51,41 +79,56 @@ export function TabRow({ tab, onAction }: Props) {
         </div>
         <div class="text-[11px] text-fg-subtle truncate leading-tight mt-0.5">
           {domain}
+          {tab.discarded && (
+            <span class="inline-flex items-center gap-1 ml-2 text-fg-subtle">
+              <Moon size={10} />
+              inactive
+            </span>
+          )}
         </div>
       </div>
 
-      <div class="flex items-center gap-1 shrink-0">
-        {tab.starred && (
-          <StatusIcon title="Pawed" tone="accent">
-            <PawPrint size={13} weight="fill" />
-          </StatusIcon>
-        )}
-        {tab.pinned && (
-          <StatusIcon title="Pinned" tone="warning">
-            <PushPin size={13} weight="fill" />
-          </StatusIcon>
-        )}
-        {tab.audible && !tab.muted && (
-          <StatusIcon title="Playing audio" tone="success">
-            <SpeakerHigh size={13} weight="regular" />
-          </StatusIcon>
-        )}
-        {tab.muted && (
-          <StatusIcon title="Muted" tone="danger">
-            <SpeakerSlash size={13} weight="regular" />
-          </StatusIcon>
-        )}
-        {tab.discarded && (
-          <StatusIcon title="Discarded" tone="muted">
-            <Moon size={13} weight="regular" />
-          </StatusIcon>
+      <div class="flex items-center gap-0.5 shrink-0">
+        <ActionButton
+          title={tab.starred ? "Unpaw" : "Paw this tab"}
+          active={tab.starred}
+          tone="accent"
+          onClick={handlePaw}
+        >
+          <PawPrint size={13} weight={tab.starred ? "fill" : "regular"} />
+        </ActionButton>
+
+        <ActionButton
+          title={tab.pinned ? "Unpin" : "Pin tab"}
+          active={tab.pinned}
+          tone="warning"
+          onClick={handlePin}
+        >
+          <PushPin size={13} weight={tab.pinned ? "fill" : "regular"} />
+        </ActionButton>
+
+        {(tab.audible || tab.muted) && (
+          <ActionButton
+            title={tab.muted ? "Unmute" : "Mute"}
+            active={tab.muted ? true : tab.audible}
+            tone={tab.muted ? "danger" : "success"}
+            forceVisible
+            onClick={handleMute}
+          >
+            {tab.muted ? (
+              <SpeakerSlash size={13} />
+            ) : (
+              <SpeakerHigh size={13} />
+            )}
+          </ActionButton>
         )}
 
         <button
           type="button"
           onClick={handleClose}
           aria-label="Close tab"
-          class="size-6 ml-0.5 inline-flex items-center justify-center rounded text-fg-subtle opacity-0 group-hover:opacity-100 hover:bg-danger-subtle hover:text-danger transition-all"
+          title="Close tab"
+          class="size-6 ml-0.5 inline-flex items-center justify-center rounded text-fg-subtle opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 hover:bg-danger-subtle hover:text-danger transition-all"
         >
           <X size={13} />
         </button>
@@ -114,25 +157,52 @@ function Favicon({ url }: { url: string }) {
   );
 }
 
-const TONE_CLASSES = {
+const TONE_ACTIVE = {
   accent: "text-accent",
   warning: "text-warning",
   success: "text-success",
   danger: "text-danger",
-  muted: "text-fg-subtle",
 } as const;
 
-function StatusIcon(props: {
+const TONE_HOVER_BG = {
+  accent: "hover:bg-accent-subtle",
+  warning: "hover:bg-warning-subtle",
+  success: "hover:bg-success-subtle",
+  danger: "hover:bg-danger-subtle",
+} as const;
+
+const TONE_HOVER_FG = {
+  accent: "hover:text-accent",
+  warning: "hover:text-warning",
+  success: "hover:text-success",
+  danger: "hover:text-danger",
+} as const;
+
+interface ActionButtonProps {
   title: string;
-  tone: keyof typeof TONE_CLASSES;
+  active: boolean;
+  tone: keyof typeof TONE_ACTIVE;
+  forceVisible?: boolean;
+  onClick: (e: MouseEvent) => void;
   children: preact.ComponentChildren;
-}) {
+}
+
+function ActionButton(props: ActionButtonProps) {
+  const activeClass = props.active ? TONE_ACTIVE[props.tone] : "text-fg-subtle";
+  const visibility =
+    props.active || props.forceVisible
+      ? "opacity-100"
+      : "opacity-0 group-hover:opacity-100 group-focus-within:opacity-100";
+
   return (
-    <span
+    <button
+      type="button"
+      onClick={props.onClick}
+      aria-label={props.title}
       title={props.title}
-      class={`inline-flex size-5 items-center justify-center ${TONE_CLASSES[props.tone]}`}
+      class={`size-6 inline-flex items-center justify-center rounded ${activeClass} ${visibility} ${TONE_HOVER_BG[props.tone]} ${TONE_HOVER_FG[props.tone]} transition-all`}
     >
       {props.children}
-    </span>
+    </button>
   );
 }

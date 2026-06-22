@@ -57,3 +57,12 @@ export async function toggleMuted(
 ): Promise<void> {
   await chrome.tabs.update(tabId, { muted });
 }
+
+export async function toggleStarred(tabId: number): Promise<boolean> {
+  const savedPages = (await storage.get("savedPages")) ?? {};
+  const entry = savedPages[tabId] ?? {};
+  const next = !entry.starred;
+  savedPages[tabId] = { ...entry, starred: next, saved: next };
+  await storage.set("savedPages", savedPages);
+  return next;
+}
