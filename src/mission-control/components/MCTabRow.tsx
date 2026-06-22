@@ -9,6 +9,7 @@ import {
   NotePencil,
   Moon,
   ArrowSquareOut,
+  ArrowsLeftRight,
   Browsers,
 } from "@phosphor-icons/react";
 import {
@@ -59,6 +60,11 @@ export function MCTabRow({ tab, windowTitle, onAction, onOpenDetails }: Props) {
   const handleJump = async (e: MouseEvent) => {
     stop(e);
     await focusTab(tab.id, tab.windowId);
+  };
+
+  const handleMove = (e: MouseEvent) => {
+    stop(e);
+    onOpenDetails(tab);
   };
 
   return (
@@ -133,6 +139,14 @@ export function MCTabRow({ tab, windowTitle, onAction, onOpenDetails }: Props) {
             )}
           </ActionBtn>
         )}
+        <ActionBtn
+          title="Move to another window"
+          active={false}
+          tone="accent"
+          onClick={handleMove}
+        >
+          <ArrowsLeftRight size={13} weight="bold" />
+        </ActionBtn>
         <ActionBtn
           title="Jump to tab"
           active={false}

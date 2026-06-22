@@ -81,15 +81,10 @@ export async function getWindowsWithPawTabs(): Promise<WindowWithPawTabs[]> {
     grouped.set(tab.windowId, arr);
   }
 
-  const result = Array.from(grouped.entries()).map(([id, tabs]) => ({
+  return Array.from(grouped.entries()).map(([id, tabs]) => ({
     id,
     customTitle: titles[id] ?? null,
     tabs,
     focused: focusedById.get(id) ?? false,
   }));
-
-  return result.sort((a, b) => {
-    if (a.focused !== b.focused) return a.focused ? -1 : 1;
-    return a.id - b.id;
-  });
 }

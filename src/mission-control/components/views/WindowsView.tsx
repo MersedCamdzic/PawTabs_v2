@@ -1,9 +1,11 @@
-import { useState, useEffect, useMemo, useCallback } from "preact/hooks";
+import { useState, useEffect, useMemo, useCallback, useRef } from "preact/hooks";
 import {
   Plus,
   Trash,
   ArrowsLeftRight,
   MagnifyingGlass,
+  CaretDown,
+  Check,
 } from "@phosphor-icons/react";
 import {
   getWindowsWithPawTabs,
@@ -26,9 +28,19 @@ interface SelectionState {
   selectedIds: Set<number>;
 }
 
+type SortKey = "default" | "name" | "count" | "recent";
+
+const SORT_OPTIONS: { value: SortKey; label: string }[] = [
+  { value: "default", label: "Default" },
+  { value: "name", label: "Name (A→Z)" },
+  { value: "count", label: "Tab count" },
+  { value: "recent", label: "Recently used" },
+];
+
 export function WindowsView({ query, onAction, onOpenDetails }: Props) {
   const [windows, setWindows] = useState<WindowWithPawTabs[]>([]);
   const [selection, setSelection] = useState<SelectionState | null>(null);
+  const [sortBy, setSortBy] = useState<SortKey>("default");
 
   const refresh = useCallback(async () => {
     setWindows(await getWindowsWithPawTabs());
@@ -99,10 +111,40 @@ export function WindowsView({ query, onAction, onOpenDetails }: Props) {
     return () => document.removeEventListener("keydown", handler);
   }, [selection]);
 
+  const sorted = useMemo(() => {
+    const arr = [...windows];
+    arr.sort((a, b) => {
+      if (a.focused !== b.focused) return a.focused ? -1 : 1;
+      switch (sortBy) {
+        case "name":
+          return (a.customTitle || `Window ${a.id}`).localeCompare(
+            b.customTitle || `Window ${b.id}`,
+          );
+        case "count":
+          return b.tabs.length - a.tabs.length;
+        case "recent": {
+          const aRecent = Math.max(
+            0,
+            ...a.tabs.map((t) => t.lastAccessed ?? 0),
+          );
+          const bRecent = Math.max(
+            0,
+            ...b.tabs.map((t) => t.lastAccessed ?? 0),
+          );
+          return bRecent - aRecent;
+        }
+        case "default":
+        default:
+          return a.id - b.id;
+      }
+    });
+    return arr;
+  }, [windows, sortBy]);
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return windows;
-    return windows
+    if (!q) return sorted;
+    return sorted
       .map((w) => {
         const customTitleMatch = (w.customTitle ?? "")
           .toLowerCase()
@@ -120,7 +162,7 @@ export function WindowsView({ query, onAction, onOpenDetails }: Props) {
         };
       })
       .filter((w) => w.tabs.length > 0);
-  }, [windows, query]);
+  }, [sorted, query]);
 
   const matchingTabIds = useMemo(() => {
     if (!query.trim()) return [];
@@ -278,6 +320,10 @@ export function WindowsView({ query, onAction, onOpenDetails }: Props) {
 
   return (
     <div class="px-6 py-4">
+      <div class="flex items-center justify-end mb-3">
+        <SortDropdown value={sortBy} onChange={setSortBy} />
+      </div>
+
       {query.trim() && matchingTabIds.length > 0 && selection === null && (
         <div class="mb-3 flex items-center justify-between gap-3 px-3 py-2 bg-surface border border-border rounded-md">
           <div class="flex items-center gap-2 text-[12px] text-fg-muted">
@@ -385,6 +431,68 @@ export function WindowsView({ query, onAction, onOpenDetails }: Props) {
           </div>
         </button>
       </div>
+    </div>
+  );
+}
+
+function SortDropdown(props: {
+  value: SortKey;
+  onChange: (next: SortKey) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [open]);
+
+  const current = SORT_OPTIONS.find((o) => o.value === props.value);
+
+  return (
+    <div ref={ref} class="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        class="h-7 px-2.5 inline-flex items-center gap-1.5 rounded-md border border-border bg-bg hover:bg-surface text-[12px] text-fg-muted hover:text-fg transition-colors"
+      >
+        <span class="text-fg-subtle">Sort</span>
+        <span class="text-fg font-medium">{current?.label}</span>
+        <CaretDown size={11} weight="bold" />
+      </button>
+      {open && (
+        <div class="absolute right-0 top-full mt-1 z-10 w-40 bg-bg-elevated border border-border rounded-md shadow-md py-1">
+          {SORT_OPTIONS.map((opt) => {
+            const selected = opt.value === props.value;
+            return (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => {
+                  props.onChange(opt.value);
+                  setOpen(false);
+                }}
+                class={`w-full px-2.5 py-1.5 text-left text-[12px] flex items-center justify-between hover:bg-surface transition-colors ${
+                  selected ? "text-accent font-medium" : "text-fg"
+                }`}
+              >
+                <span>{opt.label}</span>
+                {selected && <Check size={12} weight="bold" />}
+              </button>
+            );
+          })}
+          <div class="border-t border-border my-1" />
+          <div class="px-2.5 py-1 text-[10px] text-fg-subtle">
+            Focused window always first
+          </div>
+        </div>
+      )}
     </div>
   );
 }

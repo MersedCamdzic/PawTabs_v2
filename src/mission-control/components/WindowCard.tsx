@@ -222,7 +222,7 @@ export function WindowCard({
               aria-label="Save"
               class="size-6 inline-flex items-center justify-center rounded text-fg-muted hover:bg-success-subtle hover:text-success transition-colors"
             >
-              <Check size={11} weight="bold" />
+              <Check size={13} weight="bold" />
             </button>
             <button
               type="button"
@@ -233,7 +233,7 @@ export function WindowCard({
               aria-label="Cancel"
               class="size-6 inline-flex items-center justify-center rounded text-fg-muted hover:bg-surface hover:text-fg transition-colors"
             >
-              <X size={11} weight="bold" />
+              <X size={13} weight="bold" />
             </button>
           </>
         ) : (
@@ -412,7 +412,7 @@ export function WindowCard({
               onClick={handleSplitConfirm}
               class="h-7 px-2.5 text-[11px] font-medium rounded bg-accent text-white hover:bg-accent-hover transition-colors inline-flex items-center gap-1"
             >
-              <ArrowsSplit size={11} />
+              <ArrowsSplit size={13} />
               Split
             </button>
             <button
@@ -533,7 +533,7 @@ function CompactTabRow(props: {
   return (
     <div
       onClick={handleClick}
-      class={`group flex items-center gap-1.5 px-1.5 py-1 rounded text-[12px] transition-colors ${rowClass}`}
+      class={`group flex items-center gap-2.5 px-2 py-2 rounded text-[13px] transition-colors ${rowClass}`}
     >
       {props.inSelectMode && (
         <button
@@ -543,7 +543,7 @@ function CompactTabRow(props: {
             props.onToggleSelect();
           }}
           aria-label={props.selected ? "Deselect tab" : "Select tab"}
-          class={`size-3.5 rounded border shrink-0 inline-flex items-center justify-center transition-all ${
+          class={`size-4 rounded border shrink-0 inline-flex items-center justify-center transition-all ${
             props.selected
               ? "bg-accent border-accent text-white"
               : "border-border-strong hover:border-accent"
@@ -552,7 +552,7 @@ function CompactTabRow(props: {
           {props.selected && (
             <svg
               viewBox="0 0 16 16"
-              class="size-2.5"
+              class="size-3"
               fill="none"
               stroke="currentColor"
               stroke-width="3"
@@ -566,13 +566,13 @@ function CompactTabRow(props: {
         <img
           src={props.tab.favIconUrl}
           alt=""
-          class="size-3.5 shrink-0 rounded-sm"
+          class="size-4 shrink-0 rounded-sm"
           onError={(e) => {
             (e.currentTarget as HTMLImageElement).style.display = "none";
           }}
         />
       ) : (
-        <Globe size={12} class="text-fg-subtle shrink-0" />
+        <Globe size={14} class="text-fg-subtle shrink-0" />
       )}
       <span class="flex-1 truncate text-fg">
         {props.tab.title || props.tab.url}
@@ -604,7 +604,7 @@ function CompactTabRow(props: {
             onClick={handlePaw}
           >
             <PawPrint
-              size={11}
+              size={13}
               weight={props.tab.starred ? "fill" : "regular"}
             />
           </TinyActionBtn>
@@ -615,7 +615,7 @@ function CompactTabRow(props: {
             onClick={handlePin}
           >
             <PushPin
-              size={11}
+              size={13}
               weight={props.tab.pinned ? "fill" : "regular"}
             />
           </TinyActionBtn>
@@ -628,9 +628,9 @@ function CompactTabRow(props: {
               onClick={handleMute}
             >
               {props.tab.muted ? (
-                <SpeakerSlash size={11} />
+                <SpeakerSlash size={13} />
               ) : (
-                <SpeakerHigh size={11} />
+                <SpeakerHigh size={13} />
               )}
             </TinyActionBtn>
           )}
@@ -646,7 +646,7 @@ function CompactTabRow(props: {
             tone="accent"
             onClick={handleJump}
           >
-            <ArrowSquareOut size={11} />
+            <ArrowSquareOut size={13} />
           </TinyActionBtn>
           <span
             class="w-px h-3 mx-0.5 bg-border opacity-0 group-hover:opacity-100 transition-opacity"
@@ -657,7 +657,7 @@ function CompactTabRow(props: {
             tone="danger"
             onClick={handleClose}
           >
-            <X size={11} />
+            <X size={13} />
           </TinyActionBtn>
         </div>
       )}
@@ -701,7 +701,8 @@ function TinyActionBtn(props: {
       onClick={props.onClick}
       aria-label={props.title}
       data-tooltip={props.title}
-      class={`size-5 inline-flex items-center justify-center rounded ${activeCls} ${visibility} ${TONE_HOVER[props.tone]} transition-all`}
+      data-tooltip-pos="above"
+      class={`size-6 inline-flex items-center justify-center rounded ${activeCls} ${visibility} ${TONE_HOVER[props.tone]} transition-all`}
     >
       {props.children}
     </button>
