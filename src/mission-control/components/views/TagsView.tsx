@@ -4,7 +4,6 @@ import {
   Globe,
   ArrowSquareOut,
   ArrowUUpLeft,
-  Trash,
   X,
 } from "@phosphor-icons/react";
 import {
@@ -16,14 +15,30 @@ import { focusTab } from "@/lib/chrome";
 import { getRootDomain } from "@/lib/utils";
 import { formatRelativeTime } from "@/lib/sessions";
 import type { PawTab, TaggedUrlEntry } from "@/types";
+import type { SnapshotSortKey } from "../SnapshotSortDropdown";
 
 interface Props {
   query: string;
+  sortBy: SnapshotSortKey;
+  columns: 1 | 2 | 3 | 4;
   openTabs: PawTab[];
   onAction: () => void;
 }
 
-export function TagsView({ query, openTabs, onAction }: Props) {
+const COLUMN_LAYOUT: Record<1 | 2 | 3 | 4, string> = {
+  1: "space-y-0.5",
+  2: "grid grid-cols-1 md:grid-cols-2 gap-1",
+  3: "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-1",
+  4: "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-1",
+};
+
+export function TagsView({
+  query,
+  sortBy,
+  columns,
+  openTabs,
+  onAction,
+}: Props) {
   const [tagList, setTagList] = useState<TagAggregate[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
 
@@ -44,8 +59,20 @@ export function TagsView({ query, openTabs, onAction }: Props) {
   const selectedEntries = useMemo<TaggedUrlEntry[]>(() => {
     if (!selected) return [];
     const found = tagList.find((t) => t.tag === selected);
-    return found?.entries ?? [];
-  }, [selected, tagList]);
+    const list = [...(found?.entries ?? [])];
+    list.sort((a, b) => {
+      switch (sortBy) {
+        case "date-asc":
+          return a.updatedAt - b.updatedAt;
+        case "name":
+          return (a.title || a.url).localeCompare(b.title || b.url);
+        case "date-desc":
+        default:
+          return b.updatedAt - a.updatedAt;
+      }
+    });
+    return list;
+  }, [selected, tagList, sortBy]);
 
   const openByUrl = useMemo(() => {
     const map = new Map<string, PawTab>();
@@ -125,7 +152,7 @@ export function TagsView({ query, openTabs, onAction }: Props) {
               {selected} — {selectedEntries.length} tab
               {selectedEntries.length === 1 ? "" : "s"}
             </div>
-            <div class="space-y-0.5">
+            <div class={COLUMN_LAYOUT[columns]}>
               {selectedEntries.map((entry) => (
                 <TaggedRow
                   key={entry.url}
@@ -156,17 +183,39 @@ function TaggedRow(props: {
   const { entry, openTab } = props;
   const domain = getRootDomain(entry.url);
   const isOpen = openTab !== null;
+  const isInactive = isOpen && openTab.discarded;
+
+  let tagColor: string;
+  let tagTooltip: string;
+  if (!isOpen) {
+    tagColor = "bg-danger-subtle text-danger";
+    tagTooltip = "Closed — click to reopen URL";
+  } else if (isInactive) {
+    tagColor = "bg-surface text-fg-subtle";
+    tagTooltip = "Open but inactive (discarded) — click to wake + jump";
+  } else {
+    tagColor = "bg-success-subtle text-success";
+    tagTooltip = "Open and active — click to jump";
+  }
 
   return (
     <div
       onClick={props.onOpen}
       class="group flex items-center gap-3 px-3 py-2.5 rounded-md hover:bg-surface cursor-pointer transition-colors"
     >
+      <span
+        data-tooltip={tagTooltip}
+        data-tooltip-pos="right"
+        class={`inline-flex size-7 items-center justify-center rounded-full shrink-0 ${tagColor}`}
+      >
+        <Tag size={14} weight="fill" />
+      </span>
+
       {entry.favIconUrl ? (
         <img
           src={entry.favIconUrl}
           alt=""
-          class={`size-5 shrink-0 rounded ${isOpen ? "" : "grayscale opacity-70"}`}
+          class={`size-5 shrink-0 rounded ${isOpen && !isInactive ? "" : "grayscale opacity-70"}`}
           onError={(e) => {
             (e.currentTarget as HTMLImageElement).style.display = "none";
           }}
@@ -174,12 +223,18 @@ function TaggedRow(props: {
       ) : (
         <Globe
           size={16}
-          class={`text-fg-subtle shrink-0 ${isOpen ? "" : "opacity-70"}`}
+          class={`text-fg-subtle shrink-0 ${isOpen && !isInactive ? "" : "opacity-70"}`}
         />
       )}
       <div class="flex-1 min-w-0">
         <div
-          class={`text-[13px] leading-snug line-clamp-2 ${isOpen ? "text-fg" : "text-fg-muted"}`}
+          class={`text-[13px] leading-snug line-clamp-2 ${
+            isOpen && !isInactive
+              ? "text-fg"
+              : isInactive
+                ? "text-fg-muted italic"
+                : "text-fg-muted"
+          }`}
         >
           {entry.title || domain}
         </div>

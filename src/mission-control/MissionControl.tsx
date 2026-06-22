@@ -258,6 +258,22 @@ export function MissionControl() {
                     onChange={setCurrentSnapshotColumns}
                   />
                 </>
+              ) : view === "tags" ? (
+                <>
+                  <SnapshotSortDropdown
+                    value={currentSnapshotSort}
+                    onChange={setCurrentSnapshotSort}
+                    options={[
+                      { value: "date-desc", label: "Newest first" },
+                      { value: "date-asc", label: "Oldest first" },
+                      { value: "name", label: "Title (A→Z)" },
+                    ]}
+                  />
+                  <ColumnsPicker
+                    value={currentSnapshotColumns}
+                    onChange={setCurrentSnapshotColumns}
+                  />
+                </>
               ) : view === "recently-closed" ? (
                 <>
                   <SnapshotSortDropdown
@@ -355,6 +371,8 @@ export function MissionControl() {
         {view === "tags" && (
           <TagsView
             query={query}
+            sortBy={currentSnapshotSort}
+            columns={currentSnapshotColumns}
             openTabs={snapshot?.tabs ?? []}
             onAction={reload}
           />
