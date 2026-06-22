@@ -7,9 +7,17 @@ interface Props {
   onClose: () => void;
   children: preact.ComponentChildren;
   footer?: preact.ComponentChildren;
+  headerActions?: preact.ComponentChildren;
 }
 
-export function Modal({ title, open, onClose, children, footer }: Props) {
+export function Modal({
+  title,
+  open,
+  onClose,
+  children,
+  footer,
+  headerActions,
+}: Props) {
   useEffect(() => {
     if (!open) return;
     const handler = (e: KeyboardEvent) => {
@@ -30,8 +38,11 @@ export function Modal({ title, open, onClose, children, footer }: Props) {
         class="relative w-[380px] max-h-[90vh] bg-bg-elevated border border-border rounded-lg shadow-lg flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
-        <div class="flex items-center justify-between px-4 py-3 border-b border-border">
-          <h2 class="text-[14px] font-semibold tracking-tight">{title}</h2>
+        <div class="flex items-center gap-2 px-4 py-3 border-b border-border">
+          <h2 class="text-[14px] font-semibold tracking-tight flex-1">
+            {title}
+          </h2>
+          {headerActions}
           <button
             type="button"
             onClick={onClose}

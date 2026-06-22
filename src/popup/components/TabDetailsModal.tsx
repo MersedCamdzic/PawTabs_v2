@@ -108,7 +108,23 @@ export function TabDetailsModal({ tab, open, onClose, onAction }: Props) {
     : `Window ${tab.windowId}`;
 
   return (
-    <Modal open={open} onClose={onClose} title="Tab details">
+    <Modal
+      open={open}
+      onClose={onClose}
+      title="Tab details"
+      headerActions={
+        <button
+          type="button"
+          onClick={handleJump}
+          aria-label="Jump to tab"
+          data-tooltip="Jump to this tab"
+          data-tooltip-pos="below"
+          class="size-7 inline-flex items-center justify-center rounded-md text-fg-muted hover:bg-accent-subtle hover:text-accent transition-colors"
+        >
+          <ArrowSquareOut size={14} />
+        </button>
+      }
+    >
       <div class="space-y-4">
         <div class="flex items-center gap-2.5 px-2.5 py-2 bg-surface rounded-md border border-border">
           <Favicon url={tab.favIconUrl} />
@@ -125,16 +141,6 @@ export function TabDetailsModal({ tab, open, onClose, onAction }: Props) {
               </span>
             </div>
           </div>
-          <button
-            type="button"
-            onClick={handleJump}
-            aria-label="Jump to tab"
-            data-tooltip="Jump to this tab"
-            data-tooltip-pos="left"
-            class="size-8 inline-flex items-center justify-center rounded-md text-fg-muted bg-bg border border-border hover:border-accent hover:bg-accent-subtle hover:text-accent transition-colors shrink-0"
-          >
-            <ArrowSquareOut size={14} />
-          </button>
         </div>
 
         <Section icon={<Tag size={11} />} title="Tags">
@@ -310,6 +316,20 @@ export function TabDetailsModal({ tab, open, onClose, onAction }: Props) {
                       />
                     </div>
                     <div class="max-h-[200px] overflow-y-auto p-1 space-y-0.5">
+                      <button
+                        type="button"
+                        onClick={handleMoveNew}
+                        class="w-full flex items-center gap-2 px-2 py-1.5 rounded hover:bg-accent-subtle text-accent text-[12px] font-medium transition-colors"
+                      >
+                        <Plus size={12} weight="bold" />
+                        New window
+                        <span class="ml-auto text-[10px] text-accent/60">
+                          create
+                        </span>
+                      </button>
+                      {filtered.length > 0 && (
+                        <div class="border-t border-border my-1" />
+                      )}
                       {filtered.map((w) => (
                         <WindowOption
                           key={w.id}
@@ -328,15 +348,6 @@ export function TabDetailsModal({ tab, open, onClose, onAction }: Props) {
                     </div>
                   </div>
                 )}
-
-                <button
-                  type="button"
-                  onClick={handleMoveNew}
-                  class="w-full flex items-center gap-2 px-2.5 py-2 rounded-md border border-dashed border-border hover:border-accent hover:bg-accent-subtle text-fg-muted hover:text-accent text-[12px] transition-colors"
-                >
-                  <ArrowSquareOut size={13} />
-                  Move to a brand new window
-                </button>
               </div>
             );
           })()}
