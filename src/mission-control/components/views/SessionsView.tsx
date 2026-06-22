@@ -78,7 +78,7 @@ export function SessionsView({ query }: Props) {
   };
 
   return (
-    <div class="px-6 py-4 max-w-4xl">
+    <div class="px-6 py-4">
       <div class="flex gap-2 mb-4 max-w-md">
         <input
           type="text"

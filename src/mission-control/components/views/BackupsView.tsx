@@ -48,7 +48,7 @@ export function BackupsView({ query }: Props) {
   };
 
   return (
-    <div class="px-6 py-4 max-w-4xl">
+    <div class="px-6 py-4">
       <div class="text-[12px] text-fg-muted bg-accent-subtle/30 border border-accent/20 rounded-md px-3 py-2.5 mb-4 max-w-2xl space-y-1">
         <div class="font-medium text-fg flex items-center gap-1.5">
           What's a Wizard backup?

@@ -56,7 +56,7 @@ export function TagsView({
   }
 
   return (
-    <div class="px-6 py-4 grid grid-cols-[200px_1fr] gap-6 max-w-5xl">
+    <div class="px-6 py-4 grid grid-cols-[220px_1fr] gap-6">
       <div class="space-y-0.5">
         <div class="text-[10px] uppercase tracking-wide text-fg-subtle font-medium mb-2 px-2">
           {filtered.length} tag{filtered.length === 1 ? "" : "s"}

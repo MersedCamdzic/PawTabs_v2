@@ -25,7 +25,7 @@ export function TabsListView({
   }
 
   return (
-    <div class="px-6 py-3 space-y-0.5 max-w-4xl">
+    <div class="px-6 py-3 space-y-0.5">
       {tabs.map((tab) => (
         <MCTabRow
           key={tab.id}

@@ -59,7 +59,7 @@ export function RecentlyClosedView({ query }: Props) {
   }, [items, query]);
 
   return (
-    <div class="px-6 py-3 max-w-4xl">
+    <div class="px-6 py-3">
       <div class="flex items-start justify-between gap-3 px-3 py-2 mb-3 bg-surface border border-border rounded-md text-[11px] text-fg-muted">
         <div>
           Chrome remembers up to 25 recently closed tabs from your current
