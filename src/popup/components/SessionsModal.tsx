@@ -3,8 +3,10 @@ import {
   FloppyDisk,
   ArrowCounterClockwise,
   Trash,
-  Stack,
+  BookmarkSimple,
   ClockCounterClockwise,
+  Plus,
+  X,
 } from "@phosphor-icons/react";
 import { Modal } from "./Modal";
 import {
@@ -29,6 +31,7 @@ export function SessionsModal({ open, onClose }: Props) {
   const [sessions, setSessions] = useState<SavedSession[]>([]);
   const [backups, setBackups] = useState<Backup[]>([]);
   const [name, setName] = useState("");
+  const [savingOpen, setSavingOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
 
@@ -39,7 +42,11 @@ export function SessionsModal({ open, onClose }: Props) {
   };
 
   useEffect(() => {
-    if (open) refresh();
+    if (open) {
+      refresh();
+      setSavingOpen(false);
+      setName("");
+    }
   }, [open]);
 
   const handleSave = async () => {
@@ -47,6 +54,7 @@ export function SessionsModal({ open, onClose }: Props) {
     try {
       await saveSession(name);
       setName("");
+      setSavingOpen(false);
       await refresh();
     } finally {
       setSaving(false);
@@ -111,32 +119,11 @@ export function SessionsModal({ open, onClose }: Props) {
 
         {view === "sessions" && (
           <>
-            <div class="flex gap-2">
-              <input
-                type="text"
-                value={name}
-                onInput={(e) =>
-                  setName((e.currentTarget as HTMLInputElement).value)
-                }
-                placeholder="Session name (optional)"
-                class="flex-1 h-8 px-2.5 bg-surface border border-border rounded-md text-[12px] placeholder:text-fg-subtle focus:outline-none focus:bg-bg-elevated focus:border-accent focus:ring-4 focus:ring-accent/10 transition-colors"
-              />
-              <button
-                type="button"
-                onClick={handleSave}
-                disabled={saving}
-                class="h-8 px-3 inline-flex items-center gap-1.5 text-[12px] font-medium rounded-md bg-accent text-white hover:bg-accent-hover disabled:opacity-40 transition-colors"
-              >
-                <FloppyDisk size={12} weight="fill" />
-                Save
-              </button>
-            </div>
-
             {sessions.length === 0 ? (
               <EmptyState
-                icon={<Stack size={28} weight="thin" />}
+                icon={<BookmarkSimple size={28} weight="thin" />}
                 text="No saved sessions yet"
-                hint="Save current state to restore it later"
+                hint="Save your current state to restore it later."
               />
             ) : (
               <ItemList>
@@ -157,6 +144,61 @@ export function SessionsModal({ open, onClose }: Props) {
                 })}
               </ItemList>
             )}
+
+            <div class="border-t border-border pt-3">
+              {savingOpen ? (
+                <div class="flex gap-2 items-center">
+                  <input
+                    type="text"
+                    autoFocus
+                    value={name}
+                    onInput={(e) =>
+                      setName((e.currentTarget as HTMLInputElement).value)
+                    }
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleSave();
+                      } else if (e.key === "Escape") {
+                        setSavingOpen(false);
+                        setName("");
+                      }
+                    }}
+                    placeholder="Name this snapshot…"
+                    class="flex-1 h-8 px-2.5 bg-surface border border-accent rounded-md text-[12px] placeholder:text-fg-subtle focus:outline-none focus:ring-4 focus:ring-accent/10 transition-colors"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleSave}
+                    disabled={saving}
+                    class="h-8 px-3 inline-flex items-center gap-1 text-[12px] font-medium rounded-md bg-accent text-white hover:bg-accent-hover disabled:opacity-40 transition-colors"
+                  >
+                    <FloppyDisk size={12} weight="fill" />
+                    Save
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSavingOpen(false);
+                      setName("");
+                    }}
+                    aria-label="Cancel"
+                    class="size-8 inline-flex items-center justify-center rounded-md text-fg-muted hover:bg-surface hover:text-fg transition-colors"
+                  >
+                    <X size={13} />
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setSavingOpen(true)}
+                  class="w-full h-8 flex items-center justify-center gap-1.5 rounded-md border border-dashed border-border hover:border-accent hover:bg-accent-subtle text-fg-muted hover:text-accent text-[12px] font-medium transition-colors"
+                >
+                  <Plus size={12} weight="bold" />
+                  Save current state as a snapshot
+                </button>
+              )}
+            </div>
           </>
         )}
 
@@ -171,7 +213,7 @@ export function SessionsModal({ open, onClose }: Props) {
               <EmptyState
                 icon={<ClockCounterClockwise size={28} weight="thin" />}
                 text="No backups yet"
-                hint="Wizard creates backups automatically before cleanup"
+                hint="Wizard creates backups automatically before cleanup."
               />
             ) : (
               <ItemList>

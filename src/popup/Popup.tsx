@@ -6,7 +6,7 @@ import {
   GridFour,
   Broom,
   PawPrint,
-  Stack,
+  BookmarkSimple,
 } from "@phosphor-icons/react";
 import { useTabSnapshot } from "./hooks";
 import { TabGroupSection } from "./components/TabGroupSection";
@@ -121,15 +121,16 @@ export function Popup() {
   return (
     <div class="w-[420px] min-h-[560px] max-h-[600px] bg-bg text-fg flex flex-col">
       <header class="flex items-center justify-between px-4 pt-4 pb-3">
-        <div class="flex items-center gap-2">
-          <span class="inline-flex size-7 items-center justify-center rounded-md bg-accent-subtle text-accent">
-            <PawPrint size={16} weight="fill" />
-          </span>
-          <h1 class="text-[15px] font-semibold tracking-tight">PawTabs</h1>
+        <div class="flex items-center gap-1.5 text-fg-muted">
+          <PawPrint size={13} weight="fill" class="text-accent" />
+          <h1 class="text-[13px] font-semibold tracking-tight">PawTabs</h1>
         </div>
         <div class="flex items-center gap-1">
-          <IconButton label="Sessions" onClick={() => setSessionsOpen(true)}>
-            <Stack size={16} weight="regular" />
+          <IconButton
+            label="Saved sessions"
+            onClick={() => setSessionsOpen(true)}
+          >
+            <BookmarkSimple size={16} weight="regular" />
           </IconButton>
           <IconButton label="Wizard" onClick={() => setWizardOpen(true)}>
             <Broom size={16} weight="regular" />
