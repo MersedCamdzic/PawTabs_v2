@@ -22,7 +22,8 @@ const VIEW_META: Record<View, { title: string; subtitle: string }> = {
   tabs: { title: "All tabs", subtitle: "Every tab open across all windows." },
   windows: {
     title: "Windows",
-    subtitle: "Drag tabs between windows to reorganize.",
+    subtitle:
+      "Visualize, rename, and reorganize windows. Click → on any tab to move it.",
   },
   pawed: { title: "Pawed", subtitle: "Tabs you have marked as important." },
   pinned: { title: "Pinned", subtitle: "Tabs you have pinned in Chrome." },

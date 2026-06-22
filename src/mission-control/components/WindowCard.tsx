@@ -7,36 +7,36 @@ import {
   Globe,
   PushPin,
   ArrowSquareOut,
-  DotsSixVertical,
+  ArrowRight,
 } from "@phosphor-icons/react";
 import { setWindowTitle, type WindowWithMeta } from "@/lib/windows";
 import { focusTab } from "@/lib/chrome";
 
 interface Props {
   window: WindowWithMeta;
-  draggingTabId: number | null;
-  onDragStart: (tabId: number) => void;
-  onDragEnd: () => void;
-  onDropTab: (windowId: number) => Promise<void>;
+  movingTabId: number | null;
+  isMoveTarget: boolean;
+  onStartMove: (tabId: number) => void;
+  onCancelMove: () => void;
+  onPickTarget: (windowId: number) => Promise<void>;
   onReload: () => void;
 }
 
 export function WindowCard({
   window,
-  draggingTabId,
-  onDragStart,
-  onDragEnd,
-  onDropTab,
+  movingTabId,
+  isMoveTarget,
+  onStartMove,
+  onCancelMove,
+  onPickTarget,
   onReload,
 }: Props) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState("");
-  const [isDropTarget, setIsDropTarget] = useState(false);
 
   const displayTitle = window.customTitle || `Window ${window.id}`;
-  const canDrop =
-    draggingTabId !== null &&
-    !window.tabs.some((t) => t.id === draggingTabId);
+  const containsMovingTab =
+    movingTabId !== null && window.tabs.some((t) => t.id === movingTabId);
 
   const startEdit = () => {
     setDraft(window.customTitle ?? "");
@@ -53,31 +53,31 @@ export function WindowCard({
     onReload();
   };
 
-  const handleFocusWindow = async () => {
+  const handleFocusWindow = async (e: MouseEvent) => {
+    e.stopPropagation();
     await chrome.windows.update(window.id, { focused: true });
   };
 
+  const handleCardClick = async () => {
+    if (isMoveTarget) {
+      await onPickTarget(window.id);
+    } else if (containsMovingTab) {
+      onCancelMove();
+    }
+  };
+
+  const borderClass = isMoveTarget
+    ? "border-accent ring-4 ring-accent/15 cursor-pointer hover:bg-accent-subtle/30"
+    : containsMovingTab
+      ? "border-border-strong opacity-60"
+      : window.focused
+        ? "border-border-strong"
+        : "border-border hover:border-border-strong";
+
   return (
     <div
-      onDragOver={(e) => {
-        if (!canDrop) return;
-        e.preventDefault();
-        e.dataTransfer!.dropEffect = "move";
-        setIsDropTarget(true);
-      }}
-      onDragLeave={() => setIsDropTarget(false)}
-      onDrop={async (e) => {
-        e.preventDefault();
-        setIsDropTarget(false);
-        if (canDrop) await onDropTab(window.id);
-      }}
-      class={`flex flex-col bg-bg border rounded-lg overflow-hidden transition-all ${
-        isDropTarget
-          ? "border-accent ring-4 ring-accent/15"
-          : window.focused
-            ? "border-border-strong"
-            : "border-border hover:border-border-strong"
-      }`}
+      onClick={handleCardClick}
+      class={`flex flex-col bg-bg border rounded-lg overflow-hidden transition-all ${borderClass}`}
     >
       <div class="flex items-center gap-2 px-3 py-2 border-b border-border bg-surface/40">
         <Browsers
@@ -91,6 +91,7 @@ export function WindowCard({
               type="text"
               autoFocus
               value={draft}
+              onClick={(e) => e.stopPropagation()}
               onInput={(e) =>
                 setDraft((e.currentTarget as HTMLInputElement).value)
               }
@@ -108,7 +109,10 @@ export function WindowCard({
             />
             <button
               type="button"
-              onClick={commitEdit}
+              onClick={(e) => {
+                e.stopPropagation();
+                commitEdit();
+              }}
               aria-label="Save"
               class="size-6 inline-flex items-center justify-center rounded text-fg-muted hover:bg-success-subtle hover:text-success transition-colors"
             >
@@ -116,7 +120,10 @@ export function WindowCard({
             </button>
             <button
               type="button"
-              onClick={cancelEdit}
+              onClick={(e) => {
+                e.stopPropagation();
+                cancelEdit();
+              }}
               aria-label="Cancel"
               class="size-6 inline-flex items-center justify-center rounded text-fg-muted hover:bg-surface hover:text-fg transition-colors"
             >
@@ -127,7 +134,10 @@ export function WindowCard({
           <>
             <button
               type="button"
-              onClick={startEdit}
+              onClick={(e) => {
+                e.stopPropagation();
+                startEdit();
+              }}
               class="flex-1 min-w-0 text-left group/title rounded px-1 -mx-1 hover:bg-surface transition-colors"
               title="Click to rename window"
             >
@@ -142,6 +152,9 @@ export function WindowCard({
                 {window.tabs.length} tab{window.tabs.length === 1 ? "" : "s"}
                 {window.focused && (
                   <span class="ml-1.5 text-accent">· focused</span>
+                )}
+                {isMoveTarget && (
+                  <span class="ml-1.5 text-accent">· click to move here</span>
                 )}
               </div>
             </button>
@@ -163,11 +176,11 @@ export function WindowCard({
           <CompactTabRow
             key={tab.id ?? Math.random()}
             tab={tab}
-            isDragging={draggingTabId === tab.id}
-            onDragStart={() => {
-              if (tab.id !== undefined) onDragStart(tab.id);
+            isMoving={movingTabId === tab.id}
+            disabled={movingTabId !== null && movingTabId !== tab.id}
+            onStartMove={() => {
+              if (tab.id !== undefined) onStartMove(tab.id);
             }}
-            onDragEnd={onDragEnd}
           />
         ))}
         {window.tabs.length === 0 && (
@@ -182,61 +195,66 @@ export function WindowCard({
 
 function CompactTabRow(props: {
   tab: chrome.tabs.Tab;
-  isDragging: boolean;
-  onDragStart: () => void;
-  onDragEnd: () => void;
+  isMoving: boolean;
+  disabled: boolean;
+  onStartMove: () => void;
 }) {
-  const handleClick = async () => {
+  const handleClick = async (e: MouseEvent) => {
+    e.stopPropagation();
+    if (props.disabled) return;
     if (props.tab.id === undefined) return;
     await focusTab(props.tab.id, props.tab.windowId ?? 0);
   };
 
-  const handleDragStart = (e: DragEvent) => {
-    if (props.tab.id === undefined || !e.dataTransfer) {
-      e.preventDefault();
-      return;
-    }
-    e.dataTransfer.setData("text/plain", String(props.tab.id));
-    e.dataTransfer.setData("text/tab-id", String(props.tab.id));
-    e.dataTransfer.effectAllowed = "move";
-    props.onDragStart();
+  const handleMove = (e: MouseEvent) => {
+    e.stopPropagation();
+    props.onStartMove();
   };
+
+  const rowClass = props.isMoving
+    ? "bg-accent-subtle ring-1 ring-accent/40"
+    : props.disabled
+      ? "opacity-40"
+      : "hover:bg-surface cursor-pointer";
 
   return (
     <div
-      draggable={true}
-      onDragStart={handleDragStart}
-      onDragEnd={props.onDragEnd}
       onClick={handleClick}
-      class={`group flex items-center gap-1 px-1 py-1 rounded text-[12px] cursor-grab active:cursor-grabbing select-none transition-all ${
-        props.isDragging ? "opacity-30" : "hover:bg-surface"
-      }`}
+      class={`group flex items-center gap-1.5 px-1.5 py-1 rounded text-[12px] transition-colors ${rowClass}`}
     >
-      <span class="size-3 inline-flex items-center justify-center text-fg-subtle opacity-30 group-hover:opacity-100 transition-opacity shrink-0 pointer-events-none">
-        <DotsSixVertical size={10} weight="bold" />
-      </span>
       {props.tab.favIconUrl ? (
         <img
           src={props.tab.favIconUrl}
           alt=""
-          draggable={false}
-          class="size-3.5 shrink-0 rounded-sm pointer-events-none"
+          class="size-3.5 shrink-0 rounded-sm"
           onError={(e) => {
             (e.currentTarget as HTMLImageElement).style.display = "none";
           }}
         />
       ) : (
-        <Globe size={12} class="text-fg-subtle shrink-0 pointer-events-none" />
+        <Globe size={12} class="text-fg-subtle shrink-0" />
       )}
-      <span class="flex-1 truncate text-fg pointer-events-none">
+      <span class="flex-1 truncate text-fg">
         {props.tab.title || props.tab.url}
       </span>
       {props.tab.pinned && (
-        <PushPin
-          size={10}
-          weight="fill"
-          class="text-warning shrink-0 pointer-events-none"
-        />
+        <PushPin size={10} weight="fill" class="text-warning shrink-0" />
+      )}
+      {!props.disabled && !props.isMoving && (
+        <button
+          type="button"
+          onClick={handleMove}
+          aria-label="Move to another window"
+          title="Move to another window"
+          class="size-6 inline-flex items-center justify-center rounded text-fg-subtle opacity-0 group-hover:opacity-100 hover:bg-accent-subtle hover:text-accent transition-all"
+        >
+          <ArrowRight size={12} />
+        </button>
+      )}
+      {props.isMoving && (
+        <span class="text-[10px] font-medium text-accent shrink-0">
+          pick destination →
+        </span>
       )}
     </div>
   );

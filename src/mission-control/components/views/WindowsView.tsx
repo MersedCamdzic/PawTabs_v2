@@ -10,8 +10,7 @@ interface Props {
 
 export function WindowsView({ query, onAction }: Props) {
   const [windows, setWindows] = useState<WindowWithMeta[]>([]);
-  const [draggingTabId, setDraggingTabId] = useState<number | null>(null);
-  const [isNewWindowTarget, setIsNewWindowTarget] = useState(false);
+  const [movingTabId, setMovingTabId] = useState<number | null>(null);
 
   const refresh = useCallback(async () => {
     setWindows(await getWindowsWithMeta());
@@ -43,6 +42,15 @@ export function WindowsView({ query, onAction }: Props) {
     };
   }, [refresh]);
 
+  useEffect(() => {
+    if (movingTabId === null) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setMovingTabId(null);
+    };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, [movingTabId]);
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return windows;
@@ -61,38 +69,56 @@ export function WindowsView({ query, onAction }: Props) {
       );
   }, [windows, query]);
 
-  const handleDropTab = async (targetWindowId: number) => {
-    if (draggingTabId === null) return;
+  const sourceWindowId = useMemo(() => {
+    if (movingTabId === null) return null;
+    return (
+      windows.find((w) => w.tabs.some((t) => t.id === movingTabId))?.id ?? null
+    );
+  }, [windows, movingTabId]);
+
+  const handlePickTarget = async (targetWindowId: number) => {
+    if (movingTabId === null) return;
     try {
-      await chrome.tabs.move(draggingTabId, {
+      await chrome.tabs.move(movingTabId, {
         windowId: targetWindowId,
         index: -1,
       });
       onAction();
       await refresh();
     } finally {
-      setDraggingTabId(null);
+      setMovingTabId(null);
     }
   };
 
-  const handleDropNewWindow = async () => {
-    if (draggingTabId === null) return;
+  const handlePickNewWindow = async () => {
+    if (movingTabId === null) return;
     try {
-      await chrome.windows.create({ tabId: draggingTabId });
+      await chrome.windows.create({ tabId: movingTabId });
       onAction();
       await refresh();
     } finally {
-      setDraggingTabId(null);
-      setIsNewWindowTarget(false);
+      setMovingTabId(null);
     }
   };
 
   return (
     <div class="px-6 py-4">
-      {draggingTabId !== null && (
-        <div class="mb-3 text-[11px] text-accent bg-accent-subtle border border-accent/30 rounded-md px-3 py-2">
-          Dragging tab — drop on a window card to move it, or on the dashed
-          card to create a new window.
+      {movingTabId !== null && (
+        <div class="mb-3 flex items-center justify-between gap-3 text-[11px] text-accent bg-accent-subtle border border-accent/30 rounded-md px-3 py-2">
+          <span>
+            Pick a destination window — click any highlighted card. Press{" "}
+            <kbd class="font-mono px-1 bg-bg-elevated rounded border border-accent/30">
+              Esc
+            </kbd>{" "}
+            to cancel.
+          </span>
+          <button
+            type="button"
+            onClick={() => setMovingTabId(null)}
+            class="font-medium hover:underline"
+          >
+            Cancel
+          </button>
         </div>
       )}
 
@@ -101,43 +127,38 @@ export function WindowsView({ query, onAction }: Props) {
           <WindowCard
             key={w.id}
             window={w}
-            draggingTabId={draggingTabId}
-            onDragStart={setDraggingTabId}
-            onDragEnd={() => setDraggingTabId(null)}
-            onDropTab={handleDropTab}
+            movingTabId={movingTabId}
+            isMoveTarget={
+              movingTabId !== null &&
+              sourceWindowId !== null &&
+              w.id !== sourceWindowId
+            }
+            onStartMove={setMovingTabId}
+            onCancelMove={() => setMovingTabId(null)}
+            onPickTarget={handlePickTarget}
             onReload={refresh}
           />
         ))}
 
-        <div
-          onDragOver={(e) => {
-            if (draggingTabId === null) return;
-            e.preventDefault();
-            e.dataTransfer!.dropEffect = "move";
-            setIsNewWindowTarget(true);
-          }}
-          onDragLeave={() => setIsNewWindowTarget(false)}
-          onDrop={async (e) => {
-            e.preventDefault();
-            await handleDropNewWindow();
-          }}
+        <button
+          type="button"
+          onClick={handlePickNewWindow}
+          disabled={movingTabId === null}
           class={`flex items-center justify-center min-h-[120px] rounded-lg border-2 border-dashed text-[12px] font-medium transition-all ${
-            isNewWindowTarget
-              ? "border-accent bg-accent-subtle text-accent"
-              : draggingTabId !== null
-                ? "border-border-strong text-fg-muted"
-                : "border-border text-fg-subtle"
+            movingTabId !== null
+              ? "border-accent text-accent hover:bg-accent-subtle cursor-pointer"
+              : "border-border text-fg-subtle cursor-not-allowed"
           }`}
         >
           <div class="text-center">
-            <Plus
-              size={20}
-              weight="regular"
-              class="mx-auto mb-1"
-            />
-            <div>Drop here for new window</div>
+            <Plus size={20} weight="regular" class="mx-auto mb-1" />
+            <div>
+              {movingTabId !== null
+                ? "Click to move to new window"
+                : "Move tabs here to create a new window"}
+            </div>
           </div>
-        </div>
+        </button>
       </div>
     </div>
   );
