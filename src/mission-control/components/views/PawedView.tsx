@@ -116,17 +116,39 @@ function PawedRow(props: {
   const { entry, openTab } = props.row;
   const domain = getRootDomain(entry.url);
   const isOpen = openTab !== null;
+  const isInactive = isOpen && openTab.discarded;
+
+  let pawColor: string;
+  let pawTooltip: string;
+  if (!isOpen) {
+    pawColor = "bg-danger-subtle text-danger";
+    pawTooltip = "Closed — click to reopen URL";
+  } else if (isInactive) {
+    pawColor = "bg-surface text-fg-subtle";
+    pawTooltip = "Open but inactive (discarded) — click to wake + jump";
+  } else {
+    pawColor = "bg-success-subtle text-success";
+    pawTooltip = "Open and active — click to jump";
+  }
 
   return (
     <div
       onClick={props.onOpen}
       class="group flex items-center gap-3 px-3 py-2.5 rounded-md hover:bg-surface cursor-pointer transition-colors"
     >
+      <span
+        data-tooltip={pawTooltip}
+        data-tooltip-pos="right"
+        class={`inline-flex size-7 items-center justify-center rounded-full shrink-0 ${pawColor}`}
+      >
+        <PawPrint size={14} weight="fill" />
+      </span>
+
       {entry.favIconUrl ? (
         <img
           src={entry.favIconUrl}
           alt=""
-          class={`size-5 shrink-0 rounded ${isOpen ? "" : "grayscale opacity-70"}`}
+          class={`size-5 shrink-0 rounded ${isOpen && !isInactive ? "" : "grayscale opacity-70"}`}
           onError={(e) => {
             (e.currentTarget as HTMLImageElement).style.display = "none";
           }}
@@ -134,31 +156,21 @@ function PawedRow(props: {
       ) : (
         <Globe
           size={16}
-          class={`text-fg-subtle shrink-0 ${isOpen ? "" : "opacity-70"}`}
+          class={`text-fg-subtle shrink-0 ${isOpen && !isInactive ? "" : "opacity-70"}`}
         />
       )}
 
       <div class="flex-1 min-w-0">
-        <div class="text-[13px] text-fg leading-snug line-clamp-2 flex items-center gap-1.5">
-          {!isOpen && (
-            <span
-              data-tooltip="Not currently open — click to reopen"
-              data-tooltip-pos="below"
-              class="text-[9px] font-semibold px-1 h-3.5 inline-flex items-center bg-surface text-fg-muted rounded uppercase tracking-wide shrink-0"
-            >
-              Closed
-            </span>
-          )}
-          {isOpen && (
-            <span
-              data-tooltip="Currently open — click to jump"
-              data-tooltip-pos="below"
-              class="text-[9px] font-semibold px-1 h-3.5 inline-flex items-center bg-success-subtle text-success rounded uppercase tracking-wide shrink-0"
-            >
-              Open
-            </span>
-          )}
-          <span class="break-words">{entry.title || domain || entry.url}</span>
+        <div
+          class={`text-[13px] leading-snug line-clamp-2 break-words ${
+            isOpen && !isInactive
+              ? "text-fg"
+              : isInactive
+                ? "text-fg-muted italic"
+                : "text-fg-muted"
+          }`}
+        >
+          {entry.title || domain || entry.url}
         </div>
         <div class="text-[11px] text-fg-subtle leading-tight mt-1 break-all line-clamp-2">
           {entry.url}
@@ -200,18 +212,6 @@ function PawedRow(props: {
         >
           <Trash size={13} />
         </button>
-        {!isOpen && (
-          <span
-            class="size-1.5 rounded-full bg-fg-subtle/40 ml-1"
-            aria-hidden="true"
-          />
-        )}
-        {isOpen && (
-          <span
-            class="size-1.5 rounded-full bg-success ml-1"
-            aria-hidden="true"
-          />
-        )}
       </div>
     </div>
   );
