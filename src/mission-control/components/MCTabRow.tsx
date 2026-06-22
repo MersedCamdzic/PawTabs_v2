@@ -78,41 +78,47 @@ export function MCTabRow({ tab, windowTitle, onAction, onOpenDetails }: Props) {
   return (
     <div
       onClick={handleRowClick}
-      class="group flex items-center gap-3 px-3 py-2.5 rounded-md hover:bg-surface cursor-pointer transition-colors"
+      class="group flex items-start gap-3 px-3 py-2.5 rounded-md hover:bg-surface cursor-pointer transition-colors"
     >
       <Favicon url={tab.favIconUrl} />
 
       <div class="flex-1 min-w-0">
-        <div class="text-[13px] text-fg truncate leading-tight flex items-center gap-2">
-          <span class="truncate">{tab.title || domain || "Untitled"}</span>
+        <div class="text-[13px] text-fg leading-snug flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+          <span class="break-words line-clamp-2">
+            {tab.title || domain || "Untitled"}
+          </span>
           {windowTitle && (
-            <span class="inline-flex items-center gap-1 px-1.5 py-0.5 bg-accent-subtle text-accent text-[10px] font-medium rounded shrink-0">
+            <span class="inline-flex items-center gap-1 px-1.5 py-0.5 bg-accent-subtle text-accent text-[10px] font-medium rounded shrink-0 relative top-[-1px]">
               <Browsers size={9} weight="fill" />
               {windowTitle}
             </span>
           )}
         </div>
-        <div class="text-[11px] text-fg-subtle truncate leading-tight mt-0.5 flex items-center gap-2">
-          <span class="truncate">{domain || tab.url}</span>
-          {tab.notes.length > 0 && (
-            <span
-              data-tooltip={notesTooltip(tab.notes)}
-              data-tooltip-pos="above"
-              class="inline-flex items-center gap-0.5 text-accent shrink-0 cursor-help"
-            >
-              <NotePencil size={10} weight="fill" />
-              {tab.notes.length}
-            </span>
-          )}
-          {tab.discarded && (
-            <span class="inline-flex items-center gap-1 text-fg-subtle shrink-0">
-              <Moon size={10} />
-              inactive
-            </span>
-          )}
+        <div class="text-[11px] text-fg-subtle leading-tight mt-1 break-all line-clamp-2">
+          {tab.url}
         </div>
+        {(tab.notes.length > 0 || tab.discarded) && (
+          <div class="text-[11px] text-fg-subtle mt-1 flex items-center gap-2 flex-wrap">
+            {tab.notes.length > 0 && (
+              <span
+                data-tooltip={notesTooltip(tab.notes)}
+                data-tooltip-pos="above"
+                class="inline-flex items-center gap-0.5 text-accent shrink-0 cursor-help"
+              >
+                <NotePencil size={10} weight="fill" />
+                {tab.notes.length} note{tab.notes.length === 1 ? "" : "s"}
+              </span>
+            )}
+            {tab.discarded && (
+              <span class="inline-flex items-center gap-1 text-fg-subtle shrink-0">
+                <Moon size={10} />
+                inactive
+              </span>
+            )}
+          </div>
+        )}
         {tab.tags.length > 0 && (
-          <div class="flex items-center flex-wrap gap-1 mt-1">
+          <div class="flex items-center flex-wrap gap-1 mt-1.5">
             {tab.tags.map((t) => (
               <span
                 key={t}

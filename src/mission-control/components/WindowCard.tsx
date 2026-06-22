@@ -544,7 +544,7 @@ function CompactTabRow(props: {
   return (
     <div
       onClick={handleClick}
-      class={`group flex items-center gap-2.5 px-2 py-1.5 rounded transition-colors ${rowClass}`}
+      class={`group flex items-start gap-2.5 px-2 py-1.5 rounded transition-colors ${rowClass}`}
     >
       {props.inSelectMode && (
         <button
@@ -587,29 +587,34 @@ function CompactTabRow(props: {
       )}
 
       <div class="flex-1 min-w-0">
-        <div class="text-[13px] text-fg truncate leading-tight">
+        <div class="text-[13px] text-fg leading-snug break-words line-clamp-2">
           {props.tab.title || domain || "Untitled"}
         </div>
-        <div class="text-[11px] text-fg-subtle truncate leading-tight mt-0.5 flex items-center gap-2">
-          <span class="truncate">{domain || props.tab.url}</span>
-          {props.tab.notes.length > 0 && (
-            <span
-              data-tooltip={notesTooltipText(props.tab.notes)}
-              data-tooltip-pos="above"
-              class="inline-flex items-center gap-0.5 text-accent shrink-0 cursor-help"
-            >
-              <NotePencil size={10} weight="fill" />
-              {props.tab.notes.length}
-            </span>
-          )}
-          {props.tab.discarded && (
-            <span class="inline-flex items-center gap-1 text-fg-subtle shrink-0">
-              inactive
-            </span>
-          )}
+        <div class="text-[11px] text-fg-subtle leading-tight mt-1 break-all line-clamp-2">
+          {props.tab.url}
         </div>
+        {(props.tab.notes.length > 0 || props.tab.discarded) && (
+          <div class="text-[11px] text-fg-subtle mt-1 flex items-center gap-2 flex-wrap">
+            {props.tab.notes.length > 0 && (
+              <span
+                data-tooltip={notesTooltipText(props.tab.notes)}
+                data-tooltip-pos="above"
+                class="inline-flex items-center gap-0.5 text-accent shrink-0 cursor-help"
+              >
+                <NotePencil size={10} weight="fill" />
+                {props.tab.notes.length} note
+                {props.tab.notes.length === 1 ? "" : "s"}
+              </span>
+            )}
+            {props.tab.discarded && (
+              <span class="inline-flex items-center gap-1 text-fg-subtle shrink-0">
+                inactive
+              </span>
+            )}
+          </div>
+        )}
         {props.tab.tags.length > 0 && (
-          <div class="flex items-center flex-wrap gap-1 mt-1">
+          <div class="flex items-center flex-wrap gap-1 mt-1.5">
             {props.tab.tags.map((t) => (
               <span
                 key={t}
