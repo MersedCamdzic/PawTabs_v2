@@ -190,6 +190,9 @@ function GroupHeader({
           class={`text-[12px] uppercase tracking-wide truncate text-left ${titleClass}`}
         >
           {group.title}
+          <span class="ml-1 text-fg-subtle font-normal normal-case tracking-normal">
+            ({group.count})
+          </span>
         </span>
         {isWindow && (
           <button

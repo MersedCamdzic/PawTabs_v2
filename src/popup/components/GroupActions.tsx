@@ -2,20 +2,17 @@ import { useState, useEffect, useRef } from "preact/hooks";
 import {
   Tag,
   NotePencil,
-  PawPrint,
   ArrowsLeftRight,
   Plus,
   Browser,
   X,
   Check,
-  Trash,
 } from "@phosphor-icons/react";
 import {
   addTagToMany,
   addNoteToMany,
   moveManyToWindow,
   moveManyToNewWindow,
-  setStarredManyByUrl,
   closeMany,
   listWindowsForMove,
   type WindowInfo,
@@ -89,18 +86,6 @@ export function GroupActions({ tabs, onAction }: Props) {
     }
   };
 
-  const handlePaw = () =>
-    run(() =>
-      setStarredManyByUrl(
-        tabs.map((t) => ({
-          url: t.url,
-          title: t.title,
-          favIconUrl: t.favIconUrl,
-        })),
-        true,
-      ),
-    );
-
   const handleAddTag = () => {
     if (!tagInput.trim()) return;
     run(() => addTagToMany(ids, tagInput));
@@ -137,31 +122,25 @@ export function GroupActions({ tabs, onAction }: Props) {
         active={panel === "tag"}
         onClick={() => setPanel(panel === "tag" ? null : "tag")}
       >
-        <Tag size={11} weight={panel === "tag" ? "fill" : "regular"} />
+        <Tag size={13} weight={panel === "tag" ? "fill" : "regular"} />
       </IconBtn>
       <IconBtn
         tooltip="Add note to all"
         active={panel === "note"}
         onClick={() => setPanel(panel === "note" ? null : "note")}
       >
-        <NotePencil size={11} weight={panel === "note" ? "fill" : "regular"} />
-      </IconBtn>
-      <IconBtn tooltip="Paw all in group" onClick={handlePaw}>
-        <PawPrint size={11} />
+        <NotePencil size={13} weight={panel === "note" ? "fill" : "regular"} />
       </IconBtn>
       <IconBtn
         tooltip="Move all to window…"
         active={panel === "move"}
         onClick={() => setPanel(panel === "move" ? null : "move")}
       >
-        <ArrowsLeftRight size={11} weight="bold" />
+        <ArrowsLeftRight size={13} weight="bold" />
       </IconBtn>
       <IconBtn tooltip="Close all in group" danger onClick={handleCloseAll}>
-        <Trash size={11} />
+        <X size={13} weight="bold" />
       </IconBtn>
-      <span class="text-[10px] text-fg-subtle font-mono ml-1">
-        {tabs.length}
-      </span>
 
       {panel === "tag" && (
         <Popover>
@@ -308,7 +287,7 @@ function IconBtn(props: {
       aria-label={props.tooltip}
       data-tooltip={props.tooltip}
       data-tooltip-pos="above"
-      class={`size-6 inline-flex items-center justify-center rounded transition-all opacity-0 group-hover:opacity-100 ${
+      class={`size-7 inline-flex items-center justify-center rounded transition-all opacity-0 group-hover:opacity-100 ${
         props.active
           ? "opacity-100 bg-accent-subtle text-accent"
           : `text-fg-subtle ${hover}`
@@ -332,5 +311,3 @@ function Popover(props: {
   );
 }
 
-// silence unused
-void X;
