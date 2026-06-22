@@ -7,23 +7,24 @@ import {
   Globe,
   PushPin,
   ArrowSquareOut,
-  ArrowRight,
   DotsThree,
   Broom,
   ArrowsSplit,
-  ArrowsMerge,
+  ArrowRight,
 } from "@phosphor-icons/react";
 import { setWindowTitle, type WindowWithMeta } from "@/lib/windows";
 import { focusTab } from "@/lib/chrome";
 
 interface Props {
   window: WindowWithMeta;
-  movingTabIds: number[] | null;
+  isSelectionSource: boolean;
   isMoveTarget: boolean;
-  onStartMoveTab: (tabId: number) => void;
-  onStartMergeWindow: (tabIds: number[], sourceWindowId: number) => void;
-  onCancelMove: () => void;
-  onPickTarget: (windowId: number) => Promise<void>;
+  selectedIds: Set<number>;
+  onStartSelection: (windowId: number) => void;
+  onToggleTab: (tabId: number) => void;
+  onSelectAll: () => void;
+  onPickDestination: (windowId: number) => Promise<void>;
+  onCancel: () => void;
   onSplit: (windowId: number, chunkSize: number) => Promise<void>;
   onCloseNonPinned: (windowId: number) => Promise<void>;
   onReload: () => void;
@@ -33,12 +34,14 @@ type CardMode = "view" | "menu" | "split";
 
 export function WindowCard({
   window,
-  movingTabIds,
+  isSelectionSource,
   isMoveTarget,
-  onStartMoveTab,
-  onStartMergeWindow,
-  onCancelMove,
-  onPickTarget,
+  selectedIds,
+  onStartSelection,
+  onToggleTab,
+  onSelectAll,
+  onPickDestination,
+  onCancel,
   onSplit,
   onCloseNonPinned,
   onReload,
@@ -61,11 +64,8 @@ export function WindowCard({
   }, [mode]);
 
   const displayTitle = window.customTitle || `Window ${window.id}`;
-  const containsMovingTab =
-    movingTabIds !== null && movingTabIds.some((id) =>
-      window.tabs.some((t) => t.id === id),
-    );
   const nonPinnedCount = window.tabs.filter((t) => !t.pinned).length;
+  const selectionCount = selectedIds.size;
 
   const startEdit = () => {
     setDraft(window.customTitle ?? "");
@@ -88,20 +88,15 @@ export function WindowCard({
   };
 
   const handleCardClick = async () => {
-    if (isMoveTarget) {
-      await onPickTarget(window.id);
-    } else if (containsMovingTab) {
-      onCancelMove();
+    if (isMoveTarget && selectionCount > 0) {
+      await onPickDestination(window.id);
     }
   };
 
-  const handleMergeIntoOther = (e: MouseEvent) => {
+  const handleStartMove = (e: MouseEvent) => {
     e.stopPropagation();
-    const allIds = window.tabs
-      .map((t) => t.id)
-      .filter((id): id is number => id !== undefined);
-    onStartMergeWindow(allIds, window.id);
     setMode("view");
+    onStartSelection(window.id);
   };
 
   const handleSplitConfirm = async (e: Event) => {
@@ -116,10 +111,14 @@ export function WindowCard({
     setMode("view");
   };
 
+  const inSelectMode = isSelectionSource || isMoveTarget;
+
   const borderClass = isMoveTarget
-    ? "border-accent ring-4 ring-accent/15 cursor-pointer hover:bg-accent-subtle/30"
-    : containsMovingTab
-      ? "border-border-strong opacity-60"
+    ? selectionCount > 0
+      ? "border-accent ring-4 ring-accent/15 cursor-pointer hover:bg-accent-subtle/30"
+      : "border-border-strong opacity-70"
+    : isSelectionSource
+      ? "border-accent ring-2 ring-accent/30"
       : window.focused
         ? "border-border-strong"
         : "border-border hover:border-border-strong";
@@ -186,90 +185,134 @@ export function WindowCard({
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
+                if (inSelectMode) return;
                 startEdit();
               }}
-              class="flex-1 min-w-0 text-left group/title rounded px-1 -mx-1 hover:bg-surface transition-colors"
-              title="Click to rename window"
+              disabled={inSelectMode}
+              class="flex-1 min-w-0 text-left group/title rounded px-1 -mx-1 hover:bg-surface transition-colors disabled:cursor-default disabled:hover:bg-transparent"
+              title={inSelectMode ? "" : "Click to rename window"}
             >
               <div class="text-[13px] font-medium text-fg truncate flex items-center gap-1.5">
                 <span class="truncate">{displayTitle}</span>
-                <PencilSimple
-                  size={10}
-                  class="text-fg-subtle opacity-0 group-hover/title:opacity-100 transition-opacity shrink-0"
-                />
+                {!inSelectMode && (
+                  <PencilSimple
+                    size={10}
+                    class="text-fg-subtle opacity-0 group-hover/title:opacity-100 transition-opacity shrink-0"
+                  />
+                )}
               </div>
               <div class="text-[10px] text-fg-subtle">
                 {window.tabs.length} tab{window.tabs.length === 1 ? "" : "s"}
                 {window.focused && (
                   <span class="ml-1.5 text-accent">· focused</span>
                 )}
-                {isMoveTarget && (
-                  <span class="ml-1.5 text-accent">· click to move here</span>
+                {isMoveTarget && selectionCount > 0 && (
+                  <span class="ml-1.5 text-accent">
+                    · click to move {selectionCount} here
+                  </span>
+                )}
+                {isSelectionSource && (
+                  <span class="ml-1.5 text-accent">
+                    · {selectionCount} selected
+                  </span>
                 )}
               </div>
             </button>
-            <button
-              type="button"
-              onClick={handleFocusWindow}
-              aria-label="Focus window"
-              title="Focus this window"
-              class="size-7 inline-flex items-center justify-center rounded text-fg-muted hover:bg-accent-subtle hover:text-accent transition-colors"
-            >
-              <ArrowSquareOut size={12} />
-            </button>
-            <div ref={menuRef} class="relative">
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setMode(mode === "menu" ? "view" : "menu");
-                }}
-                aria-label="Window actions"
-                title="More actions"
-                class={`size-7 inline-flex items-center justify-center rounded transition-colors ${
-                  mode === "menu"
-                    ? "bg-surface text-fg"
-                    : "text-fg-muted hover:bg-surface hover:text-fg"
-                }`}
-              >
-                <DotsThree size={14} weight="bold" />
-              </button>
-              {mode === "menu" && (
-                <div class="absolute right-0 top-full mt-1 z-20 w-52 bg-bg-elevated border border-border rounded-md shadow-md py-1 text-[12px]">
-                  <MenuItem
-                    icon={<ArrowsSplit size={12} />}
-                    label="Split window…"
+            {!inSelectMode && (
+              <>
+                <button
+                  type="button"
+                  onClick={handleFocusWindow}
+                  aria-label="Focus window"
+                  title="Focus this window"
+                  class="size-7 inline-flex items-center justify-center rounded text-fg-muted hover:bg-accent-subtle hover:text-accent transition-colors"
+                >
+                  <ArrowSquareOut size={12} />
+                </button>
+                <div ref={menuRef} class="relative">
+                  <button
+                    type="button"
                     onClick={(e) => {
                       e.stopPropagation();
-                      setMode("split");
+                      setMode(mode === "menu" ? "view" : "menu");
                     }}
-                    disabled={window.tabs.length < 2}
-                  />
-                  <MenuItem
-                    icon={<ArrowsMerge size={12} />}
-                    label="Merge into another…"
-                    onClick={handleMergeIntoOther}
-                    disabled={window.tabs.length === 0}
-                  />
-                  <div class="border-t border-border my-1" />
-                  <MenuItem
-                    icon={<Broom size={12} />}
-                    label={`Close ${nonPinnedCount} non-pinned`}
-                    onClick={handleCloseNonPinned}
-                    disabled={nonPinnedCount === 0}
-                    tone="danger"
-                  />
+                    aria-label="Window actions"
+                    title="More actions"
+                    class={`size-7 inline-flex items-center justify-center rounded transition-colors ${
+                      mode === "menu"
+                        ? "bg-surface text-fg"
+                        : "text-fg-muted hover:bg-surface hover:text-fg"
+                    }`}
+                  >
+                    <DotsThree size={14} weight="bold" />
+                  </button>
+                  {mode === "menu" && (
+                    <div class="absolute right-0 top-full mt-1 z-20 w-52 bg-bg-elevated border border-border rounded-md shadow-md py-1 text-[12px]">
+                      <MenuItem
+                        icon={<ArrowRight size={12} />}
+                        label="Move tabs…"
+                        onClick={handleStartMove}
+                        disabled={window.tabs.length === 0}
+                      />
+                      <MenuItem
+                        icon={<ArrowsSplit size={12} />}
+                        label="Split window…"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setMode("split");
+                        }}
+                        disabled={window.tabs.length < 2}
+                      />
+                      <div class="border-t border-border my-1" />
+                      <MenuItem
+                        icon={<Broom size={12} />}
+                        label={`Close ${nonPinnedCount} non-pinned`}
+                        onClick={handleCloseNonPinned}
+                        disabled={nonPinnedCount === 0}
+                        tone="danger"
+                      />
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
+              </>
+            )}
           </>
         )}
       </div>
 
+      {isSelectionSource && (
+        <div class="flex items-center gap-2 px-3 py-1.5 border-b border-border bg-accent-subtle/50">
+          <span class="text-[11px] text-accent font-medium">
+            {selectionCount} of {window.tabs.length} selected
+          </span>
+          <span class="text-[10px] text-accent/60">·</span>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onSelectAll();
+            }}
+            class="text-[11px] text-accent hover:underline font-medium"
+          >
+            {selectionCount === window.tabs.length ? "Deselect all" : "Select all"}
+          </button>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onCancel();
+            }}
+            class="ml-auto text-[11px] text-fg-muted hover:text-fg"
+          >
+            Cancel
+          </button>
+        </div>
+      )}
+
       {mode === "split" && (
         <div class="px-3 py-2 border-b border-border bg-accent-subtle/30">
           <div class="text-[11px] text-fg-muted mb-1.5">
-            Split this window into smaller windows of{" "}
+            Split into smaller windows of{" "}
             <span class="text-fg font-medium">{splitSize}</span> tab
             {splitSize === 1 ? "" : "s"} each.
           </div>
@@ -317,14 +360,11 @@ export function WindowCard({
           <CompactTabRow
             key={tab.id ?? Math.random()}
             tab={tab}
-            isMoving={
-              movingTabIds !== null &&
-              tab.id !== undefined &&
-              movingTabIds.includes(tab.id)
-            }
-            disabled={movingTabIds !== null}
-            onStartMove={() => {
-              if (tab.id !== undefined) onStartMoveTab(tab.id);
+            inSelectMode={isSelectionSource}
+            isOtherCardSelectMode={isMoveTarget}
+            selected={tab.id !== undefined && selectedIds.has(tab.id)}
+            onToggleSelect={() => {
+              if (tab.id !== undefined) onToggleTab(tab.id);
             }}
           />
         ))}
@@ -364,33 +404,58 @@ function MenuItem(props: {
 
 function CompactTabRow(props: {
   tab: chrome.tabs.Tab;
-  isMoving: boolean;
-  disabled: boolean;
-  onStartMove: () => void;
+  inSelectMode: boolean;
+  isOtherCardSelectMode: boolean;
+  selected: boolean;
+  onToggleSelect: () => void;
 }) {
   const handleClick = async (e: MouseEvent) => {
     e.stopPropagation();
-    if (props.disabled) return;
+    if (props.inSelectMode) {
+      props.onToggleSelect();
+      return;
+    }
+    if (props.isOtherCardSelectMode) return;
     if (props.tab.id === undefined) return;
     await focusTab(props.tab.id, props.tab.windowId ?? 0);
   };
 
-  const handleMove = (e: MouseEvent) => {
-    e.stopPropagation();
-    props.onStartMove();
-  };
-
-  const rowClass = props.isMoving
-    ? "bg-accent-subtle ring-1 ring-accent/40"
-    : props.disabled
-      ? "opacity-40"
-      : "hover:bg-surface cursor-pointer";
+  let rowClass = "hover:bg-surface cursor-pointer";
+  if (props.selected) rowClass = "bg-accent-subtle ring-1 ring-accent/40";
+  else if (props.isOtherCardSelectMode) rowClass = "opacity-50";
 
   return (
     <div
       onClick={handleClick}
       class={`group flex items-center gap-1.5 px-1.5 py-1 rounded text-[12px] transition-colors ${rowClass}`}
     >
+      {props.inSelectMode && (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            props.onToggleSelect();
+          }}
+          aria-label={props.selected ? "Deselect tab" : "Select tab"}
+          class={`size-3.5 rounded border shrink-0 inline-flex items-center justify-center transition-all ${
+            props.selected
+              ? "bg-accent border-accent text-white"
+              : "border-border-strong hover:border-accent"
+          }`}
+        >
+          {props.selected && (
+            <svg
+              viewBox="0 0 16 16"
+              class="size-2.5"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="3"
+            >
+              <path d="M3 8.5L6.5 12L13 4" />
+            </svg>
+          )}
+        </button>
+      )}
       {props.tab.favIconUrl ? (
         <img
           src={props.tab.favIconUrl}
@@ -408,22 +473,6 @@ function CompactTabRow(props: {
       </span>
       {props.tab.pinned && (
         <PushPin size={10} weight="fill" class="text-warning shrink-0" />
-      )}
-      {!props.disabled && (
-        <button
-          type="button"
-          onClick={handleMove}
-          aria-label="Move to another window"
-          title="Move to another window"
-          class="size-6 inline-flex items-center justify-center rounded text-fg-subtle opacity-0 group-hover:opacity-100 hover:bg-accent-subtle hover:text-accent transition-all"
-        >
-          <ArrowRight size={12} />
-        </button>
-      )}
-      {props.isMoving && (
-        <span class="text-[10px] font-medium text-accent shrink-0">
-          pick destination →
-        </span>
       )}
     </div>
   );

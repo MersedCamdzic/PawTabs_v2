@@ -8,15 +8,14 @@ interface Props {
   onAction: () => void;
 }
 
-interface MoveState {
-  type: "tab" | "merge";
-  tabIds: number[];
+interface SelectionState {
   sourceWindowId: number;
+  selectedIds: Set<number>;
 }
 
 export function WindowsView({ query, onAction }: Props) {
   const [windows, setWindows] = useState<WindowWithMeta[]>([]);
-  const [move, setMove] = useState<MoveState | null>(null);
+  const [selection, setSelection] = useState<SelectionState | null>(null);
 
   const refresh = useCallback(async () => {
     setWindows(await getWindowsWithMeta());
@@ -49,13 +48,13 @@ export function WindowsView({ query, onAction }: Props) {
   }, [refresh]);
 
   useEffect(() => {
-    if (move === null) return;
+    if (selection === null) return;
     const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setMove(null);
+      if (e.key === "Escape") setSelection(null);
     };
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
-  }, [move]);
+  }, [selection]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -75,36 +74,56 @@ export function WindowsView({ query, onAction }: Props) {
       );
   }, [windows, query]);
 
-  const handleStartMoveTab = (tabId: number) => {
-    const sourceWindow = windows.find((w) =>
-      w.tabs.some((t) => t.id === tabId),
+  const sourceWindow = useMemo(() => {
+    if (!selection) return null;
+    return windows.find((w) => w.id === selection.sourceWindowId) ?? null;
+  }, [windows, selection]);
+
+  const handleStartSelection = (windowId: number) => {
+    setSelection({ sourceWindowId: windowId, selectedIds: new Set() });
+  };
+
+  const handleToggleTab = (tabId: number) => {
+    if (!selection) return;
+    const next = new Set(selection.selectedIds);
+    if (next.has(tabId)) next.delete(tabId);
+    else next.add(tabId);
+    setSelection({ ...selection, selectedIds: next });
+  };
+
+  const handleSelectAll = () => {
+    if (!selection || !sourceWindow) return;
+    const allIds = new Set(
+      sourceWindow.tabs
+        .map((t) => t.id)
+        .filter((id): id is number => id !== undefined),
     );
-    if (!sourceWindow) return;
-    setMove({ type: "tab", tabIds: [tabId], sourceWindowId: sourceWindow.id });
+    if (selection.selectedIds.size === allIds.size) {
+      setSelection({ ...selection, selectedIds: new Set() });
+    } else {
+      setSelection({ ...selection, selectedIds: allIds });
+    }
   };
 
-  const handleStartMergeWindow = (tabIds: number[], sourceWindowId: number) => {
-    setMove({ type: "merge", tabIds, sourceWindowId });
-  };
-
-  const handlePickTarget = async (targetWindowId: number) => {
-    if (!move) return;
+  const handlePickDestination = async (targetWindowId: number) => {
+    if (!selection || selection.selectedIds.size === 0) return;
     try {
-      await chrome.tabs.move(move.tabIds, {
+      await chrome.tabs.move(Array.from(selection.selectedIds), {
         windowId: targetWindowId,
         index: -1,
       });
       onAction();
       await refresh();
     } finally {
-      setMove(null);
+      setSelection(null);
     }
   };
 
   const handlePickNewWindow = async () => {
-    if (!move) return;
+    if (!selection || selection.selectedIds.size === 0) return;
     try {
-      const [first, ...rest] = move.tabIds;
+      const ids = Array.from(selection.selectedIds);
+      const [first, ...rest] = ids;
       if (first === undefined) return;
       const win = await chrome.windows.create({ tabId: first });
       if (rest.length > 0 && win?.id !== undefined) {
@@ -113,7 +132,7 @@ export function WindowsView({ query, onAction }: Props) {
       onAction();
       await refresh();
     } finally {
-      setMove(null);
+      setSelection(null);
     }
   };
 
@@ -152,27 +171,23 @@ export function WindowsView({ query, onAction }: Props) {
     await refresh();
   };
 
-  const moveLabel =
-    move?.type === "merge"
-      ? `Merging ${move.tabIds.length} tab${move.tabIds.length === 1 ? "" : "s"} into another window`
-      : "Moving 1 tab";
-
   return (
     <div class="px-6 py-4">
-      {move !== null && (
+      {selection !== null && (
         <div class="mb-3 flex items-center justify-between gap-3 text-[11px] text-accent bg-accent-subtle border border-accent/30 rounded-md px-3 py-2">
           <span>
-            {moveLabel} — click any highlighted card to pick a destination.
-            Press{" "}
+            {selection.selectedIds.size === 0
+              ? `Select tabs in ${sourceWindow?.customTitle ?? `Window ${selection.sourceWindowId}`}, then click any destination card.`
+              : `${selection.selectedIds.size} tab${selection.selectedIds.size === 1 ? "" : "s"} ready — click a destination card to move ${selection.selectedIds.size === 1 ? "it" : "them"}.`}{" "}
             <kbd class="font-mono px-1 bg-bg-elevated rounded border border-accent/30">
               Esc
             </kbd>{" "}
-            to cancel.
+            cancels.
           </span>
           <button
             type="button"
-            onClick={() => setMove(null)}
-            class="font-medium hover:underline"
+            onClick={() => setSelection(null)}
+            class="font-medium hover:underline shrink-0"
           >
             Cancel
           </button>
@@ -184,14 +199,16 @@ export function WindowsView({ query, onAction }: Props) {
           <WindowCard
             key={w.id}
             window={w}
-            movingTabIds={move?.tabIds ?? null}
+            isSelectionSource={selection?.sourceWindowId === w.id}
             isMoveTarget={
-              move !== null && w.id !== move.sourceWindowId
+              selection !== null && w.id !== selection.sourceWindowId
             }
-            onStartMoveTab={handleStartMoveTab}
-            onStartMergeWindow={handleStartMergeWindow}
-            onCancelMove={() => setMove(null)}
-            onPickTarget={handlePickTarget}
+            selectedIds={selection?.selectedIds ?? new Set()}
+            onStartSelection={handleStartSelection}
+            onToggleTab={handleToggleTab}
+            onSelectAll={handleSelectAll}
+            onPickDestination={handlePickDestination}
+            onCancel={() => setSelection(null)}
             onSplit={handleSplit}
             onCloseNonPinned={handleCloseNonPinned}
             onReload={refresh}
@@ -201,9 +218,9 @@ export function WindowsView({ query, onAction }: Props) {
         <button
           type="button"
           onClick={handlePickNewWindow}
-          disabled={move === null}
+          disabled={selection === null || selection.selectedIds.size === 0}
           class={`flex items-center justify-center min-h-[120px] rounded-lg border-2 border-dashed text-[12px] font-medium transition-all ${
-            move !== null
+            selection !== null && selection.selectedIds.size > 0
               ? "border-accent text-accent hover:bg-accent-subtle cursor-pointer"
               : "border-border text-fg-subtle cursor-not-allowed"
           }`}
@@ -211,8 +228,8 @@ export function WindowsView({ query, onAction }: Props) {
           <div class="text-center">
             <Plus size={20} weight="regular" class="mx-auto mb-1" />
             <div>
-              {move !== null
-                ? "Click to move to new window"
+              {selection !== null && selection.selectedIds.size > 0
+                ? `Click to move ${selection.selectedIds.size} to new window`
                 : "Move tabs here to create a new window"}
             </div>
           </div>

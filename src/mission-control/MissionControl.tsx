@@ -23,7 +23,7 @@ const VIEW_META: Record<View, { title: string; subtitle: string }> = {
   windows: {
     title: "Windows",
     subtitle:
-      "Visualize, rename, split, merge, and reorganize windows. Use → on any tab to move it.",
+      "Visualize, rename, split, merge windows. Use ⋯ on a card to move tabs, split, or close non-pinned.",
   },
   pawed: { title: "Pawed", subtitle: "Tabs you have marked as important." },
   pinned: { title: "Pinned", subtitle: "Tabs you have pinned in Chrome." },
