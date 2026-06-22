@@ -1,4 +1,5 @@
 import { useMemo, useState, useEffect } from "preact/hooks";
+import { lazy, Suspense } from "preact/compat";
 import {
   MagnifyingGlass,
   Gear,
@@ -10,10 +11,25 @@ import {
 import { useTabSnapshot } from "./hooks";
 import { TabGroupSection } from "./components/TabGroupSection";
 import { GroupBy } from "./components/GroupBy";
-import { WizardModal } from "./components/WizardModal";
-import { SessionsModal } from "./components/SessionsModal";
-import { SettingsModal } from "./components/SettingsModal";
-import { TabDetailsModal } from "./components/TabDetailsModal";
+
+const WizardModal = lazy(() =>
+  import("./components/WizardModal").then((m) => ({ default: m.WizardModal })),
+);
+const SessionsModal = lazy(() =>
+  import("./components/SessionsModal").then((m) => ({
+    default: m.SessionsModal,
+  })),
+);
+const SettingsModal = lazy(() =>
+  import("./components/SettingsModal").then((m) => ({
+    default: m.SettingsModal,
+  })),
+);
+const TabDetailsModal = lazy(() =>
+  import("./components/TabDetailsModal").then((m) => ({
+    default: m.TabDetailsModal,
+  })),
+);
 import { groupTabs } from "@/lib/grouping";
 import { getPreferences, setPreference } from "@/lib/preferences";
 import type { GroupBy as GroupByType, PawTab } from "@/types";
@@ -179,28 +195,35 @@ export function Popup() {
         <span class="font-mono">⌘⇧Y</span>
       </footer>
 
-      <WizardModal
-        open={wizardOpen}
-        onClose={() => setWizardOpen(false)}
-        onComplete={reload}
-      />
-
-      <SessionsModal
-        open={sessionsOpen}
-        onClose={() => setSessionsOpen(false)}
-      />
-
-      <SettingsModal
-        open={settingsOpen}
-        onClose={() => setSettingsOpen(false)}
-      />
-
-      <TabDetailsModal
-        tab={liveDetailsTab}
-        open={detailsTab !== null}
-        onClose={() => setDetailsTab(null)}
-        onAction={reload}
-      />
+      <Suspense fallback={null}>
+        {wizardOpen && (
+          <WizardModal
+            open={wizardOpen}
+            onClose={() => setWizardOpen(false)}
+            onComplete={reload}
+          />
+        )}
+        {sessionsOpen && (
+          <SessionsModal
+            open={sessionsOpen}
+            onClose={() => setSessionsOpen(false)}
+          />
+        )}
+        {settingsOpen && (
+          <SettingsModal
+            open={settingsOpen}
+            onClose={() => setSettingsOpen(false)}
+          />
+        )}
+        {detailsTab !== null && (
+          <TabDetailsModal
+            tab={liveDetailsTab}
+            open={detailsTab !== null}
+            onClose={() => setDetailsTab(null)}
+            onAction={reload}
+          />
+        )}
+      </Suspense>
     </div>
   );
 }
