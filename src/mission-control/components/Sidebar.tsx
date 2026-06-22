@@ -8,6 +8,7 @@ import {
   BookmarkSimple,
   ClockCounterClockwise,
   Gear,
+  Broom,
 } from "@phosphor-icons/react";
 import type { ComponentChildren, JSX } from "preact";
 
@@ -26,6 +27,7 @@ export type View =
 interface Props {
   view: View;
   onChange: (view: View) => void;
+  onOpenCleanup: () => void;
   counts: {
     tabs: number;
     windows: number;
@@ -37,7 +39,7 @@ interface Props {
   };
 }
 
-export function Sidebar({ view, onChange, counts }: Props) {
+export function Sidebar({ view, onChange, onOpenCleanup, counts }: Props) {
   return (
     <aside class="w-60 shrink-0 h-screen border-r border-border bg-bg flex flex-col">
       <div class="px-5 pt-5 pb-3 flex items-center gap-2">
@@ -116,7 +118,13 @@ export function Sidebar({ view, onChange, counts }: Props) {
         />
       </nav>
 
-      <div class="px-2 py-2 border-t border-border">
+      <div class="px-2 py-2 border-t border-border space-y-0.5">
+        <NavItem
+          icon={<Broom size={14} />}
+          label="Cleanup tabs…"
+          active={false}
+          onClick={onOpenCleanup}
+        />
         <NavItem
           icon={<Gear size={14} />}
           label="Settings"

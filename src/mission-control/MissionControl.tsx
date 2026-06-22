@@ -35,6 +35,11 @@ const TabDetailsModal = lazy(() =>
     default: m.TabDetailsModal,
   })),
 );
+const WizardModal = lazy(() =>
+  import("@/popup/components/WizardModal").then((m) => ({
+    default: m.WizardModal,
+  })),
+);
 
 const VIEW_META: Record<View, { title: string; subtitle: string }> = {
   overview: {
@@ -106,6 +111,7 @@ export function MissionControl() {
   const [windowsColumns, setWindowsColumns] = useState<1 | 2 | 3 | 4>(3);
   const [snapshotPromptOpen, setSnapshotPromptOpen] = useState(false);
   const [snapshotsRefreshSignal, setSnapshotsRefreshSignal] = useState(0);
+  const [wizardOpen, setWizardOpen] = useState(false);
   const [snapshotSortByView, setSnapshotSortByView] = useState<
     Record<string, SnapshotSortKey>
   >({});
@@ -195,7 +201,12 @@ export function MissionControl() {
 
   return (
     <div class="flex h-screen bg-bg text-fg">
-      <Sidebar view={view} onChange={setView} counts={counts} />
+      <Sidebar
+        view={view}
+        onChange={setView}
+        onOpenCleanup={() => setWizardOpen(true)}
+        counts={counts}
+      />
 
       <main class="flex-1 overflow-y-auto">
         {view !== "overview" && (
@@ -408,6 +419,19 @@ export function MissionControl() {
         onClose={() => setSnapshotPromptOpen(false)}
         onSaved={() => setSnapshotsRefreshSignal((n) => n + 1)}
       />
+
+      <Suspense fallback={null}>
+        {wizardOpen && (
+          <WizardModal
+            open={wizardOpen}
+            onClose={() => setWizardOpen(false)}
+            onComplete={() => {
+              reload();
+              setSnapshotsRefreshSignal((n) => n + 1);
+            }}
+          />
+        )}
+      </Suspense>
     </div>
   );
 }
