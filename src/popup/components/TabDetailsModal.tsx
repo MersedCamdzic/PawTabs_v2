@@ -522,6 +522,7 @@ export function TabDetailsModal({ tab, open, onClose, onAction }: Props) {
                           customTitle={w.customTitle}
                           tabCount={w.tabCount}
                           preview={w.firstTabTitle}
+                          color={windowColorMap[w.id] ?? null}
                           onClick={() => handleMove(w.id)}
                         />
                       ))}
@@ -694,18 +695,31 @@ function WindowOption(props: {
   customTitle: string | null;
   tabCount: number;
   preview: string;
+  color: WindowColor | null;
   onClick: () => void;
 }) {
   const displayTitle = props.customTitle || `Window ${props.windowId}`;
+  const colorStyle = props.color ? WINDOW_COLOR_STYLES[props.color] : null;
+  const rowBg = colorStyle
+    ? `${colorStyle.headerBg} hover:${colorStyle.headerBg}`
+    : "hover:bg-surface";
+  const titleColor = colorStyle ? colorStyle.titleText : "text-fg";
   return (
     <button
       type="button"
       onClick={props.onClick}
-      class="w-full flex items-center gap-2 px-2 py-1.5 rounded hover:bg-surface text-left transition-colors"
+      class={`w-full flex items-center gap-2 px-2 py-1.5 rounded text-left transition-colors ${rowBg}`}
     >
-      <Browser size={12} class="text-fg-muted shrink-0" />
+      {colorStyle ? (
+        <span
+          class={`size-2 rounded-full shrink-0 ${colorStyle.dot}`}
+          aria-hidden="true"
+        />
+      ) : (
+        <Browser size={12} class="text-fg-muted shrink-0" />
+      )}
       <div class="flex-1 min-w-0">
-        <div class="text-[12px] font-medium text-fg truncate">
+        <div class={`text-[12px] font-medium truncate ${titleColor}`}>
           {displayTitle}
           {props.customTitle && (
             <span class="text-fg-subtle font-normal ml-1.5">
