@@ -15,6 +15,7 @@ import {
   ArrowsLeftRight,
   ArrowSquareIn,
   ArrowSquareUpRight,
+  Moon,
   XCircle,
   PawPrint,
   SpeakerHigh,
@@ -239,27 +240,9 @@ export function WindowCard({
           </>
         ) : (
           <>
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                if (inSelectMode) return;
-                startEdit();
-              }}
-              disabled={inSelectMode}
-              class="flex-1 min-w-0 text-left group/title rounded px-1 -mx-1 hover:bg-surface transition-colors disabled:cursor-default disabled:hover:bg-transparent disabled:pointer-events-none"
-              {...(inSelectMode
-                ? {}
-                : { "data-tooltip": "Click to rename window", "data-tooltip-pos": "below" })}
-            >
-              <div class="text-[13px] font-medium text-fg truncate flex items-center gap-1.5">
-                <span class="truncate">{displayTitle}</span>
-                {!inSelectMode && (
-                  <PencilSimple
-                    size={10}
-                    class="text-fg-subtle opacity-0 group-hover/title:opacity-100 transition-opacity shrink-0"
-                  />
-                )}
+            <div class="flex-1 min-w-0">
+              <div class="text-[13px] font-medium text-fg truncate">
+                {displayTitle}
               </div>
               <div class="text-[10px] text-fg-subtle">
                 {window.tabs.length} tab{window.tabs.length === 1 ? "" : "s"}
@@ -277,9 +260,22 @@ export function WindowCard({
                   </span>
                 )}
               </div>
-            </button>
+            </div>
             {!inSelectMode && (
               <>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    startEdit();
+                  }}
+                  aria-label="Rename window"
+                  data-tooltip="Rename window"
+                  data-tooltip-pos="above"
+                  class="size-7 inline-flex items-center justify-center rounded text-fg-muted hover:bg-accent-subtle hover:text-accent transition-colors"
+                >
+                  <PencilSimple size={12} />
+                </button>
                 <button
                   type="button"
                   onClick={handleFocusWindow}
