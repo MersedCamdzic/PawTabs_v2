@@ -1,5 +1,10 @@
 import { useState, useEffect, useMemo, useCallback } from "preact/hooks";
-import { Plus, Trash, ArrowSquareOut, MagnifyingGlass } from "@phosphor-icons/react";
+import {
+  Plus,
+  Trash,
+  ArrowsLeftRight,
+  MagnifyingGlass,
+} from "@phosphor-icons/react";
 import {
   getWindowsWithPawTabs,
   getWindowTitle,
@@ -127,19 +132,12 @@ export function WindowsView({ query, onAction }: Props) {
     await refresh();
   };
 
-  const handleMoveAllMatchingToNewWindow = async () => {
+  const handleStartMoveAllMatching = () => {
     if (matchingTabIds.length === 0) return;
-    const [first, ...rest] = matchingTabIds;
-    if (first === undefined) return;
-    const win = await chrome.windows.create({
-      tabId: first,
-      focused: false,
+    setSelection({
+      sourceWindowId: -1,
+      selectedIds: new Set(matchingTabIds),
     });
-    if (rest.length > 0 && win?.id !== undefined) {
-      await chrome.tabs.move(rest, { windowId: win.id, index: -1 });
-    }
-    onAction();
-    await refresh();
   };
 
   const sourceWindow = useMemo(() => {
@@ -288,13 +286,13 @@ export function WindowsView({ query, onAction }: Props) {
           <div class="flex items-center gap-1.5">
             <button
               type="button"
-              onClick={handleMoveAllMatchingToNewWindow}
-              data-tooltip="Move all matching tabs to a new window"
+              onClick={handleStartMoveAllMatching}
+              data-tooltip="Pick a window to move all matching tabs into"
               data-tooltip-pos="below"
               class="h-7 px-2.5 inline-flex items-center gap-1.5 text-[11px] font-medium rounded bg-bg border border-border text-fg-muted hover:border-accent hover:text-accent hover:bg-accent-subtle transition-colors"
             >
-              <ArrowSquareOut size={11} />
-              Move to new window
+              <ArrowsLeftRight size={11} weight="bold" />
+              Move all to…
             </button>
             <button
               type="button"
@@ -313,9 +311,11 @@ export function WindowsView({ query, onAction }: Props) {
       {selection !== null && (
         <div class="mb-3 flex items-center justify-between gap-3 text-[11px] text-accent bg-accent-subtle border border-accent/30 rounded-md px-3 py-2">
           <span>
-            {selection.selectedIds.size === 0
-              ? `Select tabs in ${sourceWindow?.customTitle ?? `Window ${selection.sourceWindowId}`}, then click any destination card.`
-              : `${selection.selectedIds.size} tab${selection.selectedIds.size === 1 ? "" : "s"} ready — click a destination card to move ${selection.selectedIds.size === 1 ? "it" : "them"}.`}{" "}
+            {selection.sourceWindowId === -1
+              ? `${selection.selectedIds.size} tab${selection.selectedIds.size === 1 ? "" : "s"} matching "${query}" — click a destination card to move ${selection.selectedIds.size === 1 ? "it" : "them"}.`
+              : selection.selectedIds.size === 0
+                ? `Select tabs in ${sourceWindow?.customTitle ?? `Window ${selection.sourceWindowId}`}, then click any destination card.`
+                : `${selection.selectedIds.size} tab${selection.selectedIds.size === 1 ? "" : "s"} ready — click a destination card to move ${selection.selectedIds.size === 1 ? "it" : "them"}.`}{" "}
             <kbd class="font-mono px-1 bg-bg-elevated rounded border border-accent/30">
               Esc
             </kbd>{" "}
