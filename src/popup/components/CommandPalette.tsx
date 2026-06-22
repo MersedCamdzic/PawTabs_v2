@@ -82,7 +82,7 @@ export function CommandPalette({
         kind: "action",
         key: "act-mc",
         id: "open-mission-control",
-        label: "Open Mission Control",
+        label: "Open Pack (dashboard)",
         hint: "Dashboard",
         icon: <GridFour size={14} />,
       },

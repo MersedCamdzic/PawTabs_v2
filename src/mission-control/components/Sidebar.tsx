@@ -48,7 +48,7 @@ export function Sidebar({ view, onChange, onOpenCleanup, counts }: Props) {
         </span>
         <div class="leading-tight">
           <div class="text-[14px] font-semibold tracking-tight">PawTabs</div>
-          <div class="text-[10px] text-fg-subtle">Mission Control</div>
+          <div class="text-[10px] text-fg-subtle">Pack</div>
         </div>
       </div>
 

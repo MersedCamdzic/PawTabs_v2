@@ -103,7 +103,7 @@ export function WizardModal({ open, onClose, onComplete }: Props) {
           <div class="rounded-md border border-accent/30 bg-accent-subtle/30 px-2.5 py-2 mb-2">
             <Toggle
               label="Save snapshot of open tabs first"
-              description="Recommended: creates a restorable Snapshot of all windows + tabs before any cleanup runs. Find it under Snapshots in Mission Control."
+              description="Recommended: creates a restorable Snapshot of all windows + tabs before any cleanup runs. Find it under Snapshots in the Pack."
               checked={opts.snapshotTabs}
               onChange={(v) => setOpts({ ...opts, snapshotTabs: v })}
             />

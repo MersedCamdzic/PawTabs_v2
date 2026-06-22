@@ -192,7 +192,7 @@ export function Popup() {
           <IconButton label="Cleanup" onClick={() => setWizardOpen(true)}>
             <Broom size={16} weight="regular" />
           </IconButton>
-          <IconButton label="Mission Control" onClick={openMissionControl}>
+          <IconButton label="Open Pack" onClick={openMissionControl}>
             <GridFour size={16} weight="regular" />
           </IconButton>
           <IconButton label="Settings" onClick={() => setSettingsOpen(true)}>
