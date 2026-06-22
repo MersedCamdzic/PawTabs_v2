@@ -214,7 +214,7 @@ export function TabRow({
           onClick={handleClose}
           aria-label="Close tab"
           data-tooltip="Close tab"
-          data-tooltip-pos="above"
+          data-tooltip-pos="left"
           class="size-6 inline-flex items-center justify-center rounded text-fg-subtle opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 hover:bg-danger-subtle hover:text-danger transition-all"
         >
           <X size={13} />
