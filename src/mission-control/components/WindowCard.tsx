@@ -478,6 +478,14 @@ function MenuItem(props: {
   );
 }
 
+function notesTooltipText(notes: { text: string }[]): string {
+  if (notes.length === 0) return "";
+  const first = notes[0]!.text.slice(0, 100);
+  const truncated = notes[0]!.text.length > 100 ? "…" : "";
+  if (notes.length === 1) return `"${first}${truncated}"`;
+  return `"${first}${truncated}"  (+${notes.length - 1} more — click row)`;
+}
+
 function CompactTabRow(props: {
   tab: PawTab;
   inSelectMode: boolean;
@@ -584,14 +592,12 @@ function CompactTabRow(props: {
         </div>
         <div class="text-[11px] text-fg-subtle truncate leading-tight mt-0.5 flex items-center gap-2">
           <span class="truncate">{domain || props.tab.url}</span>
-          {props.tab.tags.length > 0 && (
-            <span class="inline-flex items-center gap-0.5 text-accent shrink-0">
-              <Tag size={10} weight="fill" />
-              {props.tab.tags.length}
-            </span>
-          )}
           {props.tab.notes.length > 0 && (
-            <span class="inline-flex items-center gap-0.5 text-accent shrink-0">
+            <span
+              data-tooltip={notesTooltipText(props.tab.notes)}
+              data-tooltip-pos="above"
+              class="inline-flex items-center gap-0.5 text-accent shrink-0 cursor-help"
+            >
               <NotePencil size={10} weight="fill" />
               {props.tab.notes.length}
             </span>
@@ -602,6 +608,19 @@ function CompactTabRow(props: {
             </span>
           )}
         </div>
+        {props.tab.tags.length > 0 && (
+          <div class="flex items-center flex-wrap gap-1 mt-1">
+            {props.tab.tags.map((t) => (
+              <span
+                key={t}
+                class="inline-flex items-center gap-1 px-1.5 h-4 bg-accent-subtle text-accent-fg text-[10px] rounded"
+              >
+                <Tag size={8} weight="fill" class="text-accent" />
+                {t}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
 
       {showActions && (

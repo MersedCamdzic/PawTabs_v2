@@ -29,6 +29,14 @@ interface Props {
   onOpenDetails: (tab: PawTab) => void;
 }
 
+function notesTooltip(notes: { text: string }[]): string {
+  if (notes.length === 0) return "";
+  const first = notes[0]!.text.slice(0, 100);
+  const truncated = notes[0]!.text.length > 100 ? "…" : "";
+  if (notes.length === 1) return `"${first}${truncated}"`;
+  return `"${first}${truncated}"  (+${notes.length - 1} more — click row to view all)`;
+}
+
 export function MCTabRow({ tab, windowTitle, onAction, onOpenDetails }: Props) {
   const domain = getRootDomain(tab.url);
 
@@ -75,25 +83,23 @@ export function MCTabRow({ tab, windowTitle, onAction, onOpenDetails }: Props) {
       <Favicon url={tab.favIconUrl} />
 
       <div class="flex-1 min-w-0">
-        <div class="text-[13px] text-fg truncate leading-tight">
-          {tab.title || domain || "Untitled"}
-        </div>
-        <div class="text-[11px] text-fg-subtle truncate leading-tight mt-0.5 flex items-center gap-2">
+        <div class="text-[13px] text-fg truncate leading-tight flex items-center gap-2">
+          <span class="truncate">{tab.title || domain || "Untitled"}</span>
           {windowTitle && (
-            <span class="inline-flex items-center gap-1 text-accent font-medium shrink-0">
-              <Browsers size={10} weight="fill" />
+            <span class="inline-flex items-center gap-1 px-1.5 py-0.5 bg-accent-subtle text-accent text-[10px] font-medium rounded shrink-0">
+              <Browsers size={9} weight="fill" />
               {windowTitle}
             </span>
           )}
+        </div>
+        <div class="text-[11px] text-fg-subtle truncate leading-tight mt-0.5 flex items-center gap-2">
           <span class="truncate">{domain || tab.url}</span>
-          {tab.tags.length > 0 && (
-            <span class="inline-flex items-center gap-0.5 text-accent shrink-0">
-              <Tag size={10} weight="fill" />
-              {tab.tags.length}
-            </span>
-          )}
           {tab.notes.length > 0 && (
-            <span class="inline-flex items-center gap-0.5 text-accent shrink-0">
+            <span
+              data-tooltip={notesTooltip(tab.notes)}
+              data-tooltip-pos="above"
+              class="inline-flex items-center gap-0.5 text-accent shrink-0 cursor-help"
+            >
               <NotePencil size={10} weight="fill" />
               {tab.notes.length}
             </span>
@@ -105,6 +111,19 @@ export function MCTabRow({ tab, windowTitle, onAction, onOpenDetails }: Props) {
             </span>
           )}
         </div>
+        {tab.tags.length > 0 && (
+          <div class="flex items-center flex-wrap gap-1 mt-1">
+            {tab.tags.map((t) => (
+              <span
+                key={t}
+                class="inline-flex items-center gap-1 px-1.5 h-4 bg-accent-subtle text-accent-fg text-[10px] rounded"
+              >
+                <Tag size={8} weight="fill" class="text-accent" />
+                {t}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
 
       <div class="flex items-center gap-0.5 shrink-0">
