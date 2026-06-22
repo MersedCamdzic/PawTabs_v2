@@ -7,7 +7,6 @@ import {
   Tag,
   BookmarkSimple,
   ClockCounterClockwise,
-  ArrowCounterClockwise,
   Gear,
 } from "@phosphor-icons/react";
 import type { ComponentChildren, JSX } from "preact";
