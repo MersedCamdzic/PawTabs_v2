@@ -100,6 +100,21 @@ function pad(n: number): string {
   return n.toString().padStart(2, "0");
 }
 
+export function formatAbsoluteDateTime(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  const date = d.toLocaleDateString(undefined, {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+  const time = d.toLocaleTimeString(undefined, {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+  return `${date} · ${time}`;
+}
+
 export function formatRelativeTime(iso: string): string {
   const then = new Date(iso).getTime();
   if (Number.isNaN(then)) return "";

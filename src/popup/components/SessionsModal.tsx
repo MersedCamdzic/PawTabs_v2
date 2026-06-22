@@ -16,6 +16,7 @@ import {
   restoreSession,
   deleteSession,
   formatRelativeTime,
+  formatAbsoluteDateTime,
 } from "@/lib/sessions";
 import { listBackups, deleteBackup, restoreBackup } from "@/lib/backups";
 import type { SavedSession, Backup } from "@/types";
@@ -267,6 +268,9 @@ function UnifiedRow(props: {
             {s.tabs.length} tabs · {windowCount} window
             {windowCount === 1 ? "" : "s"} · {formatRelativeTime(s.dateTime)}
           </div>
+          <div class="text-[10px] text-fg-subtle/70 mt-0.5 font-mono">
+            {formatAbsoluteDateTime(s.dateTime)}
+          </div>
         </div>
         <Actions
           busy={props.busy}
@@ -293,6 +297,9 @@ function UnifiedRow(props: {
         </div>
         <div class="text-[11px] text-fg-subtle truncate mt-0.5">
           Saved data only · {formatRelativeTime(b.createdAt)}
+        </div>
+        <div class="text-[10px] text-fg-subtle/70 mt-0.5 font-mono">
+          {formatAbsoluteDateTime(b.createdAt)}
         </div>
       </div>
       <Actions

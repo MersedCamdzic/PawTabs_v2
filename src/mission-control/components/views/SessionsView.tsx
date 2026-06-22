@@ -12,6 +12,7 @@ import {
   restoreSession,
   deleteSession,
   formatRelativeTime,
+  formatAbsoluteDateTime,
 } from "@/lib/sessions";
 import { listBackups, deleteBackup, restoreBackup } from "@/lib/backups";
 import { getRootDomain } from "@/lib/utils";
@@ -240,6 +241,9 @@ function UnifiedCard(props: {
               {windowCount === 1 ? "" : "s"} ·{" "}
               {formatRelativeTime(s.dateTime)}
             </div>
+            <div class="text-[10px] text-fg-subtle/70 mt-0.5 font-mono">
+              {formatAbsoluteDateTime(s.dateTime)}
+            </div>
             {s.description && (
               <div class="text-[11px] text-fg-muted mt-1 italic whitespace-pre-wrap break-words">
                 {s.description}
@@ -295,6 +299,9 @@ function UnifiedCard(props: {
           </div>
           <div class="text-[11px] text-fg-subtle truncate mt-0.5">
             Saved data only · {formatRelativeTime(b.createdAt)}
+          </div>
+          <div class="text-[10px] text-fg-subtle/70 mt-0.5 font-mono">
+            {formatAbsoluteDateTime(b.createdAt)}
           </div>
         </div>
         <Actions
