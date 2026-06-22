@@ -5,7 +5,6 @@ import {
   ArrowSquareOut,
   ArrowUUpLeft,
   Trash,
-  Browsers,
 } from "@phosphor-icons/react";
 import { listPawed, unpawTab } from "@/lib/pawed";
 import { focusTab } from "@/lib/chrome";

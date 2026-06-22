@@ -335,15 +335,11 @@ export function MissionControl() {
         )}
 
         {view === "pawed" && (
-          <TabsListView
-            tabs={pawedTabs}
-            emptyText="No pawed tabs. Paw a tab from the popup to add it here."
-            windowTitles={windowTitles}
+          <PawedView
+            query={query}
             columns={currentColumns}
-            grouping={currentGrouping}
-            ordering={currentOrdering}
+            openTabs={snapshot?.tabs ?? []}
             onAction={reload}
-            onOpenDetails={setDetailsTab}
           />
         )}
 
