@@ -1,4 +1,5 @@
 import { storage } from "./storage";
+import { addTagToUrl, removeTagFromUrl } from "./tagged-urls";
 import type { Note, SavedPage } from "@/types";
 
 async function updateTab(
@@ -14,18 +15,20 @@ async function updateTab(
 export async function addTag(tabId: number, tag: string): Promise<void> {
   const clean = tag.trim();
   if (!clean) return;
-  await updateTab(tabId, (entry) => {
-    const tags = entry.tags ?? [];
-    if (tags.includes(clean)) return entry;
-    return { ...entry, tags: [...tags, clean] };
+  const tab = await chrome.tabs.get(tabId);
+  if (!tab.url) return;
+  await addTagToUrl({
+    url: tab.url,
+    title: tab.title ?? "",
+    favIconUrl: tab.favIconUrl ?? "",
+    tag: clean,
   });
 }
 
 export async function removeTag(tabId: number, tag: string): Promise<void> {
-  await updateTab(tabId, (entry) => ({
-    ...entry,
-    tags: (entry.tags ?? []).filter((t) => t !== tag),
-  }));
+  const tab = await chrome.tabs.get(tabId);
+  if (!tab.url) return;
+  await removeTagFromUrl(tab.url, tag);
 }
 
 export async function addNote(tabId: number, text: string): Promise<void> {

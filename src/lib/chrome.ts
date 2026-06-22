@@ -1,12 +1,14 @@
 import type { PawTab, TabSnapshot } from "@/types";
 import { storage } from "./storage";
 import { getPawedUrlSet, pawTab, unpawTab } from "./pawed";
+import { getTaggedMap } from "./tagged-urls";
 
 export async function fetchAllTabs(): Promise<TabSnapshot> {
-  const [windows, savedPages, pawedSet] = await Promise.all([
+  const [windows, savedPages, pawedSet, taggedMap] = await Promise.all([
     chrome.windows.getAll({ populate: true }),
     storage.get("savedPages"),
     getPawedUrlSet(),
+    getTaggedMap(),
   ]);
 
   const saved = savedPages ?? {};
@@ -14,22 +16,25 @@ export async function fetchAllTabs(): Promise<TabSnapshot> {
 
   const tabs: PawTab[] = allTabs
     .filter((t): t is chrome.tabs.Tab & { id: number } => t.id !== undefined)
-    .map((t) => ({
-      id: t.id,
-      windowId: t.windowId ?? 0,
-      url: t.url ?? "",
-      title: t.title ?? "",
-      favIconUrl: t.favIconUrl ?? "",
-      audible: t.audible ?? false,
-      muted: t.mutedInfo?.muted ?? false,
-      discarded: t.discarded ?? false,
-      pinned: t.pinned ?? false,
-      lastAccessed: t.lastAccessed,
-      saved: Boolean(saved[t.id]?.saved),
-      starred: pawedSet.has(t.url ?? ""),
-      tags: saved[t.id]?.tags ?? [],
-      notes: saved[t.id]?.notes ?? [],
-    }));
+    .map((t) => {
+      const url = t.url ?? "";
+      return {
+        id: t.id,
+        windowId: t.windowId ?? 0,
+        url,
+        title: t.title ?? "",
+        favIconUrl: t.favIconUrl ?? "",
+        audible: t.audible ?? false,
+        muted: t.mutedInfo?.muted ?? false,
+        discarded: t.discarded ?? false,
+        pinned: t.pinned ?? false,
+        lastAccessed: t.lastAccessed,
+        saved: Boolean(saved[t.id]?.saved),
+        starred: pawedSet.has(url),
+        tags: taggedMap[url]?.tags ?? [],
+        notes: saved[t.id]?.notes ?? [],
+      };
+    });
 
   return {
     windowCount: windows.length,

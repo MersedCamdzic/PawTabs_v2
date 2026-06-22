@@ -101,9 +101,18 @@ export interface PawedEntry {
   note?: string;
 }
 
+export interface TaggedUrlEntry {
+  url: string;
+  title: string;
+  favIconUrl: string;
+  tags: string[];
+  updatedAt: number;
+}
+
 export interface StorageSchema {
   savedPages: Record<number, SavedPage>;
   pawedUrls: Record<string, PawedEntry>;
+  taggedUrls: Record<string, TaggedUrlEntry>;
   savedSessions: SavedSession[];
   savedGroups: SavedGroup[];
   windows: Record<number, WindowMeta>;

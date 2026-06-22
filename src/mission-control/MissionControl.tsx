@@ -352,13 +352,11 @@ export function MissionControl() {
           />
         )}
 
-        {view === "tags" && snapshot && (
+        {view === "tags" && (
           <TagsView
-            tabs={snapshot.tabs}
             query={query}
-            windowTitles={windowTitles}
+            openTabs={snapshot?.tabs ?? []}
             onAction={reload}
-            onOpenDetails={setDetailsTab}
           />
         )}
 
