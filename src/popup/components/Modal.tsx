@@ -8,6 +8,8 @@ interface Props {
   children: preact.ComponentChildren;
   footer?: preact.ComponentChildren;
   headerActions?: preact.ComponentChildren;
+  hideCloseButton?: boolean;
+  closeOnBackdrop?: boolean;
 }
 
 export function Modal({
@@ -17,6 +19,8 @@ export function Modal({
   children,
   footer,
   headerActions,
+  hideCloseButton = false,
+  closeOnBackdrop = true,
 }: Props) {
   useEffect(() => {
     if (!open) return;
@@ -32,7 +36,7 @@ export function Modal({
   return (
     <div
       class="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-[2px]"
-      onClick={onClose}
+      onClick={closeOnBackdrop ? onClose : undefined}
     >
       <div
         class="relative w-[380px] max-h-[90vh] bg-bg-elevated border border-border rounded-lg shadow-lg flex flex-col"
@@ -43,14 +47,16 @@ export function Modal({
             {title}
           </h2>
           {headerActions}
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close"
-            class="size-7 inline-flex items-center justify-center rounded-md text-fg-muted hover:bg-surface hover:text-fg transition-colors"
-          >
-            <X size={14} />
-          </button>
+          {!hideCloseButton && (
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Close"
+              class="size-7 inline-flex items-center justify-center rounded-md text-fg-muted hover:bg-surface hover:text-fg transition-colors"
+            >
+              <X size={14} />
+            </button>
+          )}
         </div>
 
         <div class="flex-1 overflow-y-auto p-4">{children}</div>

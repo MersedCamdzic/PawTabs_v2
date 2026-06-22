@@ -157,6 +157,19 @@ export function TabDetailsModal({ tab, open, onClose, onAction }: Props) {
       open={open}
       onClose={onClose}
       title="Tab details"
+      hideCloseButton
+      closeOnBackdrop={false}
+      footer={
+        <div class="flex justify-end">
+          <button
+            type="button"
+            onClick={onClose}
+            class="h-8 px-4 text-[12px] font-medium rounded-md bg-fg text-bg hover:bg-fg-muted transition-colors"
+          >
+            Close
+          </button>
+        </div>
+      }
       headerActions={
         <div class="flex items-center gap-0.5">
           <HeaderAction
@@ -202,7 +215,7 @@ export function TabDetailsModal({ tab, open, onClose, onAction }: Props) {
             tone="danger"
             onClick={handleCloseTab}
           >
-            <Trash size={13} />
+            <X size={14} weight="bold" />
           </HeaderAction>
         </div>
       }
