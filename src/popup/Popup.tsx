@@ -299,11 +299,11 @@ export function Popup() {
           <span>command palette</span>
         </button>
         <span
-          title="Open PawTabs popup from anywhere in Chrome"
+          title="Default shortcut to open PawTabs from anywhere — change at chrome://extensions/shortcuts"
           class="inline-flex items-center gap-1.5"
         >
           <span class="font-mono bg-surface border border-border px-1 rounded text-[10px]">
-            ⌘⇧Y
+            ⌥⇧P
           </span>
           <span>open popup</span>
         </span>

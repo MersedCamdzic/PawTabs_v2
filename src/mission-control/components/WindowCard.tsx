@@ -7,6 +7,7 @@ import {
   Globe,
   PushPin,
   ArrowSquareOut,
+  DotsSixVertical,
 } from "@phosphor-icons/react";
 import { setWindowTitle, type WindowWithMeta } from "@/lib/windows";
 import { focusTab } from "@/lib/chrome";
@@ -124,17 +125,18 @@ export function WindowCard({
           </>
         ) : (
           <>
-            <div class="flex-1 min-w-0 group">
+            <button
+              type="button"
+              onClick={startEdit}
+              class="flex-1 min-w-0 text-left group/title rounded px-1 -mx-1 hover:bg-surface transition-colors"
+              title="Click to rename window"
+            >
               <div class="text-[13px] font-medium text-fg truncate flex items-center gap-1.5">
-                {displayTitle}
-                <button
-                  type="button"
-                  onClick={startEdit}
-                  aria-label="Rename window"
-                  class="opacity-0 group-hover:opacity-100 size-4 inline-flex items-center justify-center rounded text-fg-subtle hover:text-accent transition-all"
-                >
-                  <PencilSimple size={10} />
-                </button>
+                <span class="truncate">{displayTitle}</span>
+                <PencilSimple
+                  size={10}
+                  class="text-fg-subtle opacity-0 group-hover/title:opacity-100 transition-opacity shrink-0"
+                />
               </div>
               <div class="text-[10px] text-fg-subtle">
                 {window.tabs.length} tab{window.tabs.length === 1 ? "" : "s"}
@@ -142,7 +144,7 @@ export function WindowCard({
                   <span class="ml-1.5 text-accent">· focused</span>
                 )}
               </div>
-            </div>
+            </button>
             <button
               type="button"
               onClick={handleFocusWindow}
@@ -203,12 +205,13 @@ function CompactTabRow(props: {
       }}
       onDragEnd={props.onDragEnd}
       onClick={handleClick}
-      class={`flex items-center gap-2 px-2 py-1 rounded text-[12px] cursor-grab active:cursor-grabbing select-none transition-all ${
-        props.isDragging
-          ? "opacity-30"
-          : "hover:bg-surface"
+      class={`group flex items-center gap-1 px-1 py-1 rounded text-[12px] cursor-grab active:cursor-grabbing select-none transition-all ${
+        props.isDragging ? "opacity-30" : "hover:bg-surface"
       }`}
     >
+      <span class="size-3 inline-flex items-center justify-center text-fg-subtle opacity-30 group-hover:opacity-100 transition-opacity shrink-0">
+        <DotsSixVertical size={10} weight="bold" />
+      </span>
       {props.tab.favIconUrl ? (
         <img
           src={props.tab.favIconUrl}

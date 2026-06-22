@@ -19,7 +19,7 @@ export default defineManifest({
   host_permissions: ["<all_urls>"],
   commands: {
     open_popup: {
-      suggested_key: { default: "Ctrl+Shift+Y" },
+      suggested_key: { default: "Alt+Shift+P" },
       description: "Open the PawTabs popup",
     },
   },
