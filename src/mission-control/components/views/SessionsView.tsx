@@ -248,7 +248,7 @@ function UnifiedCard(props: {
         expanded={props.expanded}
         onToggleExpand={props.onToggle}
         expandedContent={
-          <div class="border-t border-border bg-surface/30 px-3 py-2 space-y-1 max-h-72 overflow-y-auto">
+          <div class="border-t border-border bg-surface/30 px-3 py-2 space-y-1 max-h-72 overflow-y-auto rounded-b-md">
             {s.tabs.map((t, i) => (
               <div
                 key={`${t.id}-${i}`}
@@ -334,7 +334,7 @@ function UnifiedCardShell(props: {
   expandedContent?: preact.ComponentChildren;
 }) {
   return (
-    <div class="border border-border rounded-md overflow-hidden hover:border-border-strong transition-colors">
+    <div class="border border-border rounded-md hover:border-border-strong transition-colors">
       <div class="flex items-center gap-3 px-3 py-2.5">
         {props.icon}
         <div class="flex-1 min-w-0">
