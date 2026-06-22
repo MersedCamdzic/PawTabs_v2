@@ -22,11 +22,16 @@ import type { SavedSession, Backup } from "@/types";
 interface Props {
   open: boolean;
   onClose: () => void;
+  currentStats?: {
+    windowCount: number;
+    tabCount: number;
+    pinnedCount: number;
+  };
 }
 
 type View = "sessions" | "backups";
 
-export function SessionsModal({ open, onClose }: Props) {
+export function SessionsModal({ open, onClose, currentStats }: Props) {
   const [view, setView] = useState<View>("sessions");
   const [sessions, setSessions] = useState<SavedSession[]>([]);
   const [backups, setBackups] = useState<Backup[]>([]);
@@ -147,55 +152,76 @@ export function SessionsModal({ open, onClose }: Props) {
 
             <div class="border-t border-border pt-3">
               {savingOpen ? (
-                <div class="flex gap-2 items-center">
-                  <input
-                    type="text"
-                    autoFocus
-                    value={name}
-                    onInput={(e) =>
-                      setName((e.currentTarget as HTMLInputElement).value)
-                    }
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        e.preventDefault();
-                        handleSave();
-                      } else if (e.key === "Escape") {
+                <div class="space-y-2">
+                  <div class="flex gap-2 items-center">
+                    <input
+                      type="text"
+                      autoFocus
+                      value={name}
+                      onInput={(e) =>
+                        setName((e.currentTarget as HTMLInputElement).value)
+                      }
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          handleSave();
+                        } else if (e.key === "Escape") {
+                          setSavingOpen(false);
+                          setName("");
+                        }
+                      }}
+                      placeholder="Name this snapshot…"
+                      class="flex-1 h-8 px-2.5 bg-surface border border-accent rounded-md text-[12px] placeholder:text-fg-subtle focus:outline-none focus:ring-4 focus:ring-accent/10 transition-colors"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleSave}
+                      disabled={saving}
+                      class="h-8 px-3 inline-flex items-center gap-1 text-[12px] font-medium rounded-md bg-accent text-white hover:bg-accent-hover disabled:opacity-40 transition-colors"
+                    >
+                      <FloppyDisk size={12} weight="fill" />
+                      Save
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
                         setSavingOpen(false);
                         setName("");
-                      }
-                    }}
-                    placeholder="Name this snapshot…"
-                    class="flex-1 h-8 px-2.5 bg-surface border border-accent rounded-md text-[12px] placeholder:text-fg-subtle focus:outline-none focus:ring-4 focus:ring-accent/10 transition-colors"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleSave}
-                    disabled={saving}
-                    class="h-8 px-3 inline-flex items-center gap-1 text-[12px] font-medium rounded-md bg-accent text-white hover:bg-accent-hover disabled:opacity-40 transition-colors"
-                  >
-                    <FloppyDisk size={12} weight="fill" />
-                    Save
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSavingOpen(false);
-                      setName("");
-                    }}
-                    aria-label="Cancel"
-                    class="size-8 inline-flex items-center justify-center rounded-md text-fg-muted hover:bg-surface hover:text-fg transition-colors"
-                  >
-                    <X size={13} />
-                  </button>
+                      }}
+                      aria-label="Cancel"
+                      class="size-8 inline-flex items-center justify-center rounded-md text-fg-muted hover:bg-surface hover:text-fg transition-colors"
+                    >
+                      <X size={13} />
+                    </button>
+                  </div>
+                  {currentStats && (
+                    <CurrentStatePreview stats={currentStats} />
+                  )}
                 </div>
               ) : (
                 <button
                   type="button"
                   onClick={() => setSavingOpen(true)}
-                  class="w-full h-8 flex items-center justify-center gap-1.5 rounded-md border border-dashed border-border hover:border-accent hover:bg-accent-subtle text-fg-muted hover:text-accent text-[12px] font-medium transition-colors"
+                  class="w-full px-3 py-2 flex items-center justify-between gap-2 rounded-md border border-dashed border-border hover:border-accent hover:bg-accent-subtle text-fg-muted hover:text-accent group transition-colors"
                 >
-                  <Plus size={12} weight="bold" />
-                  Save current state as a snapshot
+                  <span class="flex items-center gap-1.5 text-[12px] font-medium">
+                    <Plus size={12} weight="bold" />
+                    Save current state
+                  </span>
+                  {currentStats && (
+                    <span class="text-[11px] text-fg-subtle group-hover:text-accent/70 truncate">
+                      {currentStats.tabCount} tab
+                      {currentStats.tabCount === 1 ? "" : "s"} ·{" "}
+                      {currentStats.windowCount} window
+                      {currentStats.windowCount === 1 ? "" : "s"}
+                      {currentStats.pinnedCount > 0 && (
+                        <>
+                          {" · "}
+                          {currentStats.pinnedCount} pinned
+                        </>
+                      )}
+                    </span>
+                  )}
                 </button>
               )}
             </div>
@@ -233,6 +259,30 @@ export function SessionsModal({ open, onClose }: Props) {
         )}
       </div>
     </Modal>
+  );
+}
+
+function CurrentStatePreview(props: {
+  stats: { windowCount: number; tabCount: number; pinnedCount: number };
+}) {
+  return (
+    <div class="text-[11px] text-fg-subtle bg-surface rounded px-2.5 py-1.5 flex items-center gap-2 flex-wrap">
+      <span class="font-medium text-fg-muted">Will save:</span>
+      <span>
+        {props.stats.tabCount} tab{props.stats.tabCount === 1 ? "" : "s"}
+      </span>
+      <span class="text-border-strong">·</span>
+      <span>
+        {props.stats.windowCount} window
+        {props.stats.windowCount === 1 ? "" : "s"}
+      </span>
+      {props.stats.pinnedCount > 0 && (
+        <>
+          <span class="text-border-strong">·</span>
+          <span>{props.stats.pinnedCount} pinned</span>
+        </>
+      )}
+    </div>
   );
 }
 

@@ -237,6 +237,15 @@ export function Popup() {
           <SessionsModal
             open={sessionsOpen}
             onClose={() => setSessionsOpen(false)}
+            currentStats={
+              snapshot
+                ? {
+                    windowCount: snapshot.windowCount,
+                    tabCount: snapshot.tabCount,
+                    pinnedCount: snapshot.tabs.filter((t) => t.pinned).length,
+                  }
+                : undefined
+            }
           />
         )}
         {settingsOpen && (
