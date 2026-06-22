@@ -189,7 +189,7 @@ export function Popup() {
   };
 
   return (
-    <div class="w-[420px] min-h-[560px] max-h-[600px] bg-bg text-fg flex flex-col">
+    <div class="w-[420px] min-h-[560px] max-h-[600px] bg-bg text-fg flex flex-col overflow-x-hidden">
       <header class="flex items-center justify-between px-4 pt-4 pb-3">
         <div class="flex items-center gap-1.5 text-fg-muted">
           <PawPrint size={13} weight="fill" class="text-accent" />
@@ -251,7 +251,7 @@ export function Popup() {
         <div class="flex items-center gap-1.5">
           <OrderBy value={ordering} onChange={updateOrdering} />
           <GroupBy value={grouping} onChange={updateGrouping} />
-          <BulkActionsMenu tabs={filtered} onAction={handleAction} />
+          <BulkActionsMenu tabs={filtered} onAction={handleAction} compact />
         </div>
       </section>
 

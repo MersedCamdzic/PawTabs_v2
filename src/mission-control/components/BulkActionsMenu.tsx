@@ -30,12 +30,13 @@ import type { PawTab, WindowColor } from "@/types";
 interface Props {
   tabs: PawTab[];
   label?: string;
+  compact?: boolean;
   onAction: () => void;
 }
 
 type Panel = null | "tag" | "note" | "move";
 
-export function BulkActionsMenu({ tabs, label, onAction }: Props) {
+export function BulkActionsMenu({ tabs, label, compact, onAction }: Props) {
   const [open, setOpen] = useState(false);
   const [panel, setPanel] = useState<Panel>(null);
   const [tagInput, setTagInput] = useState("");
@@ -182,7 +183,7 @@ export function BulkActionsMenu({ tabs, label, onAction }: Props) {
         }`}
       >
         <Lightning size={12} weight="fill" />
-        {buttonLabel}
+        {!compact && buttonLabel}
         <span
           class={`text-[10px] font-mono px-1.5 h-4 inline-flex items-center rounded ${
             disabled
@@ -194,11 +195,13 @@ export function BulkActionsMenu({ tabs, label, onAction }: Props) {
         >
           {count}
         </span>
-        <CaretDown
-          size={10}
-          weight="bold"
-          class={`transition-transform ${open ? "rotate-180" : ""}`}
-        />
+        {!compact && (
+          <CaretDown
+            size={10}
+            weight="bold"
+            class={`transition-transform ${open ? "rotate-180" : ""}`}
+          />
+        )}
       </button>
 
       {open && (
