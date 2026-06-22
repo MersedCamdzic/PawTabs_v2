@@ -484,6 +484,7 @@ function CompactTabRow(props: {
   selected: boolean;
   onToggleSelect: () => void;
   onMoveSingle: () => void;
+  onOpenDetails: () => void;
   onAction: () => void;
 }) {
   const handleClick = (e: MouseEvent) => {
@@ -494,8 +495,10 @@ function CompactTabRow(props: {
     e.stopPropagation();
     if (props.inSelectMode) {
       props.onToggleSelect();
+      return;
     }
-    // Otherwise: do nothing. Use explicit Jump button to focus the tab.
+    // Regular mode: open tab details (tags, notes, move).
+    props.onOpenDetails();
   };
 
   const stop = (e: Event) => e.stopPropagation();
