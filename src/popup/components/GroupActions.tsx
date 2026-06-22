@@ -138,6 +138,10 @@ export function GroupActions({ tabs, onAction }: Props) {
       >
         <ArrowsLeftRight size={13} weight="bold" />
       </IconBtn>
+      <span
+        class="w-px h-4 mx-1 bg-border opacity-0 group-hover:opacity-100 transition-opacity"
+        aria-hidden="true"
+      />
       <IconBtn tooltip="Close all in group" danger onClick={handleCloseAll}>
         <X size={13} weight="bold" />
       </IconBtn>
