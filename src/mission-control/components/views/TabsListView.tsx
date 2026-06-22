@@ -5,14 +5,23 @@ interface Props {
   tabs: PawTab[];
   emptyText: string;
   windowTitles: Record<number, string>;
+  columns?: 1 | 2 | 3 | 4;
   onAction: () => void;
   onOpenDetails: (tab: PawTab) => void;
 }
+
+const COLUMN_LAYOUT: Record<1 | 2 | 3 | 4, string> = {
+  1: "space-y-0.5",
+  2: "grid grid-cols-2 gap-1",
+  3: "grid grid-cols-3 gap-1",
+  4: "grid grid-cols-4 gap-1",
+};
 
 export function TabsListView({
   tabs,
   emptyText,
   windowTitles,
+  columns = 1,
   onAction,
   onOpenDetails,
 }: Props) {
@@ -25,7 +34,7 @@ export function TabsListView({
   }
 
   return (
-    <div class="px-6 py-3 space-y-0.5">
+    <div class={`px-6 py-3 ${COLUMN_LAYOUT[columns]}`}>
       {tabs.map((tab) => (
         <MCTabRow
           key={tab.id}
