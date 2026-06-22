@@ -12,6 +12,7 @@ import {
   ArrowsSplit,
   ArrowsMerge,
   ArrowRight,
+  ArrowsLeftRight,
   XCircle,
   PawPrint,
   SpeakerHigh,
@@ -623,7 +624,7 @@ function CompactTabRow(props: {
             tone="accent"
             onClick={handleMoveSingle}
           >
-            <ArrowRight size={11} />
+            <ArrowsLeftRight size={11} />
           </TinyActionBtn>
           <TinyActionBtn
             title="Jump to tab"
