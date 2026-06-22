@@ -248,20 +248,38 @@ function UnifiedCard(props: {
         expanded={props.expanded}
         onToggleExpand={props.onToggle}
         expandedContent={
-          <div class="border-t border-border bg-surface/30 px-3 py-2 space-y-1 max-h-72 overflow-y-auto rounded-b-md">
-            {s.tabs.map((t, i) => (
-              <div
-                key={`${t.id}-${i}`}
-                class="flex items-center gap-2 px-2 py-1 text-[12px]"
-              >
-                <span class="text-fg-subtle font-mono text-[10px] w-8 shrink-0">
-                  {getRootDomain(t.url).slice(0, 8) || "—"}
-                </span>
-                <span class="truncate flex-1 text-fg-muted">
-                  {t.title || t.url}
-                </span>
-              </div>
-            ))}
+          <div class="border-t border-border bg-surface/30 max-h-72 overflow-y-auto rounded-b-md">
+            <div class="px-2 py-2 space-y-0.5">
+              {s.tabs.map((t, i) => {
+                const domain = getRootDomain(t.url);
+                return (
+                  <div
+                    key={`${t.id}-${i}`}
+                    class="group/row flex items-center gap-2 px-2 py-1 rounded hover:bg-bg-elevated text-[12px]"
+                  >
+                    {t.favIconUrl ? (
+                      <img
+                        src={t.favIconUrl}
+                        alt=""
+                        class="size-3.5 shrink-0 rounded-sm"
+                        onError={(e) => {
+                          (e.currentTarget as HTMLImageElement).style.display =
+                            "none";
+                        }}
+                      />
+                    ) : (
+                      <span class="size-3.5 shrink-0 rounded-sm bg-border" />
+                    )}
+                    <span class="truncate flex-1 text-fg">
+                      {t.title || domain || t.url}
+                    </span>
+                    <span class="text-[10px] font-mono text-fg-subtle/70 shrink-0 truncate max-w-[120px]">
+                      {domain}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         }
       />
@@ -361,7 +379,7 @@ function UnifiedCardShell(props: {
               onClick={props.onToggleExpand}
               aria-label={props.expanded ? "Collapse" : "Expand"}
               data-tooltip={props.expanded ? "Hide tabs" : "Show tabs"}
-              data-tooltip-pos="above"
+              data-tooltip-pos="below"
               class="size-8 inline-flex items-center justify-center rounded text-fg-muted hover:bg-surface hover:text-fg transition-colors"
             >
               <CaretDown
