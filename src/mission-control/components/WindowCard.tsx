@@ -152,7 +152,7 @@ export function WindowCard({
     : isSelectionSource
       ? "border-2 border-border-strong shadow-md bg-surface/40"
       : window.focused
-        ? "border border-border-strong"
+        ? "border-2 border-accent/40 bg-accent-subtle/10 shadow-sm"
         : "border border-border hover:border-border-strong";
 
   return (
@@ -168,6 +168,11 @@ export function WindowCard({
       {isSelectionSource && (
         <div class="absolute -top-2 left-3 z-10 px-2 py-0.5 bg-fg text-bg text-[10px] font-medium rounded uppercase tracking-wide">
           From
+        </div>
+      )}
+      {window.focused && !isMoveTarget && !isSelectionSource && (
+        <div class="absolute -top-2 left-3 z-10 px-2 py-0.5 bg-accent text-white text-[10px] font-medium rounded uppercase tracking-wide">
+          Current
         </div>
       )}
       <div class="flex items-center gap-2 px-3 py-2 border-b border-border bg-surface/40">
@@ -612,6 +617,10 @@ function CompactTabRow(props: {
           >
             <ArrowSquareOut size={11} />
           </TinyActionBtn>
+          <span
+            class="w-px h-3 mx-0.5 bg-border opacity-0 group-hover:opacity-100 transition-opacity"
+            aria-hidden="true"
+          />
           <TinyActionBtn
             title="Close tab"
             tone="danger"
