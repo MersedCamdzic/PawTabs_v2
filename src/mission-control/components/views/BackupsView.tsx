@@ -49,10 +49,16 @@ export function BackupsView({ query }: Props) {
 
   return (
     <div class="px-6 py-4 max-w-4xl">
-      <div class="text-[12px] text-fg-muted bg-surface rounded-md px-3 py-2 border border-border mb-4 max-w-2xl">
-        Backups are created automatically by the Wizard before any destructive
-        cleanup. Restoring overwrites your stored sessions, groups, and page
-        metadata. Open tabs are not touched.
+      <div class="text-[12px] text-fg-muted bg-accent-subtle/30 border border-accent/20 rounded-md px-3 py-2.5 mb-4 max-w-2xl space-y-1">
+        <div class="font-medium text-fg flex items-center gap-1.5">
+          What's a Wizard backup?
+        </div>
+        <div>
+          Every time you run the Cleanup Wizard (broom icon), PawTabs first
+          makes a snapshot of your saved data — snapshots, groups, tags,
+          notes, pinned/pawed state. You can restore it here if you want to
+          undo. Open tabs are NOT touched by restore.
+        </div>
       </div>
 
       {filtered.length === 0 ? (

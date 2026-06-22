@@ -16,6 +16,7 @@ import {
   ArrowSquareIn,
   ArrowSquareUpRight,
   Moon,
+  Lightning,
   XCircle,
   Palette,
   PawPrint,
@@ -40,6 +41,7 @@ import {
   togglePinned,
   toggleMuted,
   toggleStarred,
+  wakeTab,
 } from "@/lib/chrome";
 import { getRootDomain } from "@/lib/utils";
 import type { PawTab } from "@/types";
@@ -653,6 +655,9 @@ function CompactTabRow(props: {
     stop(e);
     props.onMoveSingle();
   };
+  const handleWake = wrap(async () => {
+    await wakeTab(props.tab.id);
+  });
   const handlePaw = wrap(async () => {
     await toggleStarred(props.tab.id);
   });

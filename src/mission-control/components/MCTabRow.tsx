@@ -8,6 +8,7 @@ import {
   Tag,
   NotePencil,
   Moon,
+  Lightning,
   ArrowSquareOut,
   ArrowsLeftRight,
   Browsers,
@@ -18,6 +19,7 @@ import {
   togglePinned,
   toggleMuted,
   toggleStarred,
+  wakeTab,
 } from "@/lib/chrome";
 import { getRootDomain } from "@/lib/utils";
 import type { PawTab } from "@/types";
@@ -73,6 +75,12 @@ export function MCTabRow({ tab, windowTitle, onAction, onOpenDetails }: Props) {
   const handleMove = (e: MouseEvent) => {
     stop(e);
     onOpenDetails(tab);
+  };
+
+  const handleWake = async (e: MouseEvent) => {
+    stop(e);
+    await wakeTab(tab.id);
+    onAction();
   };
 
   const rowClass = tab.discarded
@@ -169,6 +177,16 @@ export function MCTabRow({ tab, windowTitle, onAction, onOpenDetails }: Props) {
             ) : (
               <SpeakerHigh size={13} />
             )}
+          </ActionBtn>
+        )}
+        {tab.discarded && (
+          <ActionBtn
+            title="Wake up tab (reload from sleep)"
+            active={true}
+            tone="warning"
+            onClick={handleWake}
+          >
+            <Lightning size={13} weight="fill" />
           </ActionBtn>
         )}
         <ActionBtn

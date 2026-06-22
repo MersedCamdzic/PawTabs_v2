@@ -46,6 +46,10 @@ export async function closeTab(tabId: number): Promise<void> {
   await chrome.tabs.remove(tabId);
 }
 
+export async function wakeTab(tabId: number): Promise<void> {
+  await chrome.tabs.reload(tabId);
+}
+
 export async function togglePinned(
   tabId: number,
   pinned: boolean,

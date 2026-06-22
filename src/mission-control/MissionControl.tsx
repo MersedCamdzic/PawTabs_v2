@@ -38,16 +38,19 @@ const VIEW_META: Record<View, { title: string; subtitle: string }> = {
   pinned: { title: "Pinned", subtitle: "Tabs you have pinned in Chrome." },
   tags: { title: "Tags", subtitle: "Browse tabs by tag." },
   sessions: {
-    title: "Sessions",
-    subtitle: "Save your current state and restore it later.",
+    title: "Snapshots",
+    subtitle:
+      "Save the current state of all your windows and tabs to restore later.",
   },
   "recently-closed": {
     title: "Recently closed",
-    subtitle: "Tabs you have closed recently — click to reopen.",
+    subtitle:
+      "Chrome's own list of tabs you closed recently — click to reopen.",
   },
   backups: {
-    title: "Backups",
-    subtitle: "Auto-generated snapshots before Wizard cleanups.",
+    title: "Wizard backups",
+    subtitle:
+      "Automatic safety nets created before each Cleanup Wizard run — restore here if you regret a cleanup.",
   },
   settings: {
     title: "Settings",

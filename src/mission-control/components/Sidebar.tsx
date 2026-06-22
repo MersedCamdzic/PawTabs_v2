@@ -97,27 +97,30 @@ export function Sidebar({ view, onChange, counts }: Props) {
           onClick={() => onChange("tags")}
         />
 
-        <SectionLabel>History</SectionLabel>
+        <SectionLabel>Saved</SectionLabel>
 
         <NavItem
           icon={<BookmarkSimple size={14} />}
-          label="Sessions"
+          label="Snapshots"
           count={counts.sessions}
           active={view === "sessions"}
           onClick={() => onChange("sessions")}
         />
         <NavItem
+          icon={<ArrowCounterClockwise size={14} />}
+          label="Wizard backups"
+          count={counts.backups}
+          active={view === "backups"}
+          onClick={() => onChange("backups")}
+        />
+
+        <SectionLabel>Browser history</SectionLabel>
+
+        <NavItem
           icon={<ClockCounterClockwise size={14} />}
           label="Recently closed"
           active={view === "recently-closed"}
           onClick={() => onChange("recently-closed")}
-        />
-        <NavItem
-          icon={<ArrowCounterClockwise size={14} />}
-          label="Backups"
-          count={counts.backups}
-          active={view === "backups"}
-          onClick={() => onChange("backups")}
         />
       </nav>
 
