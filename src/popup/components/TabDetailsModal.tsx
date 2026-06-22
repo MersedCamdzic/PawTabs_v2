@@ -200,6 +200,19 @@ export function TabDetailsModal({ tab, open, onClose, onAction }: Props) {
       open={open}
       onClose={onClose}
       title="Tab details"
+      subtitle={
+        <WindowSubtitle
+          windowId={tab.windowId}
+          name={currentWindowName}
+          colorStyle={currentWindowColorStyle}
+          renaming={renamingWindow}
+          draft={windowNameDraft}
+          onDraftChange={setWindowNameDraft}
+          onStartRename={startRenameWindow}
+          onCommitRename={commitRenameWindow}
+          onCancelRename={cancelRenameWindow}
+        />
+      }
       hideCloseButton
       closeOnBackdrop={false}
       footer={
@@ -293,17 +306,6 @@ export function TabDetailsModal({ tab, open, onClose, onAction }: Props) {
           </div>
         </div>
 
-        <WindowRow
-          windowId={tab.windowId}
-          name={currentWindowName}
-          colorStyle={currentWindowColorStyle}
-          renaming={renamingWindow}
-          draft={windowNameDraft}
-          onDraftChange={setWindowNameDraft}
-          onStartRename={startRenameWindow}
-          onCommitRename={commitRenameWindow}
-          onCancelRename={cancelRenameWindow}
-        />
 
         <div class="flex items-center gap-2 px-3 h-8 bg-surface rounded-md">
           <Copy size={11} class="text-fg-subtle shrink-0" />
@@ -621,7 +623,7 @@ function HeaderAction(props: {
   );
 }
 
-function WindowRow(props: {
+function WindowSubtitle(props: {
   windowId: number;
   name: string | null;
   colorStyle: (typeof WINDOW_COLOR_STYLES)[WindowColor] | null;
@@ -632,18 +634,9 @@ function WindowRow(props: {
   onCommitRename: () => void;
   onCancelRename: () => void;
 }) {
-  const bg = props.colorStyle ? props.colorStyle.headerBg : "bg-surface";
-  const titleColor = props.colorStyle
-    ? props.colorStyle.titleText
-    : "text-fg-muted";
-
   if (props.renaming) {
     return (
-      <div class={`flex items-center gap-2 px-3 h-9 rounded-md ${bg}`}>
-        <Browsers
-          size={12}
-          class={props.colorStyle ? props.colorStyle.iconText : "text-fg-subtle"}
-        />
+      <div class="inline-flex items-center gap-1">
         <input
           type="text"
           autoFocus
@@ -651,6 +644,7 @@ function WindowRow(props: {
           onInput={(e) =>
             props.onDraftChange((e.currentTarget as HTMLInputElement).value)
           }
+          onBlur={props.onCommitRename}
           onKeyDown={(e) => {
             if (e.key === "Enter") {
               e.preventDefault();
@@ -661,59 +655,37 @@ function WindowRow(props: {
             }
           }}
           placeholder={`Window ${props.windowId}`}
-          class="flex-1 h-7 px-2 bg-bg-elevated border border-accent rounded text-[12px] focus:outline-none focus:ring-4 focus:ring-accent/10"
+          class="h-5 px-1.5 bg-bg-elevated border border-accent rounded text-[11px] focus:outline-none focus:ring-2 focus:ring-accent/10 min-w-[120px]"
         />
-        <button
-          type="button"
-          onClick={props.onCommitRename}
-          aria-label="Save name"
-          class="size-6 inline-flex items-center justify-center rounded text-fg-muted hover:bg-success-subtle hover:text-success transition-colors"
-        >
-          <Check size={11} weight="bold" />
-        </button>
-        <button
-          type="button"
-          onClick={props.onCancelRename}
-          aria-label="Cancel"
-          class="size-6 inline-flex items-center justify-center rounded text-fg-muted hover:bg-bg-elevated hover:text-fg transition-colors"
-        >
-          <X size={11} weight="bold" />
-        </button>
       </div>
     );
   }
 
   const displayName = props.name || `Window ${props.windowId}`;
+  const nameColor = props.colorStyle
+    ? props.colorStyle.titleText
+    : "text-fg-muted";
 
   return (
-    <div class={`group flex items-center gap-2 px-3 h-9 rounded-md ${bg}`}>
-      {props.colorStyle ? (
+    <button
+      type="button"
+      onClick={props.onStartRename}
+      data-tooltip={props.name ? "Click to rename" : "Click to name window"}
+      data-tooltip-pos="below"
+      class="group/sub inline-flex items-center gap-1.5 px-1 -mx-1 rounded hover:bg-surface transition-colors"
+    >
+      {props.colorStyle && (
         <span
-          class={`size-2 rounded-full shrink-0 ${props.colorStyle.dot}`}
+          class={`size-1.5 rounded-full ${props.colorStyle.dot}`}
           aria-hidden="true"
         />
-      ) : (
-        <Browsers size={12} class="text-fg-subtle shrink-0" />
       )}
-      <span class={`text-[12px] font-medium truncate flex-1 ${titleColor}`}>
-        {displayName}
-      </span>
-      {props.name && (
-        <span class="text-[10px] text-fg-subtle font-normal shrink-0">
-          · Window {props.windowId}
-        </span>
-      )}
-      <button
-        type="button"
-        onClick={props.onStartRename}
-        aria-label={props.name ? "Rename window" : "Name this window"}
-        data-tooltip={props.name ? "Rename window" : "Name this window"}
-        data-tooltip-pos="left"
-        class="size-6 inline-flex items-center justify-center rounded text-fg-subtle opacity-0 group-hover:opacity-100 hover:bg-bg-elevated hover:text-accent transition-all"
-      >
-        <PencilSimple size={11} />
-      </button>
-    </div>
+      <span class={`text-[11px] font-medium ${nameColor}`}>{displayName}</span>
+      <PencilSimple
+        size={9}
+        class="text-fg-subtle opacity-0 group-hover/sub:opacity-100 transition-opacity"
+      />
+    </button>
   );
 }
 

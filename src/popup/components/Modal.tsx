@@ -3,6 +3,7 @@ import { X } from "@phosphor-icons/react";
 
 interface Props {
   title: string;
+  subtitle?: preact.ComponentChildren;
   open: boolean;
   onClose: () => void;
   children: preact.ComponentChildren;
@@ -14,6 +15,7 @@ interface Props {
 
 export function Modal({
   title,
+  subtitle,
   open,
   onClose,
   children,
@@ -43,9 +45,16 @@ export function Modal({
         onClick={(e) => e.stopPropagation()}
       >
         <div class="flex items-center gap-2 px-4 py-3 border-b border-border">
-          <h2 class="text-[14px] font-semibold tracking-tight flex-1">
-            {title}
-          </h2>
+          <div class="flex-1 min-w-0">
+            <h2 class="text-[14px] font-semibold tracking-tight leading-tight">
+              {title}
+            </h2>
+            {subtitle && (
+              <div class="text-[11px] text-fg-subtle leading-tight mt-0.5">
+                {subtitle}
+              </div>
+            )}
+          </div>
           {headerActions}
           {!hideCloseButton && (
             <button
