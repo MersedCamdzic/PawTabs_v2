@@ -12,8 +12,9 @@ import { TabGroupSection } from "./components/TabGroupSection";
 import { GroupBy } from "./components/GroupBy";
 import { WizardModal } from "./components/WizardModal";
 import { SessionsModal } from "./components/SessionsModal";
+import { SettingsModal } from "./components/SettingsModal";
 import { groupTabs } from "@/lib/grouping";
-import { storage } from "@/lib/storage";
+import { getPreferences, setPreference } from "@/lib/preferences";
 import type { GroupBy as GroupByType, PawTab } from "@/types";
 
 export function Popup() {
@@ -23,20 +24,18 @@ export function Popup() {
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
   const [wizardOpen, setWizardOpen] = useState(false);
   const [sessionsOpen, setSessionsOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   useEffect(() => {
-    storage.get("preferences").then((prefs) => {
-      if (prefs?.grouping) setGrouping(prefs.grouping);
-      if (prefs?.collapsedGroups) setCollapsed(new Set(prefs.collapsedGroups));
+    getPreferences().then((prefs) => {
+      setGrouping(prefs.grouping);
+      setCollapsed(new Set(prefs.collapsedGroups));
     });
   }, []);
 
   const updateGrouping = (next: GroupByType) => {
     setGrouping(next);
-    storage.update("preferences", (prev) => ({
-      grouping: next,
-      collapsedGroups: prev?.collapsedGroups ?? [],
-    }));
+    setPreference("grouping", next);
   };
 
   const toggleCollapsed = (key: string) => {
@@ -44,10 +43,7 @@ export function Popup() {
     if (next.has(key)) next.delete(key);
     else next.add(key);
     setCollapsed(next);
-    storage.update("preferences", (prev) => ({
-      grouping: prev?.grouping ?? "window",
-      collapsedGroups: Array.from(next),
-    }));
+    setPreference("collapsedGroups", Array.from(next));
   };
 
   const filtered = useMemo<PawTab[]>(() => {
@@ -90,7 +86,7 @@ export function Popup() {
           <IconButton label="Mission Control" onClick={openMissionControl}>
             <GridFour size={16} weight="regular" />
           </IconButton>
-          <IconButton label="Settings">
+          <IconButton label="Settings" onClick={() => setSettingsOpen(true)}>
             <Gear size={16} weight="regular" />
           </IconButton>
         </div>
@@ -181,6 +177,11 @@ export function Popup() {
       <SessionsModal
         open={sessionsOpen}
         onClose={() => setSessionsOpen(false)}
+      />
+
+      <SettingsModal
+        open={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
       />
     </div>
   );

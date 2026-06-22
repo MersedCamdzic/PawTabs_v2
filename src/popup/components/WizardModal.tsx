@@ -1,9 +1,10 @@
-import { useState } from "preact/hooks";
+import { useState, useEffect } from "preact/hooks";
 import { Sparkle, CheckCircle, FloppyDisk } from "@phosphor-icons/react";
 import { Modal } from "./Modal";
 import { Toggle } from "./Toggle";
 import { runWizard, WIZARD_DEFAULTS } from "@/lib/wizard";
 import type { WizardOptions, WizardResult } from "@/lib/wizard";
+import { getPreferences } from "@/lib/preferences";
 
 interface Props {
   open: boolean;
@@ -15,6 +16,18 @@ export function WizardModal({ open, onClose, onComplete }: Props) {
   const [opts, setOpts] = useState<WizardOptions>(WIZARD_DEFAULTS);
   const [running, setRunning] = useState(false);
   const [result, setResult] = useState<WizardResult | null>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    getPreferences().then((p) => {
+      setOpts((prev) => ({
+        ...prev,
+        splitThreshold: p.wizardThresholds.splitThreshold,
+        splitInto: p.wizardThresholds.splitInto,
+        regroupThreshold: p.wizardThresholds.regroupThreshold,
+      }));
+    });
+  }, [open]);
 
   const reset = () => {
     setOpts(WIZARD_DEFAULTS);

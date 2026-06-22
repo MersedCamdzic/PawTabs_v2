@@ -62,9 +62,19 @@ export type GroupBy =
   | "pawed"
   | "audible";
 
+export type Theme = "light" | "dark" | "system";
+
+export interface WizardThresholds {
+  splitThreshold: number;
+  splitInto: number;
+  regroupThreshold: number;
+}
+
 export interface Preferences {
   grouping: GroupBy;
   collapsedGroups: string[];
+  theme: Theme;
+  wizardThresholds: WizardThresholds;
 }
 
 export interface StorageSchema {
