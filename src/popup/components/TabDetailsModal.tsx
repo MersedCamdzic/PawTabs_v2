@@ -209,14 +209,6 @@ export function TabDetailsModal({ tab, open, onClose, onAction }: Props) {
           >
             <ArrowSquareOut size={13} />
           </HeaderAction>
-          <span class="w-px h-4 bg-border mx-0.5" aria-hidden="true" />
-          <HeaderAction
-            title="Close tab"
-            tone="danger"
-            onClick={handleCloseTab}
-          >
-            <X size={14} weight="bold" />
-          </HeaderAction>
         </div>
       }
     >
