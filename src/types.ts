@@ -50,8 +50,19 @@ export interface Backup {
   };
 }
 
+export type WindowColor =
+  | "gray"
+  | "blue"
+  | "green"
+  | "amber"
+  | "red"
+  | "purple"
+  | "pink"
+  | "cyan";
+
 export interface WindowMeta {
   title?: string;
+  color?: WindowColor;
 }
 
 export type GroupBy =

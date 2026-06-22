@@ -23,7 +23,16 @@ import {
   Tag,
   NotePencil,
 } from "@phosphor-icons/react";
-import { setWindowTitle, type WindowWithPawTabs } from "@/lib/windows";
+import {
+  setWindowTitle,
+  setWindowColor,
+  type WindowWithPawTabs,
+} from "@/lib/windows";
+import {
+  WINDOW_COLOR_PALETTE,
+  WINDOW_COLOR_STYLES,
+} from "@/lib/window-colors";
+import type { WindowColor } from "@/types";
 import {
   focusTab,
   closeTab,
@@ -77,6 +86,7 @@ export function WindowCard({
 }: Props) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState("");
+  const [draftColor, setDraftColor] = useState<WindowColor | null>(null);
   const [mode, setMode] = useState<CardMode>("view");
   const [splitSize, setSplitSize] = useState(5);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -98,16 +108,20 @@ export function WindowCard({
 
   const startEdit = () => {
     setDraft(window.customTitle ?? "");
+    setDraftColor(window.color);
     setEditing(true);
   };
   const cancelEdit = () => {
     setEditing(false);
     setDraft("");
+    setDraftColor(null);
   };
   const commitEdit = async () => {
     await setWindowTitle(window.id, draft);
+    await setWindowColor(window.id, draftColor);
     setEditing(false);
     setDraft("");
+    setDraftColor(null);
     onReload();
   };
 
@@ -154,15 +168,30 @@ export function WindowCard({
 
   const inSelectMode = isSelectionSource || isMoveTarget;
 
-  const borderClass = isMoveTarget
-    ? selectionCount > 0
-      ? "border-2 border-accent bg-accent-subtle/30 ring-4 ring-accent/15 cursor-pointer hover:bg-accent-subtle/60 hover:ring-accent/30 hover:scale-[1.01]"
-      : "border-2 border-dashed border-border opacity-60"
-    : isSelectionSource
-      ? "border-2 border-border-strong shadow-md bg-surface/40"
-      : window.focused
-        ? "border-2 border-accent/40 bg-accent-subtle/10 shadow-sm"
-        : "border border-border hover:border-border-strong";
+  const colorStyle = window.color ? WINDOW_COLOR_STYLES[window.color] : null;
+  const hasIdentity = !!window.customTitle || !!window.color;
+
+  let borderClass: string;
+  if (isMoveTarget) {
+    borderClass =
+      selectionCount > 0
+        ? "border-2 border-accent bg-accent-subtle/30 ring-4 ring-accent/15 cursor-pointer hover:bg-accent-subtle/60 hover:ring-accent/30 hover:scale-[1.01]"
+        : "border-2 border-dashed border-border opacity-60";
+  } else if (isSelectionSource) {
+    borderClass = "border-2 border-border-strong shadow-md bg-surface/40";
+  } else if (window.focused) {
+    borderClass = "border-2 border-accent/40 bg-accent-subtle/10 shadow-sm";
+  } else if (colorStyle) {
+    borderClass = `border border-border ${colorStyle.border} border-l-[4px] hover:border-border-strong shadow-sm`;
+  } else if (hasIdentity) {
+    borderClass = "border border-border-strong shadow-sm";
+  } else {
+    borderClass = "border border-border hover:border-border-strong";
+  }
+
+  const headerBgClass = !isMoveTarget && !isSelectionSource && colorStyle
+    ? colorStyle.headerBg
+    : "bg-surface/40";
 
   return (
     <div
@@ -187,57 +216,95 @@ export function WindowCard({
           Current
         </div>
       )}
-      <div class="flex items-center gap-2 px-3 py-2 border-b border-border bg-surface/40">
-        <Browsers
-          size={13}
-          weight={window.focused ? "fill" : "regular"}
-          class={window.focused ? "text-accent" : "text-fg-muted"}
-        />
+      <div class={`flex items-center gap-2 px-3 py-2 border-b border-border ${headerBgClass}`}>
+        {colorStyle ? (
+          <span class={`size-3 rounded-full shrink-0 ${colorStyle.dot}`} />
+        ) : (
+          <Browsers
+            size={13}
+            weight={window.focused ? "fill" : "regular"}
+            class={window.focused ? "text-accent" : "text-fg-muted"}
+          />
+        )}
         {editing ? (
-          <>
-            <input
-              type="text"
-              autoFocus
-              value={draft}
-              onClick={(e) => e.stopPropagation()}
-              onInput={(e) =>
-                setDraft((e.currentTarget as HTMLInputElement).value)
-              }
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  commitEdit();
-                } else if (e.key === "Escape") {
-                  e.preventDefault();
-                  cancelEdit();
+          <div class="flex-1 space-y-2" onClick={(e) => e.stopPropagation()}>
+            <div class="flex items-center gap-2">
+              <input
+                type="text"
+                autoFocus
+                value={draft}
+                onInput={(e) =>
+                  setDraft((e.currentTarget as HTMLInputElement).value)
                 }
-              }}
-              placeholder={`Window ${window.id}`}
-              class="flex-1 h-6 px-2 bg-bg-elevated border border-accent rounded text-[12px] font-medium focus:outline-none focus:ring-4 focus:ring-accent/10"
-            />
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                commitEdit();
-              }}
-              aria-label="Save"
-              class="size-6 inline-flex items-center justify-center rounded text-fg-muted hover:bg-success-subtle hover:text-success transition-colors"
-            >
-              <Check size={13} weight="bold" />
-            </button>
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                cancelEdit();
-              }}
-              aria-label="Cancel"
-              class="size-6 inline-flex items-center justify-center rounded text-fg-muted hover:bg-surface hover:text-fg transition-colors"
-            >
-              <X size={13} weight="bold" />
-            </button>
-          </>
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    commitEdit();
+                  } else if (e.key === "Escape") {
+                    e.preventDefault();
+                    cancelEdit();
+                  }
+                }}
+                placeholder={`Window ${window.id}`}
+                class="flex-1 h-7 px-2 bg-bg-elevated border border-accent rounded text-[12px] font-medium focus:outline-none focus:ring-4 focus:ring-accent/10"
+              />
+              <button
+                type="button"
+                onClick={commitEdit}
+                aria-label="Save"
+                data-tooltip="Save"
+                data-tooltip-pos="above"
+                class="size-7 inline-flex items-center justify-center rounded text-fg-muted hover:bg-success-subtle hover:text-success transition-colors"
+              >
+                <Check size={13} weight="bold" />
+              </button>
+              <button
+                type="button"
+                onClick={cancelEdit}
+                aria-label="Cancel"
+                data-tooltip="Cancel"
+                data-tooltip-pos="above"
+                class="size-7 inline-flex items-center justify-center rounded text-fg-muted hover:bg-surface hover:text-fg transition-colors"
+              >
+                <X size={13} weight="bold" />
+              </button>
+            </div>
+            <div class="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => setDraftColor(null)}
+                data-tooltip="No color"
+                data-tooltip-pos="above"
+                aria-label="No color"
+                class={`size-5 rounded-full border-2 inline-flex items-center justify-center transition-all ${
+                  draftColor === null
+                    ? "border-fg"
+                    : "border-border hover:border-border-strong"
+                }`}
+              >
+                <span class="text-[9px] text-fg-subtle leading-none">×</span>
+              </button>
+              {WINDOW_COLOR_PALETTE.map((c) => {
+                const s = WINDOW_COLOR_STYLES[c.value];
+                const selected = draftColor === c.value;
+                return (
+                  <button
+                    key={c.value}
+                    type="button"
+                    onClick={() => setDraftColor(c.value)}
+                    data-tooltip={c.label}
+                    data-tooltip-pos="above"
+                    aria-label={c.label}
+                    class={`size-5 rounded-full ${s.swatch} transition-all ${
+                      selected
+                        ? "ring-2 ring-offset-2 ring-offset-bg ring-fg scale-110"
+                        : "hover:scale-110"
+                    }`}
+                  />
+                );
+              })}
+            </div>
+          </div>
         ) : (
           <>
             <div class="flex-1 min-w-0">

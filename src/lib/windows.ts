@@ -1,4 +1,5 @@
 import { storage } from "./storage";
+import type { WindowColor } from "@/types";
 
 export async function getWindowTitle(windowId: number): Promise<string | null> {
   const windows = await storage.get("windows");
@@ -12,13 +13,41 @@ export async function setWindowTitle(
   const trimmed = title.trim();
   await storage.update("windows", (current) => {
     const next = { ...(current ?? {}) };
-    if (!trimmed) {
+    const existing = next[windowId] ?? {};
+    if (!trimmed && !existing.color) {
       delete next[windowId];
     } else {
-      next[windowId] = { ...(next[windowId] ?? {}), title: trimmed };
+      next[windowId] = { ...existing, title: trimmed || undefined };
     }
     return next;
   });
+}
+
+export async function setWindowColor(
+  windowId: number,
+  color: WindowColor | null,
+): Promise<void> {
+  await storage.update("windows", (current) => {
+    const next = { ...(current ?? {}) };
+    const existing = next[windowId] ?? {};
+    if (!color && !existing.title) {
+      delete next[windowId];
+    } else {
+      next[windowId] = { ...existing, color: color ?? undefined };
+    }
+    return next;
+  });
+}
+
+export async function getAllWindowMeta(): Promise<
+  Record<number, { title?: string; color?: WindowColor }>
+> {
+  const windows = (await storage.get("windows")) ?? {};
+  const result: Record<number, { title?: string; color?: WindowColor }> = {};
+  for (const [id, meta] of Object.entries(windows)) {
+    if (meta.title || meta.color) result[Number(id)] = meta;
+  }
+  return result;
 }
 
 export async function getAllWindowTitles(): Promise<Record<number, string>> {
@@ -58,6 +87,7 @@ import { fetchAllTabs } from "./chrome";
 export interface WindowWithPawTabs {
   id: number;
   customTitle: string | null;
+  color: WindowColor | null;
   tabs: PawTab[];
   focused: boolean;
 }
@@ -67,9 +97,9 @@ export async function getWindowsWithPawTabs(): Promise<WindowWithPawTabs[]> {
   // containing that page (MC's own window). It is STABLE — clicking another
   // browser window does not change it. Using this for the 'Current' badge
   // keeps MC anchored where the user opened it.
-  const [snapshot, titles, currentWindow] = await Promise.all([
+  const [snapshot, meta, currentWindow] = await Promise.all([
     fetchAllTabs(),
-    getAllWindowTitles(),
+    getAllWindowMeta(),
     chrome.windows.getCurrent(),
   ]);
 
@@ -84,7 +114,8 @@ export async function getWindowsWithPawTabs(): Promise<WindowWithPawTabs[]> {
 
   return Array.from(grouped.entries()).map(([id, tabs]) => ({
     id,
-    customTitle: titles[id] ?? null,
+    customTitle: meta[id]?.title ?? null,
+    color: meta[id]?.color ?? null,
     tabs,
     focused: id === currentWindowId,
   }));
