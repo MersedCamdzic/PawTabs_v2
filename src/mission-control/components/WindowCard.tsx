@@ -30,6 +30,7 @@ import {
   toggleMuted,
   toggleStarred,
 } from "@/lib/chrome";
+import { getRootDomain } from "@/lib/utils";
 import type { PawTab } from "@/types";
 
 interface Props {
@@ -530,10 +531,12 @@ function CompactTabRow(props: {
 
   const showActions = !props.inSelectMode && !props.isOtherCardSelectMode;
 
+  const domain = getRootDomain(props.tab.url);
+
   return (
     <div
       onClick={handleClick}
-      class={`group flex items-center gap-2.5 px-2 py-2 rounded text-[13px] transition-colors ${rowClass}`}
+      class={`group flex items-center gap-2.5 px-2 py-1.5 rounded transition-colors ${rowClass}`}
     >
       {props.inSelectMode && (
         <button
@@ -574,26 +577,32 @@ function CompactTabRow(props: {
       ) : (
         <Globe size={14} class="text-fg-subtle shrink-0" />
       )}
-      <span class="flex-1 truncate text-fg">
-        {props.tab.title || props.tab.url}
-      </span>
 
-      {(props.tab.tags.length > 0 || props.tab.notes.length > 0) && (
-        <span class="flex items-center gap-0.5 text-accent shrink-0">
+      <div class="flex-1 min-w-0">
+        <div class="text-[13px] text-fg truncate leading-tight">
+          {props.tab.title || domain || "Untitled"}
+        </div>
+        <div class="text-[11px] text-fg-subtle truncate leading-tight mt-0.5 flex items-center gap-2">
+          <span class="truncate">{domain || props.tab.url}</span>
           {props.tab.tags.length > 0 && (
-            <span class="inline-flex items-center gap-0.5">
-              <Tag size={9} weight="fill" />
+            <span class="inline-flex items-center gap-0.5 text-accent shrink-0">
+              <Tag size={10} weight="fill" />
               {props.tab.tags.length}
             </span>
           )}
           {props.tab.notes.length > 0 && (
-            <span class="inline-flex items-center gap-0.5">
-              <NotePencil size={9} weight="fill" />
+            <span class="inline-flex items-center gap-0.5 text-accent shrink-0">
+              <NotePencil size={10} weight="fill" />
               {props.tab.notes.length}
             </span>
           )}
-        </span>
-      )}
+          {props.tab.discarded && (
+            <span class="inline-flex items-center gap-1 text-fg-subtle shrink-0">
+              inactive
+            </span>
+          )}
+        </div>
+      </div>
 
       {showActions && (
         <div class="flex items-center gap-0 shrink-0">
@@ -663,7 +672,7 @@ function CompactTabRow(props: {
       )}
 
       {!showActions && props.tab.pinned && (
-        <PushPin size={10} weight="fill" class="text-warning shrink-0" />
+        <PushPin size={11} weight="fill" class="text-warning shrink-0" />
       )}
     </div>
   );
