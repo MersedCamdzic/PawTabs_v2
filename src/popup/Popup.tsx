@@ -249,9 +249,9 @@ export function Popup() {
           {snapshot ? `${filtered.length} of ${snapshot.tabCount}` : ""}
         </span>
         <div class="flex items-center gap-1.5">
-          <BulkActionsMenu tabs={filtered} onAction={handleAction} />
           <OrderBy value={ordering} onChange={updateOrdering} />
           <GroupBy value={grouping} onChange={updateGrouping} />
+          <BulkActionsMenu tabs={filtered} onAction={handleAction} />
         </div>
       </section>
 
