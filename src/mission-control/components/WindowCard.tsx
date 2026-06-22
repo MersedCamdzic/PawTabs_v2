@@ -48,6 +48,7 @@ interface Props {
   onCloseNonPinned: (windowId: number) => Promise<void>;
   onCloseWindow: (windowId: number) => Promise<void>;
   onAction: () => void;
+  onOpenDetails: (tab: PawTab) => void;
   onReload: () => void;
 }
 
@@ -69,6 +70,7 @@ export function WindowCard({
   onCloseNonPinned,
   onCloseWindow,
   onAction,
+  onOpenDetails,
   onReload,
 }: Props) {
   const [editing, setEditing] = useState(false);
@@ -437,6 +439,7 @@ export function WindowCard({
             selected={selectedIds.has(tab.id)}
             onToggleSelect={() => onToggleTab(tab.id)}
             onMoveSingle={() => onStartMoveSingle(window.id, tab.id)}
+            onOpenDetails={() => onOpenDetails(tab)}
             onAction={onAction}
           />
         ))}

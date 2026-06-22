@@ -13,9 +13,12 @@ import {
 } from "@/lib/windows";
 import { WindowCard } from "../WindowCard";
 
+import type { PawTab } from "@/types";
+
 interface Props {
   query: string;
   onAction: () => void;
+  onOpenDetails: (tab: PawTab) => void;
 }
 
 interface SelectionState {
@@ -23,7 +26,7 @@ interface SelectionState {
   selectedIds: Set<number>;
 }
 
-export function WindowsView({ query, onAction }: Props) {
+export function WindowsView({ query, onAction, onOpenDetails }: Props) {
   const [windows, setWindows] = useState<WindowWithPawTabs[]>([]);
   const [selection, setSelection] = useState<SelectionState | null>(null);
 
@@ -357,6 +360,7 @@ export function WindowsView({ query, onAction }: Props) {
             onCloseNonPinned={handleCloseNonPinned}
             onCloseWindow={handleCloseWindow}
             onAction={onAction}
+            onOpenDetails={onOpenDetails}
             onReload={refresh}
           />
         ))}
