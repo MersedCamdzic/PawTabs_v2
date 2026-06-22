@@ -4,7 +4,7 @@ import {
   MagnifyingGlass,
   Gear,
   GridFour,
-  Sparkle,
+  Broom,
   PawPrint,
   Stack,
 } from "@phosphor-icons/react";
@@ -132,7 +132,7 @@ export function Popup() {
             <Stack size={16} weight="regular" />
           </IconButton>
           <IconButton label="Wizard" onClick={() => setWizardOpen(true)}>
-            <Sparkle size={16} weight="regular" />
+            <Broom size={16} weight="regular" />
           </IconButton>
           <IconButton label="Mission Control" onClick={openMissionControl}>
             <GridFour size={16} weight="regular" />

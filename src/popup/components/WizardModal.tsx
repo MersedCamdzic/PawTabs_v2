@@ -1,5 +1,5 @@
 import { useState, useEffect } from "preact/hooks";
-import { Sparkle, CheckCircle, FloppyDisk } from "@phosphor-icons/react";
+import { Broom, CheckCircle, FloppyDisk } from "@phosphor-icons/react";
 import { Modal } from "./Modal";
 import { Toggle } from "./Toggle";
 import { runWizard, WIZARD_DEFAULTS } from "@/lib/wizard";
@@ -88,7 +88,7 @@ export function WizardModal({ open, onClose, onComplete }: Props) {
               disabled={!anySelected || running}
               class="h-8 px-3 inline-flex items-center gap-1.5 text-[12px] font-medium rounded-md bg-accent text-white hover:bg-accent-hover disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
-              <Sparkle size={12} weight="fill" />
+              <Broom size={12} weight="fill" />
               {running ? "Running…" : "Run cleanup"}
             </button>
           </div>
