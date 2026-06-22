@@ -1,0 +1,177 @@
+================================================================
+PawTabs v2.1.0 — Chrome Web Store publishing checklist
+================================================================
+
+Built ZIP:  pawtabs-v2.1.0.zip  (~354 KB, source maps excluded)
+Manifest:   v3, version "2.1.0"
+Repo:       this folder (no git remote yet — set one before tagging)
+
+----------------------------------------------------------------
+1. PRE-FLIGHT (do once before any upload)
+----------------------------------------------------------------
+
+  [ ] Smoke-test the ZIP locally:
+      chrome://extensions → Developer mode → "Load unpacked"
+      → select the `dist/` folder (NOT the zip).
+      Click around: popup, MC, group actions, snapshots, sessions,
+      cleanup wizard, tab details modal, bulk actions.
+
+  [ ] Confirm window-color theming still works in popup group headers
+      AND in tab details "Move to window" picker.
+
+  [ ] Open chrome://extensions/shortcuts and verify Alt+Shift+P
+      opens the popup (and that no other shortcut is set).
+
+  [ ] (Optional) Take fresh screenshots — see SCREENSHOTS section
+      below. Web Store recommends 1280×800 PNGs, max 5.
+
+  [ ] Verify Privacy Policy URL is reachable. If you don't have a
+      public URL yet, host marketing/PRIVACY_POLICY.md somewhere
+      free first (GitHub Pages / Gist raw / personal site).
+
+----------------------------------------------------------------
+2. CHROME WEB STORE DEV DASHBOARD
+----------------------------------------------------------------
+
+  https://chrome.google.com/webstore/devconsole/
+
+  One-time:
+  [ ] Pay the $5 developer registration fee (if not already done).
+  [ ] Set up a publisher profile.
+
+  For PawTabs:
+  [ ] Click "New item" → upload pawtabs-v2.1.0.zip
+      (for updates: open existing PawTabs listing → "Package" → upload)
+
+  Fill in the listing — copy/paste from marketing/CHROME_WEBSTORE_LISTING.md:
+    [ ] Name:               PawTabs
+    [ ] Summary:            (one-line summary from listing.md)
+    [ ] Description:        (full text from listing.md)
+    [ ] Category:           Productivity
+    [ ] Language:           English (add others later if needed)
+
+  Assets:
+    [ ] Icon 128×128 — already inside the zip (icons/icon-128.png)
+    [ ] Small promo tile 440×280  (optional, recommended)
+    [ ] Large promo tile 920×680  (optional)
+    [ ] Marquee 1400×560          (optional)
+    [ ] Screenshots: 1–5 × 1280×800 PNG (REQUIRED)
+
+  Privacy:
+    [ ] Single purpose: "Tab and window management"
+    [ ] Permissions justification — copy reasons from
+        marketing/PERMISSIONS.md, one line per permission:
+          tabs, tabGroups, scripting, activeTab, storage,
+          history, sessions, topSites, windows, <all_urls>
+    [ ] "Are you using remote code?"           → NO
+    [ ] "Does your extension handle data?"     → YES (local only)
+    [ ] "Do you sell/transfer user data?"      → NO
+    [ ] Data use disclosure: check
+          "Authentication information" → NO
+          "Personally identifiable info"→ NO
+          "Web browsing activity"      → YES (tabs/URLs, stored
+                                               LOCALLY only)
+          "Website content"            → NO
+    [ ] Privacy policy URL:    <paste your hosted URL>
+    [ ] Certify: "I will not use the user data for unrelated
+                 purposes" → check
+
+  Distribution:
+    [ ] Visibility:    Public  (or Unlisted while testing)
+    [ ] Regions:       All
+    [ ] Pricing:       Free
+
+  Review and Submit:
+    [ ] Click "Submit for review"
+    Approval typically takes 1–5 business days. Watch the dashboard
+    + the email tied to your Google account.
+
+----------------------------------------------------------------
+3. SCREENSHOTS TO CAPTURE (1280×800 PNG, max 5)
+----------------------------------------------------------------
+
+  Recommended set, in order:
+    1. Popup with grouping by Window — shows group headers with the
+       new (count) suffix + hover actions visible.
+    2. Mission Control overview — sidebar + Pack subtitle + Overview
+       insights cards.
+    3. Mission Control Windows view — at least one window colored
+       (e.g., Posao blue, Vikend amber), color dots visible.
+    4. Tab details modal — open on any tab; show Window subtitle,
+       Move-to-window dropdown with colored entries.
+    5. Cleanup Wizard or Sessions modal — to show data hygiene side.
+
+  Tip: zoom Chrome to 100%, use a 1280×800 viewport (DevTools
+  device emulation: "Responsive" + set 1280×800), then screenshot
+  the window.
+
+----------------------------------------------------------------
+4. AFTER APPROVAL
+----------------------------------------------------------------
+
+  [ ] Note the published URL (chrome.google.com/webstore/detail/<id>)
+  [ ] Add the URL to README or repo description.
+  [ ] If using git remote: tag this release:
+          git tag v2.1.0
+          git push origin v2.1.0
+  [ ] Update marketing/CHROME_WEBSTORE_LISTING.md with the live URL.
+
+----------------------------------------------------------------
+5. NEXT VERSION CHECKLIST (when you ship 2.2.0 etc.)
+----------------------------------------------------------------
+
+  [ ] Bump version in src/manifest.config.ts (e.g. "2.2.0")
+  [ ] npm run build
+  [ ] cd dist && zip -r ../pawtabs-vX.Y.Z.zip . -x "*.map"
+  [ ] Smoke-test as above
+  [ ] Upload the new zip to the existing listing (Package tab)
+  [ ] Update the "What's new" / changelog field in the dashboard
+  [ ] Re-submit for review
+
+================================================================
+CANDIDATE IDEAS FOR 2.2.0+ (not committed, just notes)
+================================================================
+
+  Polish:
+    - Persist popup group-header collapse state per-grouping
+      (currently keyed only by group key — switching grouping
+      shows everything open again).
+    - Custom in-app toast for keyboard-triggered actions instead
+      of the action-icon badge flash (the badge flash was added
+      back when keyboard shortcuts existed; if shortcuts return,
+      tighten the visual).
+    - Cleanup Wizard: show a per-tab "why this rule triggered"
+      hint on hover.
+
+  Features:
+    - Window-level shortcuts (Mac users — investigate Cmd+Shift+P
+      etc. that don't conflict with Chrome native).
+    - Tag autocomplete in Tab Details modal (suggest from existing
+      taggedUrls).
+    - Per-window "default new-tab tags" (any tab opened in a named
+      window inherits that window's tag).
+    - Export/import all data as JSON (one-click backup outside of
+      Wizard backups).
+    - Light/dark theme switcher (currently follows system tokens).
+
+  Tech debt:
+    - Lift PawedView/TagsView filtering into MissionControl so the
+      bulk URL menu doesn't depend on view callbacks.
+    - Consolidate BulkActionsMenu + BulkUrlActionsMenu + GroupActions
+      into one configurable component (lots of duplication).
+    - Replace `confirm()` calls with the existing Modal component
+      (less jarring than native alert).
+
+================================================================
+FILES OF INTEREST
+================================================================
+
+  pawtabs-v2.1.0.zip            ← upload this to Web Store
+  marketing/
+    CHROME_WEBSTORE_LISTING.md  ← name/summary/description copy
+    PERMISSIONS.md              ← per-permission justification text
+    PRIVACY_POLICY.md           ← host this somewhere public
+  src/manifest.config.ts        ← bump version here
+  dist/                         ← built extension (load unpacked)
+
+================================================================
