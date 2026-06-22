@@ -1,5 +1,4 @@
 import { useEffect } from "preact/hooks";
-import { X } from "@phosphor-icons/react";
 
 interface Props {
   title: string;
@@ -61,9 +60,9 @@ export function Modal({
               type="button"
               onClick={onClose}
               aria-label="Close"
-              class="size-7 inline-flex items-center justify-center rounded-md text-fg-muted hover:bg-surface hover:text-fg transition-colors"
+              class="h-7 px-2.5 inline-flex items-center text-[11px] font-medium rounded-md text-fg-muted hover:bg-surface hover:text-fg transition-colors"
             >
-              <X size={14} />
+              Close
             </button>
           )}
         </div>
