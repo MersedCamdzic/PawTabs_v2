@@ -17,6 +17,7 @@ import {
   Globe,
   Copy,
   Check,
+  PencilSimple,
 } from "@phosphor-icons/react";
 import { Modal } from "./Modal";
 import {
@@ -34,9 +35,11 @@ import {
   toggleMuted,
   toggleStarred,
 } from "@/lib/chrome";
+import { setWindowTitle, getAllWindowMeta } from "@/lib/windows";
+import { WINDOW_COLOR_STYLES } from "@/lib/window-colors";
 import { getRootDomain } from "@/lib/utils";
 import { formatRelativeTime } from "@/lib/sessions";
-import type { PawTab } from "@/types";
+import type { PawTab, WindowColor } from "@/types";
 
 interface Props {
   tab: PawTab | null;
@@ -59,6 +62,24 @@ export function TabDetailsModal({ tab, open, onClose, onAction }: Props) {
   const [windowQuery, setWindowQuery] = useState("");
   const [moveOpen, setMoveOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [windowColorMap, setWindowColorMap] = useState<
+    Record<number, WindowColor>
+  >({});
+  const [renamingWindow, setRenamingWindow] = useState(false);
+  const [windowNameDraft, setWindowNameDraft] = useState("");
+
+  const refreshWindowMeta = async (tabId: number) => {
+    const [list, meta] = await Promise.all([
+      listWindowsForMove(tabId),
+      getAllWindowMeta(),
+    ]);
+    setWindows(list);
+    const colors: Record<number, WindowColor> = {};
+    for (const [id, m] of Object.entries(meta)) {
+      if (m.color) colors[Number(id)] = m.color;
+    }
+    setWindowColorMap(colors);
+  };
 
   useEffect(() => {
     if (!open || !tab) return;
@@ -67,8 +88,10 @@ export function TabDetailsModal({ tab, open, onClose, onAction }: Props) {
     setWindowQuery("");
     setMoveOpen(false);
     setCopied(false);
-    listWindowsForMove(tab.id).then(setWindows);
-  }, [open, tab]);
+    setRenamingWindow(false);
+    setWindowNameDraft("");
+    refreshWindowMeta(tab.id);
+  }, [open, tab?.id]);
 
   if (!tab) return null;
 
@@ -100,14 +123,38 @@ export function TabDetailsModal({ tab, open, onClose, onAction }: Props) {
 
   const handleMove = async (windowId: number) => {
     await moveTabToWindow(tab.id, windowId);
+    setMoveOpen(false);
+    setWindowQuery("");
     onAction();
-    onClose();
+    await refreshWindowMeta(tab.id);
   };
 
   const handleMoveNew = async () => {
     await moveTabToNewWindow(tab.id);
+    setMoveOpen(false);
+    setWindowQuery("");
     onAction();
-    onClose();
+    await refreshWindowMeta(tab.id);
+  };
+
+  const startRenameWindow = () => {
+    const w = windows.find((wi) => wi.id === tab.windowId);
+    setWindowNameDraft(w?.customTitle ?? "");
+    setRenamingWindow(true);
+  };
+
+  const cancelRenameWindow = () => {
+    setRenamingWindow(false);
+    setWindowNameDraft("");
+  };
+
+  const commitRenameWindow = async () => {
+    if (!tab) return;
+    await setWindowTitle(tab.windowId, windowNameDraft);
+    setRenamingWindow(false);
+    setWindowNameDraft("");
+    onAction();
+    await refreshWindowMeta(tab.id);
   };
 
   const handleJump = async () => {
@@ -142,9 +189,11 @@ export function TabDetailsModal({ tab, open, onClose, onAction }: Props) {
 
   const domain = getRootDomain(tab.url);
   const currentWindow = windows.find((w) => w.id === tab.windowId);
-  const currentWindowDisplay = currentWindow
-    ? currentWindow.customTitle || `Window ${currentWindow.id}`
-    : `Window ${tab.windowId}`;
+  const currentWindowName = currentWindow?.customTitle ?? null;
+  const currentWindowColor = windowColorMap[tab.windowId];
+  const currentWindowColorStyle = currentWindowColor
+    ? WINDOW_COLOR_STYLES[currentWindowColor]
+    : null;
 
   return (
     <Modal
@@ -240,13 +289,21 @@ export function TabDetailsModal({ tab, open, onClose, onAction }: Props) {
             </div>
             <div class="text-[11px] mt-1.5 flex items-center gap-1.5 flex-wrap">
               <span class="font-medium text-fg-muted">{domain}</span>
-              <span class="inline-flex items-center gap-1 px-1.5 h-4 bg-accent-subtle text-accent text-[10px] font-semibold rounded">
-                <Browsers size={9} weight="fill" />
-                {currentWindowDisplay}
-              </span>
             </div>
           </div>
         </div>
+
+        <WindowRow
+          windowId={tab.windowId}
+          name={currentWindowName}
+          colorStyle={currentWindowColorStyle}
+          renaming={renamingWindow}
+          draft={windowNameDraft}
+          onDraftChange={setWindowNameDraft}
+          onStartRename={startRenameWindow}
+          onCommitRename={commitRenameWindow}
+          onCancelRename={cancelRenameWindow}
+        />
 
         <div class="flex items-center gap-2 px-3 h-8 bg-surface rounded-md">
           <Copy size={11} class="text-fg-subtle shrink-0" />
@@ -561,6 +618,102 @@ function HeaderAction(props: {
     >
       {props.children}
     </button>
+  );
+}
+
+function WindowRow(props: {
+  windowId: number;
+  name: string | null;
+  colorStyle: (typeof WINDOW_COLOR_STYLES)[WindowColor] | null;
+  renaming: boolean;
+  draft: string;
+  onDraftChange: (v: string) => void;
+  onStartRename: () => void;
+  onCommitRename: () => void;
+  onCancelRename: () => void;
+}) {
+  const bg = props.colorStyle ? props.colorStyle.headerBg : "bg-surface";
+  const titleColor = props.colorStyle
+    ? props.colorStyle.titleText
+    : "text-fg-muted";
+
+  if (props.renaming) {
+    return (
+      <div class={`flex items-center gap-2 px-3 h-9 rounded-md ${bg}`}>
+        <Browsers
+          size={12}
+          class={props.colorStyle ? props.colorStyle.iconText : "text-fg-subtle"}
+        />
+        <input
+          type="text"
+          autoFocus
+          value={props.draft}
+          onInput={(e) =>
+            props.onDraftChange((e.currentTarget as HTMLInputElement).value)
+          }
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              props.onCommitRename();
+            } else if (e.key === "Escape") {
+              e.preventDefault();
+              props.onCancelRename();
+            }
+          }}
+          placeholder={`Window ${props.windowId}`}
+          class="flex-1 h-7 px-2 bg-bg-elevated border border-accent rounded text-[12px] focus:outline-none focus:ring-4 focus:ring-accent/10"
+        />
+        <button
+          type="button"
+          onClick={props.onCommitRename}
+          aria-label="Save name"
+          class="size-6 inline-flex items-center justify-center rounded text-fg-muted hover:bg-success-subtle hover:text-success transition-colors"
+        >
+          <Check size={11} weight="bold" />
+        </button>
+        <button
+          type="button"
+          onClick={props.onCancelRename}
+          aria-label="Cancel"
+          class="size-6 inline-flex items-center justify-center rounded text-fg-muted hover:bg-bg-elevated hover:text-fg transition-colors"
+        >
+          <X size={11} weight="bold" />
+        </button>
+      </div>
+    );
+  }
+
+  const displayName = props.name || `Window ${props.windowId}`;
+
+  return (
+    <div class={`group flex items-center gap-2 px-3 h-9 rounded-md ${bg}`}>
+      {props.colorStyle ? (
+        <span
+          class={`size-2 rounded-full shrink-0 ${props.colorStyle.dot}`}
+          aria-hidden="true"
+        />
+      ) : (
+        <Browsers size={12} class="text-fg-subtle shrink-0" />
+      )}
+      <span class={`text-[12px] font-medium truncate flex-1 ${titleColor}`}>
+        {displayName}
+      </span>
+      {props.name && (
+        <span class="text-[10px] text-fg-subtle font-normal shrink-0">
+          · Window {props.windowId}
+        </span>
+      )}
+      <button
+        type="button"
+        onClick={props.onStartRename}
+        aria-label={props.name ? "Rename window" : "Name this window"}
+        data-tooltip={props.name ? "Rename window" : "Name this window"}
+        data-tooltip-pos="left"
+        class="size-6 inline-flex items-center justify-center rounded text-fg-subtle opacity-0 group-hover:opacity-100 hover:bg-bg-elevated hover:text-accent transition-all"
+      >
+        <PencilSimple size={11} />
+      </button>
+    </div>
   );
 }
 
