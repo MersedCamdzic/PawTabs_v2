@@ -13,7 +13,8 @@ import { TabGroupSection } from "./components/TabGroupSection";
 import { GroupBy } from "./components/GroupBy";
 import { OrderBy } from "./components/OrderBy";
 import { SelectionBar } from "./components/SelectionBar";
-import { getAllWindowTitles } from "@/lib/windows";
+import { getAllWindowMeta } from "@/lib/windows";
+import type { WindowColor } from "@/types";
 import { orderTabsInGroups } from "@/lib/grouping";
 
 const WizardModal = lazy(() =>
@@ -54,6 +55,9 @@ export function Popup() {
   const [ordering, setOrdering] = useState<OrderByType>("none");
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
   const [windowTitles, setWindowTitles] = useState<Record<number, string>>({});
+  const [windowColors, setWindowColors] = useState<
+    Record<number, WindowColor>
+  >({});
   const [wizardOpen, setWizardOpen] = useState(false);
   const [sessionsOpen, setSessionsOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -93,7 +97,15 @@ export function Popup() {
   };
 
   const refreshWindowTitles = async () => {
-    setWindowTitles(await getAllWindowTitles());
+    const meta = await getAllWindowMeta();
+    const titles: Record<number, string> = {};
+    const colors: Record<number, WindowColor> = {};
+    for (const [id, m] of Object.entries(meta)) {
+      if (m.title) titles[Number(id)] = m.title;
+      if (m.color) colors[Number(id)] = m.color;
+    }
+    setWindowTitles(titles);
+    setWindowColors(colors);
   };
 
   const liveDetailsTab = useMemo<PawTab | null>(() => {
@@ -272,6 +284,7 @@ export function Popup() {
               collapsed={collapsed.has(group.key)}
               selectedIds={selectedIds}
               selectionMode={selectedIds.size > 0}
+              windowColors={windowColors}
               onToggle={() => toggleCollapsed(group.key)}
               onAction={handleAction}
               onOpenDetails={setDetailsTab}

@@ -1,8 +1,9 @@
 import { useState } from "preact/hooks";
 import { CaretRight, PencilSimple, Check, X } from "@phosphor-icons/react";
 import type { TabGroup } from "@/lib/grouping";
-import type { PawTab, GroupBy } from "@/types";
+import type { PawTab, GroupBy, WindowColor } from "@/types";
 import { setWindowTitle } from "@/lib/windows";
+import { WINDOW_COLOR_STYLES } from "@/lib/window-colors";
 import { TabRow } from "./TabRow";
 
 interface Props {
@@ -12,6 +13,7 @@ interface Props {
   collapsed: boolean;
   selectedIds: Set<number>;
   selectionMode: boolean;
+  windowColors?: Record<number, WindowColor>;
   onToggle: () => void;
   onAction: () => void;
   onOpenDetails: (tab: PawTab) => void;
@@ -25,6 +27,7 @@ export function TabGroupSection({
   collapsed,
   selectedIds,
   selectionMode,
+  windowColors,
   onToggle,
   onAction,
   onOpenDetails,
@@ -52,6 +55,7 @@ export function TabGroupSection({
         group={group}
         grouping={grouping}
         collapsed={collapsed}
+        windowColors={windowColors}
         onToggle={onToggle}
         onAction={onAction}
       />
@@ -65,12 +69,14 @@ function GroupHeader({
   group,
   grouping,
   collapsed,
+  windowColors,
   onToggle,
   onAction,
 }: {
   group: TabGroup;
   grouping: GroupBy;
   collapsed: boolean;
+  windowColors?: Record<number, WindowColor>;
   onToggle: () => void;
   onAction: () => void;
 }) {
@@ -79,6 +85,9 @@ function GroupHeader({
 
   const isWindow = grouping === "window";
   const windowId = isWindow ? group.tabs[0]?.windowId : undefined;
+  const colorKey =
+    isWindow && windowId !== undefined ? windowColors?.[windowId] : undefined;
+  const colorStyle = colorKey ? WINDOW_COLOR_STYLES[colorKey] : null;
 
   const startEdit = (e: MouseEvent) => {
     e.stopPropagation();
@@ -152,17 +161,32 @@ function GroupHeader({
     );
   }
 
+  const headerBg = colorStyle
+    ? `${colorStyle.headerBg} hover:${colorStyle.headerBg}`
+    : "hover:bg-surface";
+  const titleClass = colorStyle
+    ? `${colorStyle.titleText} font-semibold`
+    : "text-fg-muted group-hover:text-fg font-medium";
+
   return (
     <div
       onClick={onToggle}
-      class="group w-full flex items-center gap-1.5 px-2 py-1.5 rounded-md hover:bg-surface transition-colors cursor-pointer"
+      class={`group w-full flex items-center gap-1.5 px-2 py-1.5 rounded-md transition-colors cursor-pointer ${headerBg}`}
     >
       <CaretRight
         size={11}
         weight="bold"
         class={`text-fg-subtle transition-transform ${collapsed ? "" : "rotate-90"}`}
       />
-      <span class="text-[12px] font-medium text-fg-muted group-hover:text-fg uppercase tracking-wide truncate flex-1 text-left">
+      {colorStyle && (
+        <span
+          class={`size-2 rounded-full shrink-0 ${colorStyle.dot}`}
+          aria-hidden="true"
+        />
+      )}
+      <span
+        class={`text-[12px] uppercase tracking-wide truncate flex-1 text-left ${titleClass}`}
+      >
         {group.title}
       </span>
       {isWindow && (
