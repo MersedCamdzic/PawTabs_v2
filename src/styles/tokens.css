@@ -1,0 +1,67 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    Roboto, sans-serif;
+  --font-mono: ui-monospace, "JetBrains Mono", SFMono-Regular, Menlo, monospace;
+
+  --color-bg: #fafaf7;
+  --color-bg-elevated: #ffffff;
+  --color-surface: #f4f4f0;
+  --color-surface-hover: #ebebe7;
+  --color-border: #e4e4e0;
+  --color-border-strong: #d4d4d0;
+
+  --color-fg: #18181b;
+  --color-fg-muted: #52525b;
+  --color-fg-subtle: #a1a1aa;
+
+  --color-accent: #2563eb;
+  --color-accent-hover: #1d4ed8;
+  --color-accent-subtle: #dbeafe;
+  --color-accent-fg: #1e3a8a;
+
+  --color-danger: #dc2626;
+  --color-danger-subtle: #fee2e2;
+  --color-success: #059669;
+  --color-success-subtle: #d1fae5;
+  --color-warning: #d97706;
+  --color-warning-subtle: #fef3c7;
+
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+
+  --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.04);
+  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.06), 0 1px 2px -1px rgb(0 0 0 / 0.04);
+  --shadow-md: 0 4px 8px -2px rgb(0 0 0 / 0.06), 0 2px 4px -2px rgb(0 0 0 / 0.04);
+  --shadow-lg: 0 10px 20px -4px rgb(0 0 0 / 0.08), 0 4px 8px -3px rgb(0 0 0 / 0.05);
+}
+
+@layer base {
+  :root[data-theme="dark"] {
+    --color-bg: #18181b;
+    --color-bg-elevated: #1f1f23;
+    --color-surface: #1f1f23;
+    --color-surface-hover: #27272a;
+    --color-border: #2e2e33;
+    --color-border-strong: #3f3f46;
+
+    --color-fg: #fafaf7;
+    --color-fg-muted: #a1a1aa;
+    --color-fg-subtle: #71717a;
+
+    --color-accent: #3b82f6;
+    --color-accent-hover: #60a5fa;
+    --color-accent-subtle: #1e3a8a40;
+    --color-accent-fg: #bfdbfe;
+
+    --color-danger: #ef4444;
+    --color-danger-subtle: #7f1d1d40;
+    --color-success: #10b981;
+    --color-success-subtle: #064e3b40;
+    --color-warning: #f59e0b;
+    --color-warning-subtle: #78350f40;
+  }
+}
