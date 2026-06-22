@@ -1,6 +1,7 @@
 import {
   PawPrint,
   SquaresFour,
+  ListBullets,
   Browsers,
   PushPin,
   Tag,
@@ -14,6 +15,7 @@ import type { ComponentChildren, JSX } from "preact";
 export type View =
   | "overview"
   | "tabs"
+  | "windows"
   | "pawed"
   | "pinned"
   | "tags"
@@ -27,6 +29,7 @@ interface Props {
   onChange: (view: View) => void;
   counts: {
     tabs: number;
+    windows: number;
     pawed: number;
     pinned: number;
     tags: number;
@@ -56,11 +59,18 @@ export function Sidebar({ view, onChange, counts }: Props) {
           onClick={() => onChange("overview")}
         />
         <NavItem
-          icon={<Browsers size={14} />}
+          icon={<ListBullets size={14} />}
           label="All tabs"
           count={counts.tabs}
           active={view === "tabs"}
           onClick={() => onChange("tabs")}
+        />
+        <NavItem
+          icon={<Browsers size={14} />}
+          label="Windows"
+          count={counts.windows}
+          active={view === "windows"}
+          onClick={() => onChange("windows")}
         />
 
         <SectionLabel>Collections</SectionLabel>

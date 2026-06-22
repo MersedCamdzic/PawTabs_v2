@@ -290,6 +290,7 @@ export function Popup() {
         <button
           type="button"
           onClick={() => setPaletteOpen(true)}
+          title="Open command palette"
           class="hover:text-fg transition-colors inline-flex items-center gap-1.5"
         >
           <span class="font-mono bg-surface border border-border px-1 rounded text-[10px]">
@@ -297,7 +298,15 @@ export function Popup() {
           </span>
           <span>command palette</span>
         </button>
-        <span class="font-mono">⌘⇧Y to open</span>
+        <span
+          title="Open PawTabs popup from anywhere in Chrome"
+          class="inline-flex items-center gap-1.5"
+        >
+          <span class="font-mono bg-surface border border-border px-1 rounded text-[10px]">
+            ⌘⇧Y
+          </span>
+          <span>open popup</span>
+        </span>
       </footer>
 
       <Suspense fallback={null}>

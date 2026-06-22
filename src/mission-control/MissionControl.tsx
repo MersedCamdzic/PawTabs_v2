@@ -8,6 +8,7 @@ import { TagsView } from "./components/views/TagsView";
 import { SessionsView } from "./components/views/SessionsView";
 import { BackupsView } from "./components/views/BackupsView";
 import { RecentlyClosedView } from "./components/views/RecentlyClosedView";
+import { WindowsView } from "./components/views/WindowsView";
 import { useTabSnapshot } from "./hooks";
 import { computeInsights } from "@/lib/stats";
 import { listBackups } from "@/lib/backups";
@@ -19,6 +20,10 @@ const VIEW_META: Record<View, { title: string; subtitle: string }> = {
     subtitle: "A glance at your tabs, windows, and saved data.",
   },
   tabs: { title: "All tabs", subtitle: "Every tab open across all windows." },
+  windows: {
+    title: "Windows",
+    subtitle: "Drag tabs between windows to reorganize.",
+  },
   pawed: { title: "Pawed", subtitle: "Tabs you have marked as important." },
   pinned: { title: "Pinned", subtitle: "Tabs you have pinned in Chrome." },
   tags: { title: "Tags", subtitle: "Browse tabs by tag." },
@@ -96,6 +101,7 @@ export function MissionControl() {
 
   const counts = {
     tabs: snapshot?.tabCount ?? 0,
+    windows: snapshot?.windowCount ?? 0,
     pawed: snapshot?.tabs.filter((t) => t.starred).length ?? 0,
     pinned: snapshot?.tabs.filter((t) => t.pinned).length ?? 0,
     tags: tagsCount,
@@ -143,6 +149,10 @@ export function MissionControl() {
             }
             onAction={reload}
           />
+        )}
+
+        {view === "windows" && (
+          <WindowsView query={query} onAction={reload} />
         )}
 
         {view === "pawed" && (
