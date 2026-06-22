@@ -6,6 +6,9 @@ import {
   PawPrint,
   X,
   Globe,
+  DotsThree,
+  Tag,
+  NotePencil,
 } from "@phosphor-icons/react";
 import {
   focusTab,
@@ -20,9 +23,10 @@ import type { PawTab } from "@/types";
 interface Props {
   tab: PawTab;
   onAction: () => void;
+  onOpenDetails: (tab: PawTab) => void;
 }
 
-export function TabRow({ tab, onAction }: Props) {
+export function TabRow({ tab, onAction, onOpenDetails }: Props) {
   const domain = getRootDomain(tab.url);
 
   const handleFocus = async () => {
@@ -77,10 +81,28 @@ export function TabRow({ tab, onAction }: Props) {
         <div class="text-[13px] text-fg truncate leading-tight">
           {tab.title || domain || "Untitled"}
         </div>
-        <div class="text-[11px] text-fg-subtle truncate leading-tight mt-0.5">
-          {domain}
+        <div class="text-[11px] text-fg-subtle truncate leading-tight mt-0.5 flex items-center gap-1.5">
+          <span class="truncate">{domain}</span>
+          {tab.tags.length > 0 && (
+            <span
+              title={tab.tags.join(", ")}
+              class="inline-flex items-center gap-0.5 text-accent shrink-0"
+            >
+              <Tag size={10} weight="fill" />
+              {tab.tags.length}
+            </span>
+          )}
+          {tab.notes.length > 0 && (
+            <span
+              title={`${tab.notes.length} note${tab.notes.length === 1 ? "" : "s"}`}
+              class="inline-flex items-center gap-0.5 text-accent shrink-0"
+            >
+              <NotePencil size={10} weight="fill" />
+              {tab.notes.length}
+            </span>
+          )}
           {tab.discarded && (
-            <span class="inline-flex items-center gap-1 ml-2 text-fg-subtle">
+            <span class="inline-flex items-center gap-1 text-fg-subtle shrink-0">
               <Moon size={10} />
               inactive
             </span>
@@ -125,10 +147,23 @@ export function TabRow({ tab, onAction }: Props) {
 
         <button
           type="button"
+          onClick={(e) => {
+            stop(e);
+            onOpenDetails(tab);
+          }}
+          aria-label="Tab details"
+          title="Tags, notes, move…"
+          class="size-6 inline-flex items-center justify-center rounded text-fg-subtle opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 hover:bg-surface-hover hover:text-fg transition-all"
+        >
+          <DotsThree size={15} weight="bold" />
+        </button>
+
+        <button
+          type="button"
           onClick={handleClose}
           aria-label="Close tab"
           title="Close tab"
-          class="size-6 ml-0.5 inline-flex items-center justify-center rounded text-fg-subtle opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 hover:bg-danger-subtle hover:text-danger transition-all"
+          class="size-6 inline-flex items-center justify-center rounded text-fg-subtle opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 hover:bg-danger-subtle hover:text-danger transition-all"
         >
           <X size={13} />
         </button>

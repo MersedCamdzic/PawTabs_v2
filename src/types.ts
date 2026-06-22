@@ -99,6 +99,8 @@ export interface PawTab {
   lastAccessed?: number;
   saved: boolean;
   starred: boolean;
+  tags: string[];
+  notes: Note[];
 }
 
 export interface TabSnapshot {

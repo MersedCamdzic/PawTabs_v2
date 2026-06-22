@@ -13,6 +13,7 @@ import { GroupBy } from "./components/GroupBy";
 import { WizardModal } from "./components/WizardModal";
 import { SessionsModal } from "./components/SessionsModal";
 import { SettingsModal } from "./components/SettingsModal";
+import { TabDetailsModal } from "./components/TabDetailsModal";
 import { groupTabs } from "@/lib/grouping";
 import { getPreferences, setPreference } from "@/lib/preferences";
 import type { GroupBy as GroupByType, PawTab } from "@/types";
@@ -25,6 +26,12 @@ export function Popup() {
   const [wizardOpen, setWizardOpen] = useState(false);
   const [sessionsOpen, setSessionsOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [detailsTab, setDetailsTab] = useState<PawTab | null>(null);
+
+  const liveDetailsTab = useMemo<PawTab | null>(() => {
+    if (!detailsTab || !snapshot) return detailsTab;
+    return snapshot.tabs.find((t) => t.id === detailsTab.id) ?? detailsTab;
+  }, [detailsTab, snapshot]);
 
   useEffect(() => {
     getPreferences().then((prefs) => {
@@ -159,6 +166,7 @@ export function Popup() {
               collapsed={collapsed.has(group.key)}
               onToggle={() => toggleCollapsed(group.key)}
               onAction={reload}
+              onOpenDetails={setDetailsTab}
             />
           ))}
       </div>
@@ -182,6 +190,13 @@ export function Popup() {
       <SettingsModal
         open={settingsOpen}
         onClose={() => setSettingsOpen(false)}
+      />
+
+      <TabDetailsModal
+        tab={liveDetailsTab}
+        open={detailsTab !== null}
+        onClose={() => setDetailsTab(null)}
+        onAction={reload}
       />
     </div>
   );

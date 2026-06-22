@@ -25,6 +25,8 @@ export async function fetchAllTabs(): Promise<TabSnapshot> {
       lastAccessed: t.lastAccessed,
       saved: Boolean(saved[t.id]?.saved),
       starred: Boolean(saved[t.id]?.starred),
+      tags: saved[t.id]?.tags ?? [],
+      notes: saved[t.id]?.notes ?? [],
     }));
 
   return {

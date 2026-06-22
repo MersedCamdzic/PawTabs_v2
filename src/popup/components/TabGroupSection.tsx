@@ -1,5 +1,6 @@
 import { CaretRight } from "@phosphor-icons/react";
 import type { TabGroup } from "@/lib/grouping";
+import type { PawTab } from "@/types";
 import { TabRow } from "./TabRow";
 
 interface Props {
@@ -8,6 +9,7 @@ interface Props {
   collapsed: boolean;
   onToggle: () => void;
   onAction: () => void;
+  onOpenDetails: (tab: PawTab) => void;
 }
 
 export function TabGroupSection({
@@ -16,12 +18,18 @@ export function TabGroupSection({
   collapsed,
   onToggle,
   onAction,
+  onOpenDetails,
 }: Props) {
   if (!showHeader) {
     return (
       <div class="space-y-0.5">
         {group.tabs.map((tab) => (
-          <TabRow key={tab.id} tab={tab} onAction={onAction} />
+          <TabRow
+            key={tab.id}
+            tab={tab}
+            onAction={onAction}
+            onOpenDetails={onOpenDetails}
+          />
         ))}
       </div>
     );
@@ -50,7 +58,12 @@ export function TabGroupSection({
       {!collapsed && (
         <div class="space-y-0.5 mt-0.5">
           {group.tabs.map((tab) => (
-            <TabRow key={tab.id} tab={tab} onAction={onAction} />
+            <TabRow
+              key={tab.id}
+              tab={tab}
+              onAction={onAction}
+              onOpenDetails={onOpenDetails}
+            />
           ))}
         </div>
       )}
