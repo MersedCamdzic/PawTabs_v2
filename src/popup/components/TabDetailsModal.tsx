@@ -6,7 +6,10 @@ import {
   NotePencil,
   Trash,
   Browser,
+  Browsers,
   ArrowSquareOut,
+  CaretDown,
+  MagnifyingGlass,
 } from "@phosphor-icons/react";
 import { Modal } from "./Modal";
 import {
@@ -41,12 +44,14 @@ export function TabDetailsModal({ tab, open, onClose, onAction }: Props) {
   const [noteInput, setNoteInput] = useState("");
   const [windows, setWindows] = useState<WindowItem[]>([]);
   const [windowQuery, setWindowQuery] = useState("");
+  const [moveOpen, setMoveOpen] = useState(false);
 
   useEffect(() => {
     if (!open || !tab) return;
     setTagInput("");
     setNoteInput("");
     setWindowQuery("");
+    setMoveOpen(false);
     listWindowsForMove(tab.id).then(setWindows);
   }, [open, tab]);
 
@@ -91,6 +96,10 @@ export function TabDetailsModal({ tab, open, onClose, onAction }: Props) {
   };
 
   const domain = getRootDomain(tab.url);
+  const currentWindow = windows.find((w) => w.id === tab.windowId);
+  const currentWindowDisplay = currentWindow
+    ? currentWindow.customTitle || `Window ${currentWindow.id}`
+    : `Window ${tab.windowId}`;
 
   return (
     <Modal open={open} onClose={onClose} title="Tab details">
@@ -101,8 +110,13 @@ export function TabDetailsModal({ tab, open, onClose, onAction }: Props) {
             <div class="text-[13px] font-medium truncate">
               {tab.title || domain || "Untitled"}
             </div>
-            <div class="text-[11px] text-fg-subtle truncate mt-0.5">
-              {domain}
+            <div class="text-[11px] text-fg-subtle truncate mt-0.5 flex items-center gap-1.5">
+              <span class="truncate">{domain}</span>
+              <span class="text-border-strong">·</span>
+              <span class="inline-flex items-center gap-1 text-accent font-medium shrink-0">
+                <Browsers size={10} weight="fill" />
+                {currentWindowDisplay}
+              </span>
             </div>
           </div>
         </div>
@@ -226,51 +240,87 @@ export function TabDetailsModal({ tab, open, onClose, onAction }: Props) {
                     (w.customTitle ?? "").toLowerCase().includes(q),
                 )
               : others;
+
+            if (others.length === 0) {
+              return (
+                <div class="text-[11px] text-fg-subtle italic mb-2">
+                  No other windows open
+                </div>
+              );
+            }
+
             return (
               <div class="space-y-1.5">
-                {others.length > 3 && (
-                  <input
-                    type="text"
-                    value={windowQuery}
-                    onInput={(e) =>
-                      setWindowQuery(
-                        (e.currentTarget as HTMLInputElement).value,
-                      )
-                    }
-                    placeholder="Filter windows…"
-                    class="w-full h-7 px-2.5 bg-surface border border-border rounded text-[12px] placeholder:text-fg-subtle focus:outline-none focus:bg-bg-elevated focus:border-accent focus:ring-4 focus:ring-accent/10 transition-colors"
+                <button
+                  type="button"
+                  onClick={() => setMoveOpen((o) => !o)}
+                  class={`w-full flex items-center justify-between gap-2 h-9 px-3 rounded-md border text-[12px] transition-colors ${
+                    moveOpen
+                      ? "border-accent bg-accent-subtle/30"
+                      : "border-border bg-surface hover:border-border-strong"
+                  }`}
+                >
+                  <span class="flex items-center gap-2 text-fg-muted">
+                    <Browsers size={12} />
+                    Pick destination window
+                  </span>
+                  <CaretDown
+                    size={11}
+                    weight="bold"
+                    class={`text-fg-subtle transition-transform ${
+                      moveOpen ? "rotate-180" : ""
+                    }`}
                   />
+                </button>
+
+                {moveOpen && (
+                  <div class="border border-border rounded-md overflow-hidden bg-bg-elevated">
+                    <div class="relative border-b border-border">
+                      <MagnifyingGlass
+                        size={11}
+                        class="absolute left-2.5 top-1/2 -translate-y-1/2 text-fg-subtle pointer-events-none"
+                      />
+                      <input
+                        type="text"
+                        autoFocus
+                        value={windowQuery}
+                        onInput={(e) =>
+                          setWindowQuery(
+                            (e.currentTarget as HTMLInputElement).value,
+                          )
+                        }
+                        placeholder={`Search ${others.length} window${others.length === 1 ? "" : "s"}…`}
+                        class="w-full h-8 pl-7 pr-2.5 bg-transparent text-[12px] placeholder:text-fg-subtle focus:outline-none"
+                      />
+                    </div>
+                    <div class="max-h-[200px] overflow-y-auto p-1 space-y-0.5">
+                      {filtered.map((w) => (
+                        <WindowOption
+                          key={w.id}
+                          windowId={w.id}
+                          customTitle={w.customTitle}
+                          tabCount={w.tabCount}
+                          preview={w.firstTabTitle}
+                          onClick={() => handleMove(w.id)}
+                        />
+                      ))}
+                      {filtered.length === 0 && q && (
+                        <div class="px-2 py-3 text-center text-[11px] text-fg-subtle">
+                          No windows match "{windowQuery}"
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 )}
-                <div class="space-y-1 max-h-[180px] overflow-y-auto">
-                  {filtered.map((w) => (
-                    <WindowOption
-                      key={w.id}
-                      windowId={w.id}
-                      customTitle={w.customTitle}
-                      tabCount={w.tabCount}
-                      preview={w.firstTabTitle}
-                      onClick={() => handleMove(w.id)}
-                    />
-                  ))}
-                </div>
+
                 <button
                   type="button"
                   onClick={handleMoveNew}
                   class="w-full flex items-center gap-2 px-2.5 py-2 rounded-md border border-dashed border-border hover:border-accent hover:bg-accent-subtle text-fg-muted hover:text-accent text-[12px] transition-colors"
                 >
                   <ArrowSquareOut size={13} />
-                  Move to new window
+                  Move to a brand new window
                 </button>
-                {others.length === 0 && (
-                  <div class="text-[11px] text-fg-subtle italic">
-                    No other windows open
-                  </div>
-                )}
-                {others.length > 0 && filtered.length === 0 && q && (
-                  <div class="text-[11px] text-fg-subtle italic">
-                    No windows match "{windowQuery}"
-                  </div>
-                )}
               </div>
             );
           })()}
@@ -338,9 +388,9 @@ function WindowOption(props: {
     <button
       type="button"
       onClick={props.onClick}
-      class="w-full flex items-center gap-2 px-2.5 py-2 rounded-md border border-border hover:border-border-strong hover:bg-surface text-left transition-colors"
+      class="w-full flex items-center gap-2 px-2 py-1.5 rounded hover:bg-surface text-left transition-colors"
     >
-      <Browser size={13} class="text-fg-muted shrink-0" />
+      <Browser size={12} class="text-fg-muted shrink-0" />
       <div class="flex-1 min-w-0">
         <div class="text-[12px] font-medium text-fg truncate">
           {displayTitle}
