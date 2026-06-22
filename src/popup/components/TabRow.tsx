@@ -6,9 +6,9 @@ import {
   PawPrint,
   X,
   Globe,
-  DotsThree,
   Tag,
   NotePencil,
+  ArrowSquareOut,
 } from "@phosphor-icons/react";
 import {
   focusTab,
@@ -39,11 +39,16 @@ export function TabRow({
 }: Props) {
   const domain = getRootDomain(tab.url);
 
-  const handleFocus = async (e: MouseEvent) => {
+  const handleRowClick = async (e: MouseEvent) => {
     if (e.shiftKey || e.metaKey || e.ctrlKey || selectionMode) {
       onToggleSelect(tab.id, e);
       return;
     }
+    onOpenDetails(tab);
+  };
+
+  const handleJump = async (e: MouseEvent) => {
+    stop(e);
     await focusTab(tab.id, tab.windowId);
     window.close();
   };
@@ -89,11 +94,11 @@ export function TabRow({
     <div
       role="button"
       tabIndex={0}
-      onClick={handleFocus}
+      onClick={handleRowClick}
       onKeyDown={(e) => {
         if (e.key === "Enter") {
           e.preventDefault();
-          handleFocus(e as unknown as MouseEvent);
+          handleRowClick(e as unknown as MouseEvent);
         }
       }}
       class={`group flex items-center gap-2.5 pl-2 pr-1.5 py-1.5 rounded-md focus:outline-none cursor-pointer transition-colors ${rowClass}`}
@@ -190,16 +195,13 @@ export function TabRow({
 
         <button
           type="button"
-          onClick={(e) => {
-            stop(e);
-            onOpenDetails(tab);
-          }}
-          aria-label="Tab details"
-          data-tooltip="Tags, notes, move…"
+          onClick={handleJump}
+          aria-label="Jump to tab"
+          data-tooltip="Jump to tab"
           data-tooltip-pos="above"
-          class="size-6 inline-flex items-center justify-center rounded text-fg-subtle opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 hover:bg-surface-hover hover:text-fg transition-all"
+          class="size-6 inline-flex items-center justify-center rounded text-fg-subtle opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 hover:bg-accent-subtle hover:text-accent transition-all"
         >
-          <DotsThree size={15} weight="bold" />
+          <ArrowSquareOut size={13} />
         </button>
 
         <span
