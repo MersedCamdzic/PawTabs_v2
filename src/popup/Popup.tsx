@@ -57,10 +57,13 @@ export function Popup() {
     if (!snapshot) return [];
     const q = query.trim().toLowerCase();
     if (!q) return snapshot.tabs;
-    return snapshot.tabs.filter(
-      (t) =>
-        t.title.toLowerCase().includes(q) || t.url.toLowerCase().includes(q),
-    );
+    return snapshot.tabs.filter((t) => {
+      if (t.title.toLowerCase().includes(q)) return true;
+      if (t.url.toLowerCase().includes(q)) return true;
+      if (t.tags.some((tag) => tag.toLowerCase().includes(q))) return true;
+      if (t.notes.some((n) => n.text.toLowerCase().includes(q))) return true;
+      return false;
+    });
   }, [snapshot, query]);
 
   const groups = useMemo(

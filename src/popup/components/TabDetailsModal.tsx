@@ -175,24 +175,37 @@ export function TabDetailsModal({ tab, open, onClose, onAction }: Props) {
               ))}
             </div>
           )}
-          <form onSubmit={handleAddNote} class="flex gap-1.5">
+          <form onSubmit={handleAddNote}>
             <textarea
               value={noteInput}
               onInput={(e) =>
                 setNoteInput((e.currentTarget as HTMLTextAreaElement).value)
               }
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  handleAddNote();
+                }
+              }}
               placeholder="Add a note…"
               rows={2}
-              class="flex-1 px-2.5 py-1.5 bg-surface border border-border rounded-md text-[12px] placeholder:text-fg-subtle focus:outline-none focus:bg-bg-elevated focus:border-accent focus:ring-4 focus:ring-accent/10 transition-colors resize-none"
+              class="w-full px-2.5 py-1.5 bg-surface border border-border rounded-md text-[12px] placeholder:text-fg-subtle focus:outline-none focus:bg-bg-elevated focus:border-accent focus:ring-4 focus:ring-accent/10 transition-colors resize-none"
             />
-            <button
-              type="submit"
-              disabled={!noteInput.trim()}
-              class="h-8 px-2 inline-flex items-center justify-center rounded-md text-fg-muted hover:bg-accent-subtle hover:text-accent disabled:opacity-40 transition-colors self-start"
-              aria-label="Add note"
-            >
-              <Plus size={13} weight="bold" />
-            </button>
+            <div class="flex items-center justify-between mt-1 text-[10px] text-fg-subtle">
+              <span>
+                <kbd class="font-mono text-fg-muted">Enter</kbd> to add ·{" "}
+                <kbd class="font-mono text-fg-muted">Shift+Enter</kbd> for new
+                line
+              </span>
+              {noteInput.trim() && (
+                <button
+                  type="submit"
+                  class="text-accent hover:text-accent-hover font-medium"
+                >
+                  Add note
+                </button>
+              )}
+            </div>
           </form>
         </Section>
 
