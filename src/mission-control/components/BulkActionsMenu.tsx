@@ -174,12 +174,14 @@ export function BulkActionsMenu({ tabs, label, compact, onAction }: Props) {
           disabled ? "No tabs to act on" : `Bulk actions on ${count} tab${count === 1 ? "" : "s"}`
         }
         data-tooltip-pos="below"
-        class={`h-9 px-3 inline-flex items-center gap-1.5 text-[12px] font-medium rounded-md border transition-colors ${
+        class={`${compact ? "h-7 px-2.5" : "h-9 px-3"} inline-flex items-center gap-1.5 text-[12px] font-medium rounded-md border transition-colors ${
           disabled
             ? "border-border text-fg-subtle bg-surface cursor-not-allowed opacity-60"
             : open
               ? "border-accent text-accent bg-accent-subtle"
-              : "border-border text-fg-muted hover:border-accent hover:text-accent bg-bg"
+              : compact
+                ? "border-border text-fg-muted hover:bg-surface hover:text-fg bg-bg"
+                : "border-border text-fg-muted hover:border-accent hover:text-accent bg-bg"
         }`}
       >
         <Lightning size={12} weight="fill" />

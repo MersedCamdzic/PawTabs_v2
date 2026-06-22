@@ -189,7 +189,7 @@ export function Popup() {
   };
 
   return (
-    <div class="w-[420px] min-h-[560px] max-h-[600px] bg-bg text-fg flex flex-col overflow-x-hidden">
+    <div class="w-[480px] min-h-[560px] max-h-[600px] bg-bg text-fg flex flex-col overflow-x-hidden">
       <header class="flex items-center justify-between px-4 pt-4 pb-3">
         <div class="flex items-center gap-1.5 text-fg-muted">
           <PawPrint size={13} weight="fill" class="text-accent" />
