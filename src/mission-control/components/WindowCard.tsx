@@ -36,6 +36,7 @@ interface Props {
   selectedIds: Set<number>;
   onStartSelection: (windowId: number) => void;
   onStartMergeAll: (windowId: number) => void;
+  onStartMoveSingle: (windowId: number, tabId: number) => void;
   onToggleTab: (tabId: number) => void;
   onSelectAll: () => void;
   onPickDestination: (windowId: number) => Promise<void>;
@@ -56,6 +57,7 @@ export function WindowCard({
   selectedIds,
   onStartSelection,
   onStartMergeAll,
+  onStartMoveSingle,
   onToggleTab,
   onSelectAll,
   onPickDestination,
@@ -424,6 +426,7 @@ export function WindowCard({
             isOtherCardSelectMode={isMoveTarget}
             selected={selectedIds.has(tab.id)}
             onToggleSelect={() => onToggleTab(tab.id)}
+            onMoveSingle={() => onStartMoveSingle(window.id, tab.id)}
             onAction={onAction}
           />
         ))}
@@ -467,6 +470,7 @@ function CompactTabRow(props: {
   isOtherCardSelectMode: boolean;
   selected: boolean;
   onToggleSelect: () => void;
+  onMoveSingle: () => void;
   onAction: () => void;
 }) {
   const handleClick = (e: MouseEvent) => {
@@ -491,6 +495,10 @@ function CompactTabRow(props: {
   const handleJump = async (e: MouseEvent) => {
     stop(e);
     await focusTab(props.tab.id, props.tab.windowId);
+  };
+  const handleMoveSingle = (e: MouseEvent) => {
+    stop(e);
+    props.onMoveSingle();
   };
   const handlePaw = wrap(async () => {
     await toggleStarred(props.tab.id);
@@ -610,6 +618,13 @@ function CompactTabRow(props: {
               )}
             </TinyActionBtn>
           )}
+          <TinyActionBtn
+            title="Move to another window"
+            tone="accent"
+            onClick={handleMoveSingle}
+          >
+            <ArrowRight size={11} />
+          </TinyActionBtn>
           <TinyActionBtn
             title="Jump to tab"
             tone="accent"

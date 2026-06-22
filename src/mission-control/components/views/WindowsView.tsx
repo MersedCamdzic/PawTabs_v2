@@ -127,6 +127,13 @@ export function WindowsView({ query, onAction }: Props) {
     setSelection({ sourceWindowId: windowId, selectedIds: allIds });
   };
 
+  const handleStartMoveSingle = (windowId: number, tabId: number) => {
+    setSelection({
+      sourceWindowId: windowId,
+      selectedIds: new Set([tabId]),
+    });
+  };
+
   const handleToggleTab = (tabId: number) => {
     if (!selection) return;
     const next = new Set(selection.selectedIds);
@@ -265,6 +272,7 @@ export function WindowsView({ query, onAction }: Props) {
             selectedIds={selection?.selectedIds ?? new Set()}
             onStartSelection={handleStartSelection}
             onStartMergeAll={handleStartMergeAll}
+            onStartMoveSingle={handleStartMoveSingle}
             onToggleTab={handleToggleTab}
             onSelectAll={handleSelectAll}
             onPickDestination={handlePickDestination}
