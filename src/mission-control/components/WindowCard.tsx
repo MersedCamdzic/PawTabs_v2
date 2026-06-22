@@ -810,6 +810,17 @@ function CompactTabRow(props: {
               )}
             </TinyActionBtn>
           )}
+          {props.tab.discarded && (
+            <TinyActionBtn
+              title="Wake up tab (reload from sleep)"
+              tone="warning"
+              active
+              forceVisible
+              onClick={handleWake}
+            >
+              <Lightning size={12} weight="fill" />
+            </TinyActionBtn>
+          )}
           <TinyActionBtn
             title="Move to another window"
             tone="accent"
