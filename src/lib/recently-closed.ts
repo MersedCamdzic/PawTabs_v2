@@ -31,9 +31,12 @@ export async function listRecentlyClosedDetailed(
     };
   }
 
+  // Chrome API caps maxResults at 25.
+  const capped = Math.min(Math.max(1, limit), 25);
+
   try {
     const sessions = await chrome.sessions.getRecentlyClosed({
-      maxResults: limit,
+      maxResults: capped,
     });
     const items: RecentlyClosedItem[] = [];
 

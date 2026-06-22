@@ -26,7 +26,7 @@ export function RecentlyClosedView({ query }: Props) {
   const refresh = useCallback(async () => {
     setLoading(true);
     try {
-      const r = await listRecentlyClosedDetailed(50);
+      const r = await listRecentlyClosedDetailed(25);
       setItems(r.items);
       setApiAvailable(r.apiAvailable);
       setError(r.error ?? null);
