@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from "preact/hooks";
 import {
   ClockCounterClockwise,
-  ArrowSquareOut,
+  ArrowUUpLeft,
   Globe,
   ArrowsClockwise,
 } from "@phosphor-icons/react";
@@ -194,7 +194,7 @@ export function RecentlyClosedView({ query, sortBy, columns }: Props) {
                 data-tooltip-pos="left"
                 class="size-8 inline-flex items-center justify-center rounded text-fg-muted opacity-0 group-hover:opacity-100 hover:bg-accent-subtle hover:text-accent disabled:opacity-20 transition-all"
               >
-                <ArrowSquareOut size={13} />
+                <ArrowUUpLeft size={14} weight="bold" />
               </button>
             </div>
           ))}
