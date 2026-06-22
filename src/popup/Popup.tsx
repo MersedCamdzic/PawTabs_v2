@@ -9,6 +9,7 @@ import {
 import { useTabSnapshot } from "./hooks";
 import { TabGroupSection } from "./components/TabGroupSection";
 import { GroupBy } from "./components/GroupBy";
+import { WizardModal } from "./components/WizardModal";
 import { groupTabs } from "@/lib/grouping";
 import { storage } from "@/lib/storage";
 import type { GroupBy as GroupByType, PawTab } from "@/types";
@@ -18,6 +19,7 @@ export function Popup() {
   const [query, setQuery] = useState("");
   const [grouping, setGrouping] = useState<GroupByType>("window");
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
+  const [wizardOpen, setWizardOpen] = useState(false);
 
   useEffect(() => {
     storage.get("preferences").then((prefs) => {
@@ -76,7 +78,7 @@ export function Popup() {
           <h1 class="text-[15px] font-semibold tracking-tight">PawTabs</h1>
         </div>
         <div class="flex items-center gap-1">
-          <IconButton label="Wizard">
+          <IconButton label="Wizard" onClick={() => setWizardOpen(true)}>
             <Sparkle size={16} weight="regular" />
           </IconButton>
           <IconButton label="Mission Control" onClick={openMissionControl}>
@@ -163,6 +165,12 @@ export function Popup() {
         <span>PawTabs v2</span>
         <span class="font-mono">⌘⇧Y</span>
       </footer>
+
+      <WizardModal
+        open={wizardOpen}
+        onClose={() => setWizardOpen(false)}
+        onComplete={reload}
+      />
     </div>
   );
 }

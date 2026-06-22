@@ -51,7 +51,9 @@ function getGroupKey(tab: PawTab, by: GroupBy): string {
     case "pawed":
       return tab.starred ? "pawed" : "unpawed";
     case "audible":
-      return tab.audible || tab.muted ? "audible" : "silent";
+      if (tab.audible && !tab.muted) return "playing";
+      if (tab.muted) return "muted";
+      return "silent";
     case "none":
       return "all";
   }
@@ -70,7 +72,9 @@ function getGroupTitle(key: string, by: GroupBy, tabs: PawTab[]): string {
     case "pawed":
       return key === "pawed" ? "Pawed" : "Not pawed";
     case "audible":
-      return key === "audible" ? "Playing audio" : "Silent";
+      if (key === "playing") return "Playing audio";
+      if (key === "muted") return "Muted";
+      return "Silent";
     case "none":
       return "All tabs";
   }
@@ -88,8 +92,10 @@ function sortGroups(groups: TabGroup[], by: GroupBy): TabGroup[] {
       break;
     case "pinned":
     case "pawed":
-    case "audible":
       sorted.sort((a) => (isActiveGroup(a.key) ? -1 : 1));
+      break;
+    case "audible":
+      sorted.sort((a, b) => audibleOrder(a.key) - audibleOrder(b.key));
       break;
     case "domain":
       sorted.sort((a, b) => b.count - a.count || a.title.localeCompare(b.title));
@@ -99,5 +105,11 @@ function sortGroups(groups: TabGroup[], by: GroupBy): TabGroup[] {
 }
 
 function isActiveGroup(key: string): boolean {
-  return ["pinned", "pawed", "audible"].includes(key);
+  return ["pinned", "pawed"].includes(key);
+}
+
+function audibleOrder(key: string): number {
+  if (key === "playing") return 0;
+  if (key === "muted") return 1;
+  return 2;
 }
