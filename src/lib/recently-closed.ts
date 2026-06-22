@@ -6,38 +6,68 @@ export interface RecentlyClosedItem {
   lastModified: number;
 }
 
+export interface RecentlyClosedResult {
+  items: RecentlyClosedItem[];
+  apiAvailable: boolean;
+  error?: string;
+}
+
 export async function listRecentlyClosed(
   limit = 25,
 ): Promise<RecentlyClosedItem[]> {
-  if (!chrome.sessions?.getRecentlyClosed) return [];
+  const r = await listRecentlyClosedDetailed(limit);
+  return r.items;
+}
 
-  const sessions = await chrome.sessions.getRecentlyClosed({ maxResults: limit });
-  const items: RecentlyClosedItem[] = [];
-
-  for (const s of sessions) {
-    const lastModified = (s.lastModified ?? 0) * 1000;
-    if (s.tab) {
-      items.push({
-        sessionId: s.tab.sessionId ?? "",
-        url: s.tab.url ?? "",
-        title: s.tab.title ?? "",
-        favIconUrl: s.tab.favIconUrl ?? "",
-        lastModified,
-      });
-    } else if (s.window?.tabs) {
-      for (const t of s.window.tabs) {
-        items.push({
-          sessionId: t.sessionId ?? s.window.sessionId ?? "",
-          url: t.url ?? "",
-          title: t.title ?? "",
-          favIconUrl: t.favIconUrl ?? "",
-          lastModified,
-        });
-      }
-    }
+export async function listRecentlyClosedDetailed(
+  limit = 25,
+): Promise<RecentlyClosedResult> {
+  if (!chrome.sessions?.getRecentlyClosed) {
+    return {
+      items: [],
+      apiAvailable: false,
+      error:
+        "chrome.sessions API is not available. The extension needs to be reinstalled to grant the 'sessions' permission.",
+    };
   }
 
-  return items;
+  try {
+    const sessions = await chrome.sessions.getRecentlyClosed({
+      maxResults: limit,
+    });
+    const items: RecentlyClosedItem[] = [];
+
+    for (const s of sessions) {
+      const lastModified = (s.lastModified ?? 0) * 1000;
+      if (s.tab) {
+        items.push({
+          sessionId: s.tab.sessionId ?? "",
+          url: s.tab.url ?? "",
+          title: s.tab.title ?? "",
+          favIconUrl: s.tab.favIconUrl ?? "",
+          lastModified,
+        });
+      } else if (s.window?.tabs) {
+        for (const t of s.window.tabs) {
+          items.push({
+            sessionId: t.sessionId ?? s.window.sessionId ?? "",
+            url: t.url ?? "",
+            title: t.title ?? "",
+            favIconUrl: t.favIconUrl ?? "",
+            lastModified,
+          });
+        }
+      }
+    }
+
+    return { items, apiAvailable: true };
+  } catch (err) {
+    return {
+      items: [],
+      apiAvailable: true,
+      error: err instanceof Error ? err.message : String(err),
+    };
+  }
 }
 
 export async function restoreClosed(sessionId: string): Promise<void> {

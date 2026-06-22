@@ -8,11 +8,22 @@ import { listBackups, restoreBackup, deleteBackup } from "@/lib/backups";
 import { formatRelativeTime } from "@/lib/sessions";
 import type { Backup } from "@/types";
 
+import type { SnapshotSortKey } from "../SnapshotSortDropdown";
+
 interface Props {
   query: string;
+  sortBy: SnapshotSortKey;
+  columns: 1 | 2 | 3 | 4;
 }
 
-export function BackupsView({ query }: Props) {
+const COLUMN_GRID: Record<1 | 2 | 3 | 4, string> = {
+  1: "grid-cols-1",
+  2: "grid-cols-1 md:grid-cols-2",
+  3: "grid-cols-1 md:grid-cols-2 xl:grid-cols-3",
+  4: "grid-cols-1 md:grid-cols-2 xl:grid-cols-4",
+};
+
+export function BackupsView({ query, sortBy, columns }: Props) {
   const [backups, setBackups] = useState<Backup[]>([]);
   const [busyId, setBusyId] = useState<string | null>(null);
 
@@ -24,9 +35,24 @@ export function BackupsView({ query }: Props) {
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return backups;
-    return backups.filter((b) => b.name.toLowerCase().includes(q));
-  }, [backups, query]);
+    const list = q
+      ? backups.filter((b) => b.name.toLowerCase().includes(q))
+      : backups;
+    const sorted = [...list].sort((a, b) => {
+      switch (sortBy) {
+        case "date-asc":
+          return a.createdAt.localeCompare(b.createdAt);
+        case "name":
+          return a.name.localeCompare(b.name);
+        case "size-desc":
+          return b.tabCount - a.tabCount;
+        case "date-desc":
+        default:
+          return b.createdAt.localeCompare(a.createdAt);
+      }
+    });
+    return sorted;
+  }, [backups, query, sortBy]);
 
   const handleRestore = async (b: Backup) => {
     setBusyId(b.id);
@@ -75,7 +101,7 @@ export function BackupsView({ query }: Props) {
           </div>
         </div>
       ) : (
-        <div class="space-y-2">
+        <div class={`grid ${COLUMN_GRID[columns]} gap-2`}>
           {filtered.map((b) => (
             <div
               key={b.id}

@@ -12,6 +12,10 @@ import {
   WindowsSortDropdown,
   type WindowsSortKey,
 } from "./components/WindowsSortDropdown";
+import {
+  SnapshotSortDropdown,
+  type SnapshotSortKey,
+} from "./components/SnapshotSortDropdown";
 import { TagsView } from "./components/views/TagsView";
 import { SessionsView } from "./components/views/SessionsView";
 import { BackupsView } from "./components/views/BackupsView";
@@ -98,6 +102,18 @@ export function MissionControl() {
 
   const [windowsSort, setWindowsSort] = useState<WindowsSortKey>("default");
   const [windowsColumns, setWindowsColumns] = useState<1 | 2 | 3 | 4>(3);
+  const [snapshotSortByView, setSnapshotSortByView] = useState<
+    Record<string, SnapshotSortKey>
+  >({});
+  const [snapshotColumnsByView, setSnapshotColumnsByView] = useState<
+    Record<string, 1 | 2 | 3 | 4>
+  >({});
+  const currentSnapshotSort = snapshotSortByView[view] ?? "date-desc";
+  const currentSnapshotColumns = snapshotColumnsByView[view] ?? 1;
+  const setCurrentSnapshotSort = (s: SnapshotSortKey) =>
+    setSnapshotSortByView((prev) => ({ ...prev, [view]: s }));
+  const setCurrentSnapshotColumns = (n: 1 | 2 | 3 | 4) =>
+    setSnapshotColumnsByView((prev) => ({ ...prev, [view]: n }));
 
   const refreshWindowTitles = async () => {
     setWindowTitles(await getAllWindowTitles());
@@ -211,6 +227,17 @@ export function MissionControl() {
                     onChange={setWindowsColumns}
                   />
                 </>
+              ) : view === "sessions" || view === "backups" ? (
+                <>
+                  <SnapshotSortDropdown
+                    value={currentSnapshotSort}
+                    onChange={setCurrentSnapshotSort}
+                  />
+                  <ColumnsPicker
+                    value={currentSnapshotColumns}
+                    onChange={setCurrentSnapshotColumns}
+                  />
+                </>
               ) : undefined
             }
           />
@@ -303,9 +330,21 @@ export function MissionControl() {
           />
         )}
 
-        {view === "sessions" && <SessionsView query={query} />}
+        {view === "sessions" && (
+          <SessionsView
+            query={query}
+            sortBy={currentSnapshotSort}
+            columns={currentSnapshotColumns}
+          />
+        )}
 
-        {view === "backups" && <BackupsView query={query} />}
+        {view === "backups" && (
+          <BackupsView
+            query={query}
+            sortBy={currentSnapshotSort}
+            columns={currentSnapshotColumns}
+          />
+        )}
 
         {view === "recently-closed" && <RecentlyClosedView query={query} />}
 

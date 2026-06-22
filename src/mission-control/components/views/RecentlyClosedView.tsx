@@ -6,7 +6,7 @@ import {
   ArrowsClockwise,
 } from "@phosphor-icons/react";
 import {
-  listRecentlyClosed,
+  listRecentlyClosedDetailed,
   restoreClosed,
 } from "@/lib/recently-closed";
 import type { RecentlyClosedItem } from "@/lib/recently-closed";
@@ -20,12 +20,16 @@ interface Props {
 export function RecentlyClosedView({ query }: Props) {
   const [items, setItems] = useState<RecentlyClosedItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [apiAvailable, setApiAvailable] = useState(true);
 
   const refresh = useCallback(async () => {
     setLoading(true);
     try {
-      const next = await listRecentlyClosed(50);
-      setItems(next);
+      const r = await listRecentlyClosedDetailed(50);
+      setItems(r.items);
+      setApiAvailable(r.apiAvailable);
+      setError(r.error ?? null);
     } finally {
       setLoading(false);
     }
@@ -64,6 +68,7 @@ export function RecentlyClosedView({ query }: Props) {
         <div>
           Chrome remembers up to 25 recently closed tabs from your current
           session. They disappear when you restart the browser.
+          Incognito tabs are never tracked.
         </div>
         <button
           type="button"
@@ -80,6 +85,23 @@ export function RecentlyClosedView({ query }: Props) {
         </button>
       </div>
 
+      {!apiAvailable && (
+        <div class="mb-3 px-3 py-2 bg-danger-subtle border border-danger/30 rounded-md text-[11px] text-danger">
+          <div class="font-medium mb-0.5">Sessions API unavailable</div>
+          <div>
+            Remove and reinstall the extension to grant the 'sessions'
+            permission, then come back here.
+          </div>
+        </div>
+      )}
+
+      {error && apiAvailable && (
+        <div class="mb-3 px-3 py-2 bg-warning-subtle border border-warning/30 rounded-md text-[11px] text-warning">
+          <div class="font-medium mb-0.5">Couldn't fetch recently closed</div>
+          <div>{error}</div>
+        </div>
+      )}
+
       {items.length === 0 ? (
         <div class="py-16 text-center">
           <ClockCounterClockwise
@@ -90,11 +112,17 @@ export function RecentlyClosedView({ query }: Props) {
           <div class="text-[14px] font-medium">
             {loading ? "Loading…" : "No recently closed tabs"}
           </div>
-          <div class="text-[12px] text-fg-subtle mt-1">
-            Close a tab in Chrome — it'll show up here for quick reopening.
+          <div class="text-[12px] text-fg-subtle mt-1 max-w-md mx-auto">
+            <strong>Test it:</strong> open any tab in Chrome (e.g.
+            example.com), close it with ⌘W, then click the refresh button
+            above. It should appear.
             <br />
-            If you closed tabs but don't see them: try refreshing, or it may be
-            a private window.
+            <br />
+            If empty after a fresh extension install:{" "}
+            <strong>
+              remove the extension from chrome://extensions and reload it
+            </strong>{" "}
+            — Chrome sometimes requires re-grant of the sessions permission.
           </div>
         </div>
       ) : filtered.length === 0 ? (

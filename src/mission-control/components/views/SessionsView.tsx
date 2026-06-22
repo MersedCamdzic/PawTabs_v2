@@ -17,11 +17,22 @@ import {
 import { getRootDomain } from "@/lib/utils";
 import type { SavedSession } from "@/types";
 
+import type { SnapshotSortKey } from "../SnapshotSortDropdown";
+
 interface Props {
   query: string;
+  sortBy: SnapshotSortKey;
+  columns: 1 | 2 | 3 | 4;
 }
 
-export function SessionsView({ query }: Props) {
+const COLUMN_GRID: Record<1 | 2 | 3 | 4, string> = {
+  1: "grid-cols-1",
+  2: "grid-cols-1 md:grid-cols-2",
+  3: "grid-cols-1 md:grid-cols-2 xl:grid-cols-3",
+  4: "grid-cols-1 md:grid-cols-2 xl:grid-cols-4",
+};
+
+export function SessionsView({ query, sortBy, columns }: Props) {
   const [sessions, setSessions] = useState<SavedSession[]>([]);
   const [name, setName] = useState("");
   const [saving, setSaving] = useState(false);
@@ -36,17 +47,32 @@ export function SessionsView({ query }: Props) {
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return sessions;
-    return sessions.filter(
-      (s) =>
-        s.sessionName.toLowerCase().includes(q) ||
-        s.tabs.some(
-          (t) =>
-            t.title.toLowerCase().includes(q) ||
-            t.url.toLowerCase().includes(q),
-        ),
-    );
-  }, [sessions, query]);
+    const list = q
+      ? sessions.filter(
+          (s) =>
+            s.sessionName.toLowerCase().includes(q) ||
+            s.tabs.some(
+              (t) =>
+                t.title.toLowerCase().includes(q) ||
+                t.url.toLowerCase().includes(q),
+            ),
+        )
+      : sessions;
+    const sorted = [...list].sort((a, b) => {
+      switch (sortBy) {
+        case "date-asc":
+          return a.dateTime.localeCompare(b.dateTime);
+        case "name":
+          return a.sessionName.localeCompare(b.sessionName);
+        case "size-desc":
+          return b.tabs.length - a.tabs.length;
+        case "date-desc":
+        default:
+          return b.dateTime.localeCompare(a.dateTime);
+      }
+    });
+    return sorted;
+  }, [sessions, query, sortBy]);
 
   const handleSave = async () => {
     setSaving(true);
@@ -123,7 +149,7 @@ export function SessionsView({ query }: Props) {
           )}
         </div>
       ) : (
-        <div class="space-y-2">
+        <div class={`grid ${COLUMN_GRID[columns]} gap-2`}>
           {filtered.map((s) => (
             <SessionCard
               key={s.id}
