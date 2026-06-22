@@ -115,19 +115,29 @@ export function WindowCard({
 
   const borderClass = isMoveTarget
     ? selectionCount > 0
-      ? "border-accent ring-4 ring-accent/15 cursor-pointer hover:bg-accent-subtle/30"
-      : "border-border-strong opacity-70"
+      ? "border-2 border-accent bg-accent-subtle/30 ring-4 ring-accent/15 cursor-pointer hover:bg-accent-subtle/60 hover:ring-accent/30 hover:scale-[1.01]"
+      : "border-2 border-dashed border-border opacity-60"
     : isSelectionSource
-      ? "border-accent ring-2 ring-accent/30"
+      ? "border-2 border-border-strong shadow-md bg-surface/40"
       : window.focused
-        ? "border-border-strong"
-        : "border-border hover:border-border-strong";
+        ? "border border-border-strong"
+        : "border border-border hover:border-border-strong";
 
   return (
     <div
       onClick={handleCardClick}
-      class={`relative flex flex-col bg-bg border rounded-lg overflow-visible transition-all ${borderClass}`}
+      class={`relative flex flex-col bg-bg rounded-lg overflow-visible transition-all ${borderClass}`}
     >
+      {isMoveTarget && selectionCount > 0 && (
+        <div class="absolute -top-2 left-3 z-10 px-2 py-0.5 bg-accent text-white text-[10px] font-medium rounded uppercase tracking-wide">
+          Drop here
+        </div>
+      )}
+      {isSelectionSource && (
+        <div class="absolute -top-2 left-3 z-10 px-2 py-0.5 bg-fg text-bg text-[10px] font-medium rounded uppercase tracking-wide">
+          From
+        </div>
+      )}
       <div class="flex items-center gap-2 px-3 py-2 border-b border-border bg-surface/40">
         <Browsers
           size={13}

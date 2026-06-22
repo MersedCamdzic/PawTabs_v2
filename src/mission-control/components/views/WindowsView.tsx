@@ -26,24 +26,54 @@ export function WindowsView({ query, onAction }: Props) {
   }, [refresh]);
 
   useEffect(() => {
-    const handler = () => refresh();
-    chrome.tabs.onCreated.addListener(handler);
-    chrome.tabs.onRemoved.addListener(handler);
-    chrome.tabs.onAttached.addListener(handler);
-    chrome.tabs.onDetached.addListener(handler);
-    chrome.tabs.onUpdated.addListener(handler);
-    chrome.windows.onCreated.addListener(handler);
-    chrome.windows.onRemoved.addListener(handler);
-    chrome.windows.onFocusChanged.addListener(handler);
+    let pending = false;
+    const scheduleRefresh = () => {
+      if (pending) return;
+      pending = true;
+      queueMicrotask(async () => {
+        try {
+          await refresh();
+        } finally {
+          pending = false;
+        }
+      });
+    };
+
+    const onSimpleEvent = () => scheduleRefresh();
+    const onTabUpdated = (
+      _id: number,
+      changeInfo: chrome.tabs.TabChangeInfo,
+    ) => {
+      if (
+        changeInfo.pinned !== undefined ||
+        changeInfo.mutedInfo !== undefined ||
+        changeInfo.audible !== undefined ||
+        changeInfo.discarded !== undefined ||
+        changeInfo.title !== undefined ||
+        changeInfo.favIconUrl !== undefined ||
+        changeInfo.url !== undefined
+      ) {
+        scheduleRefresh();
+      }
+    };
+
+    chrome.tabs.onCreated.addListener(onSimpleEvent);
+    chrome.tabs.onRemoved.addListener(onSimpleEvent);
+    chrome.tabs.onAttached.addListener(onSimpleEvent);
+    chrome.tabs.onDetached.addListener(onSimpleEvent);
+    chrome.tabs.onUpdated.addListener(onTabUpdated);
+    chrome.windows.onCreated.addListener(onSimpleEvent);
+    chrome.windows.onRemoved.addListener(onSimpleEvent);
+    chrome.windows.onFocusChanged.addListener(onSimpleEvent);
     return () => {
-      chrome.tabs.onCreated.removeListener(handler);
-      chrome.tabs.onRemoved.removeListener(handler);
-      chrome.tabs.onAttached.removeListener(handler);
-      chrome.tabs.onDetached.removeListener(handler);
-      chrome.tabs.onUpdated.removeListener(handler);
-      chrome.windows.onCreated.removeListener(handler);
-      chrome.windows.onRemoved.removeListener(handler);
-      chrome.windows.onFocusChanged.removeListener(handler);
+      chrome.tabs.onCreated.removeListener(onSimpleEvent);
+      chrome.tabs.onRemoved.removeListener(onSimpleEvent);
+      chrome.tabs.onAttached.removeListener(onSimpleEvent);
+      chrome.tabs.onDetached.removeListener(onSimpleEvent);
+      chrome.tabs.onUpdated.removeListener(onTabUpdated);
+      chrome.windows.onCreated.removeListener(onSimpleEvent);
+      chrome.windows.onRemoved.removeListener(onSimpleEvent);
+      chrome.windows.onFocusChanged.removeListener(onSimpleEvent);
     };
   }, [refresh]);
 
