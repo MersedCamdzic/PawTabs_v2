@@ -1,6 +1,5 @@
 import { useState, useEffect, useMemo } from "preact/hooks";
 import {
-  FloppyDisk,
   ArrowCounterClockwise,
   Trash,
   BookmarkSimple,
@@ -10,7 +9,6 @@ import {
 } from "@phosphor-icons/react";
 import {
   listSessions,
-  saveSession,
   restoreSession,
   deleteSession,
   formatRelativeTime,
