@@ -157,9 +157,16 @@ export function MissionControl() {
               subtitle={meta.subtitle}
               query=""
               onQueryChange={() => undefined}
+              showSearch={false}
             />
-            {insights ? (
-              <OverviewView insights={insights} />
+            {insights && snapshot ? (
+              <OverviewView
+                insights={insights}
+                tabs={snapshot.tabs}
+                windowTitles={windowTitles}
+                onChangeView={setView}
+                onOpenDetails={setDetailsTab}
+              />
             ) : (
               <div class="px-8 py-12 text-fg-subtle text-[13px]">Loading…</div>
             )}

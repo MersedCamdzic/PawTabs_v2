@@ -39,11 +39,13 @@ export function TabDetailsModal({ tab, open, onClose, onAction }: Props) {
   const [tagInput, setTagInput] = useState("");
   const [noteInput, setNoteInput] = useState("");
   const [windows, setWindows] = useState<WindowItem[]>([]);
+  const [windowQuery, setWindowQuery] = useState("");
 
   useEffect(() => {
     if (!open || !tab) return;
     setTagInput("");
     setNoteInput("");
+    setWindowQuery("");
     listWindowsForMove(tab.id).then(setWindows);
   }, [open, tab]);
 
@@ -149,11 +151,11 @@ export function TabDetailsModal({ tab, open, onClose, onAction }: Props) {
             </div>
           )}
           {tab.notes.length > 0 && (
-            <div class="space-y-1.5 mb-2 max-h-[140px] overflow-y-auto pr-0.5">
+            <div class="space-y-1.5 mb-3 max-h-[140px] overflow-y-auto pr-0.5">
               {tab.notes.map((n) => (
                 <div
                   key={n.id}
-                  class="group flex items-start gap-2 p-2 bg-surface rounded-md border border-border"
+                  class="group relative flex items-start gap-2 pl-3 pr-2 py-2 bg-accent-subtle/30 rounded-r-md border-l-2 border-accent/60"
                 >
                   <div class="flex-1 min-w-0">
                     <div class="text-[12px] text-fg whitespace-pre-wrap break-words">
@@ -167,6 +169,8 @@ export function TabDetailsModal({ tab, open, onClose, onAction }: Props) {
                     type="button"
                     onClick={() => handleRemoveNote(n.id)}
                     aria-label="Delete note"
+                    data-tooltip="Delete note"
+                    data-tooltip-pos="left"
                     class="size-6 inline-flex items-center justify-center rounded text-fg-subtle opacity-0 group-hover:opacity-100 hover:bg-danger-subtle hover:text-danger transition-all shrink-0"
                   >
                     <Trash size={11} />
@@ -189,7 +193,7 @@ export function TabDetailsModal({ tab, open, onClose, onAction }: Props) {
               }}
               placeholder="Add a note…"
               rows={2}
-              class="w-full px-2.5 py-1.5 bg-surface border border-border rounded-md text-[12px] placeholder:text-fg-subtle focus:outline-none focus:bg-bg-elevated focus:border-accent focus:ring-4 focus:ring-accent/10 transition-colors resize-none"
+              class="w-full px-2.5 py-1.5 bg-bg border-2 border-dashed border-border rounded-md text-[12px] placeholder:text-fg-subtle focus:outline-none focus:bg-bg-elevated focus:border-accent focus:border-solid focus:ring-4 focus:ring-accent/10 transition-colors resize-none"
             />
             <div class="flex items-center justify-between mt-1 text-[10px] text-fg-subtle">
               <span>
@@ -210,32 +214,63 @@ export function TabDetailsModal({ tab, open, onClose, onAction }: Props) {
         </Section>
 
         <Section icon={<Browser size={11} />} title="Move to window">
-          <div class="space-y-1">
-            {windows
-              .filter((w) => w.id !== tab.windowId)
-              .map((w) => (
-                <WindowOption
-                  key={w.id}
-                  windowId={w.id}
-                  tabCount={w.tabCount}
-                  preview={w.firstTabTitle}
-                  onClick={() => handleMove(w.id)}
-                />
-              ))}
-            <button
-              type="button"
-              onClick={handleMoveNew}
-              class="w-full flex items-center gap-2 px-2.5 py-2 rounded-md border border-dashed border-border hover:border-accent hover:bg-accent-subtle text-fg-muted hover:text-accent text-[12px] transition-colors"
-            >
-              <ArrowSquareOut size={13} />
-              Move to new window
-            </button>
-            {windows.filter((w) => w.id !== tab.windowId).length === 0 && (
-              <div class="text-[11px] text-fg-subtle italic">
-                No other windows open
+          {(() => {
+            const others = windows.filter((w) => w.id !== tab.windowId);
+            const q = windowQuery.trim().toLowerCase();
+            const filtered = q
+              ? others.filter(
+                  (w) =>
+                    String(w.id).includes(q) ||
+                    w.firstTabTitle.toLowerCase().includes(q),
+                )
+              : others;
+            return (
+              <div class="space-y-1.5">
+                {others.length > 3 && (
+                  <input
+                    type="text"
+                    value={windowQuery}
+                    onInput={(e) =>
+                      setWindowQuery(
+                        (e.currentTarget as HTMLInputElement).value,
+                      )
+                    }
+                    placeholder="Filter windows…"
+                    class="w-full h-7 px-2.5 bg-surface border border-border rounded text-[12px] placeholder:text-fg-subtle focus:outline-none focus:bg-bg-elevated focus:border-accent focus:ring-4 focus:ring-accent/10 transition-colors"
+                  />
+                )}
+                <div class="space-y-1 max-h-[180px] overflow-y-auto">
+                  {filtered.map((w) => (
+                    <WindowOption
+                      key={w.id}
+                      windowId={w.id}
+                      tabCount={w.tabCount}
+                      preview={w.firstTabTitle}
+                      onClick={() => handleMove(w.id)}
+                    />
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  onClick={handleMoveNew}
+                  class="w-full flex items-center gap-2 px-2.5 py-2 rounded-md border border-dashed border-border hover:border-accent hover:bg-accent-subtle text-fg-muted hover:text-accent text-[12px] transition-colors"
+                >
+                  <ArrowSquareOut size={13} />
+                  Move to new window
+                </button>
+                {others.length === 0 && (
+                  <div class="text-[11px] text-fg-subtle italic">
+                    No other windows open
+                  </div>
+                )}
+                {others.length > 0 && filtered.length === 0 && q && (
+                  <div class="text-[11px] text-fg-subtle italic">
+                    No windows match "{windowQuery}"
+                  </div>
+                )}
               </div>
-            )}
-          </div>
+            );
+          })()}
         </Section>
       </div>
     </Modal>
