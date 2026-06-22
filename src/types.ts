@@ -28,6 +28,7 @@ export interface SavedSession {
   dateTime: string;
   tabs: SessionTab[];
   windows: { id: number; title?: string }[];
+  auto?: boolean;
 }
 
 export interface SavedGroup {

@@ -5,6 +5,7 @@ import {
   Trash,
   BookmarkSimple,
   Browsers,
+  Broom,
 } from "@phosphor-icons/react";
 import {
   listSessions,
@@ -158,12 +159,34 @@ function SessionCard(props: {
         onClick={props.onToggle}
         class="flex items-center gap-3 px-3 py-2.5 cursor-pointer hover:bg-surface transition-colors"
       >
-        <Browsers size={14} class="text-fg-muted shrink-0" />
+        {props.session.auto ? (
+          <span
+            data-tooltip="Created automatically before a Wizard cleanup"
+            data-tooltip-pos="right"
+            class="inline-flex size-6 items-center justify-center rounded bg-accent-subtle text-accent shrink-0"
+          >
+            <Broom size={13} weight="fill" />
+          </span>
+        ) : (
+          <span
+            data-tooltip="Manually saved snapshot"
+            data-tooltip-pos="right"
+            class="inline-flex size-6 items-center justify-center rounded bg-surface text-fg-muted shrink-0"
+          >
+            <BookmarkSimple size={13} weight="fill" />
+          </span>
+        )}
         <div class="flex-1 min-w-0">
-          <div class="text-[13px] font-medium truncate">
+          <div class="text-[13px] font-medium truncate flex items-center gap-1.5">
             {props.session.sessionName}
+            {props.session.auto && (
+              <span class="text-[10px] font-normal px-1.5 h-4 inline-flex items-center bg-accent-subtle text-accent rounded uppercase tracking-wide">
+                Auto
+              </span>
+            )}
           </div>
-          <div class="text-[11px] text-fg-subtle truncate mt-0.5">
+          <div class="text-[11px] text-fg-subtle truncate mt-0.5 flex items-center gap-1.5">
+            <Browsers size={10} />
             {props.session.tabs.length} tabs · {windowCount} window
             {windowCount === 1 ? "" : "s"} ·{" "}
             {formatRelativeTime(props.session.dateTime)}

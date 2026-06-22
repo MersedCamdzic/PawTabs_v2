@@ -1,4 +1,5 @@
 import { storage } from "./storage";
+import { saveSession } from "./sessions";
 import type { Backup } from "@/types";
 
 export interface WizardOptions {
@@ -6,6 +7,7 @@ export interface WizardOptions {
   removeDuplicates: boolean;
   splitLarge: boolean;
   regroupSmall: boolean;
+  snapshotTabs: boolean;
   splitThreshold: number;
   splitInto: number;
   regroupThreshold: number;
@@ -17,6 +19,7 @@ export interface WizardResult {
   windowsSplit: number;
   windowsRegrouped: number;
   backupId: string;
+  snapshotId: string | null;
 }
 
 export const WIZARD_DEFAULTS: WizardOptions = {
@@ -24,12 +27,20 @@ export const WIZARD_DEFAULTS: WizardOptions = {
   removeDuplicates: true,
   splitLarge: false,
   regroupSmall: false,
+  snapshotTabs: true,
   splitThreshold: 20,
   splitInto: 5,
   regroupThreshold: 3,
 };
 
 export async function runWizard(opts: WizardOptions): Promise<WizardResult> {
+  let snapshotId: string | null = null;
+  if (opts.snapshotTabs) {
+    const date = new Date();
+    const name = `Pre-cleanup · ${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
+    const session = await saveSession(name, true);
+    snapshotId = session.id;
+  }
   const backupId = await createBackup();
 
   const result: WizardResult = {
@@ -38,6 +49,7 @@ export async function runWizard(opts: WizardOptions): Promise<WizardResult> {
     windowsSplit: 0,
     windowsRegrouped: 0,
     backupId,
+    snapshotId,
   };
 
   if (opts.closeInactive) {

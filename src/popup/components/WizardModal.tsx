@@ -77,11 +77,7 @@ export function WizardModal({ open, onClose, onComplete }: Props) {
             </button>
           </div>
         ) : (
-          <div class="flex items-center justify-between gap-2">
-            <div class="text-[11px] text-fg-subtle flex items-center gap-1.5">
-              <FloppyDisk size={12} />
-              Auto-backup before cleanup
-            </div>
+          <div class="flex items-center justify-end gap-2">
             <button
               type="button"
               onClick={run}
@@ -99,6 +95,14 @@ export function WizardModal({ open, onClose, onComplete }: Props) {
         <ResultPanel result={result} />
       ) : (
         <div class="space-y-1 -mt-1">
+          <div class="rounded-md border border-accent/30 bg-accent-subtle/30 px-2.5 py-2 mb-2">
+            <Toggle
+              label="Save snapshot of open tabs first"
+              description="Recommended: creates a restorable Snapshot of all windows + tabs before any cleanup runs. Find it under Snapshots in Mission Control."
+              checked={opts.snapshotTabs}
+              onChange={(v) => setOpts({ ...opts, snapshotTabs: v })}
+            />
+          </div>
           <Toggle
             label="Close inactive tabs"
             description="Remove tabs Chrome has discarded from memory."
@@ -155,8 +159,17 @@ function ResultPanel({ result }: { result: WizardResult }) {
           <div key={line}>{line}</div>
         ))}
       </div>
-      <div class="mt-3 text-[10px] text-fg-subtle font-mono">
-        Backup saved: {result.backupId}
+      <div class="mt-3 text-[10px] text-fg-subtle space-y-0.5">
+        {result.snapshotId && (
+          <div class="flex items-center justify-center gap-1">
+            <BookmarkSimple size={10} />
+            Tab snapshot saved as Pre-cleanup session
+          </div>
+        )}
+        <div class="flex items-center justify-center gap-1">
+          <FloppyDisk size={10} />
+          Metadata backup: <span class="font-mono">{result.backupId}</span>
+        </div>
       </div>
     </div>
   );

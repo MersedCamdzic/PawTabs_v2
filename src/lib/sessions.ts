@@ -8,7 +8,10 @@ export async function listSessions(): Promise<SavedSession[]> {
   );
 }
 
-export async function saveSession(name: string): Promise<SavedSession> {
+export async function saveSession(
+  name: string,
+  auto = false,
+): Promise<SavedSession> {
   const trimmed = name.trim() || defaultSessionName();
   const windows = await chrome.windows.getAll({ populate: true });
 
@@ -31,6 +34,7 @@ export async function saveSession(name: string): Promise<SavedSession> {
     dateTime: new Date().toISOString(),
     tabs,
     windows: windows.map((w) => ({ id: w.id ?? 0 })),
+    auto: auto || undefined,
   };
 
   await storage.update("savedSessions", (current) => [
