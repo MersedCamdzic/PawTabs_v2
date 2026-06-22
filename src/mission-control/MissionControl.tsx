@@ -51,7 +51,7 @@ const VIEW_META: Record<View, { title: string; subtitle: string }> = {
   sessions: {
     title: "Snapshots",
     subtitle:
-      "Save the current state of all your windows and tabs to restore later.",
+      "Saved states of your tabs + metadata backups, all in one place. Restore any to roll back.",
   },
   "recently-closed": {
     title: "Recently closed",
@@ -61,7 +61,7 @@ const VIEW_META: Record<View, { title: string; subtitle: string }> = {
   backups: {
     title: "Wizard backups",
     subtitle:
-      "Automatic safety nets created before each Cleanup Wizard run — restore here if you regret a cleanup.",
+      "Automatic safety nets created before each Cleanup Wizard run.",
   },
   settings: {
     title: "Settings",

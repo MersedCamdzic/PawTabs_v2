@@ -102,16 +102,9 @@ export function Sidebar({ view, onChange, counts }: Props) {
         <NavItem
           icon={<BookmarkSimple size={14} />}
           label="Snapshots"
-          count={counts.sessions}
+          count={counts.sessions + counts.backups}
           active={view === "sessions"}
           onClick={() => onChange("sessions")}
-        />
-        <NavItem
-          icon={<ArrowCounterClockwise size={14} />}
-          label="Wizard backups"
-          count={counts.backups}
-          active={view === "backups"}
-          onClick={() => onChange("backups")}
         />
 
         <SectionLabel>Browser history</SectionLabel>

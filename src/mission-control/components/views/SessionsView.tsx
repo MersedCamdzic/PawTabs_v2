@@ -6,6 +6,7 @@ import {
   BookmarkSimple,
   Browsers,
   Broom,
+  ClockCounterClockwise,
 } from "@phosphor-icons/react";
 import {
   listSessions,
@@ -14,9 +15,9 @@ import {
   deleteSession,
   formatRelativeTime,
 } from "@/lib/sessions";
+import { listBackups, deleteBackup, restoreBackup } from "@/lib/backups";
 import { getRootDomain } from "@/lib/utils";
-import type { SavedSession } from "@/types";
-
+import type { SavedSession, Backup } from "@/types";
 import type { SnapshotSortKey } from "../SnapshotSortDropdown";
 
 interface Props {
@@ -32,47 +33,73 @@ const COLUMN_GRID: Record<1 | 2 | 3 | 4, string> = {
   4: "grid-cols-1 md:grid-cols-2 xl:grid-cols-4",
 };
 
+type UnifiedItem =
+  | { kind: "session"; data: SavedSession; dateTime: string }
+  | { kind: "backup"; data: Backup; dateTime: string };
+
 export function SessionsView({ query, sortBy, columns }: Props) {
   const [sessions, setSessions] = useState<SavedSession[]>([]);
+  const [backups, setBackups] = useState<Backup[]>([]);
   const [name, setName] = useState("");
   const [saving, setSaving] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  const refresh = async () => setSessions(await listSessions());
+  const refresh = async () => {
+    const [s, b] = await Promise.all([listSessions(), listBackups()]);
+    setSessions(s);
+    setBackups(b);
+  };
 
   useEffect(() => {
     refresh();
   }, []);
 
-  const filtered = useMemo(() => {
+  const filtered = useMemo<UnifiedItem[]>(() => {
     const q = query.trim().toLowerCase();
-    const list = q
-      ? sessions.filter(
-          (s) =>
-            s.sessionName.toLowerCase().includes(q) ||
+
+    const sessionItems: UnifiedItem[] = sessions
+      .filter((s) =>
+        !q
+          ? true
+          : s.sessionName.toLowerCase().includes(q) ||
             s.tabs.some(
               (t) =>
                 t.title.toLowerCase().includes(q) ||
                 t.url.toLowerCase().includes(q),
             ),
-        )
-      : sessions;
-    const sorted = [...list].sort((a, b) => {
+      )
+      .map((data) => ({ kind: "session", data, dateTime: data.dateTime }));
+
+    const backupItems: UnifiedItem[] = backups
+      .filter((b) => (!q ? true : b.name.toLowerCase().includes(q)))
+      .map((data) => ({ kind: "backup", data, dateTime: data.createdAt }));
+
+    const all = [...sessionItems, ...backupItems];
+
+    all.sort((a, b) => {
       switch (sortBy) {
         case "date-asc":
           return a.dateTime.localeCompare(b.dateTime);
-        case "name":
-          return a.sessionName.localeCompare(b.sessionName);
-        case "size-desc":
-          return b.tabs.length - a.tabs.length;
+        case "name": {
+          const aName =
+            a.kind === "session" ? a.data.sessionName : a.data.name;
+          const bName =
+            b.kind === "session" ? b.data.sessionName : b.data.name;
+          return aName.localeCompare(bName);
+        }
+        case "size-desc": {
+          const aSize = a.kind === "session" ? a.data.tabs.length : a.data.tabCount;
+          const bSize = b.kind === "session" ? b.data.tabs.length : b.data.tabCount;
+          return bSize - aSize;
+        }
         case "date-desc":
         default:
           return b.dateTime.localeCompare(a.dateTime);
       }
     });
-    return sorted;
-  }, [sessions, query, sortBy]);
+    return all;
+  }, [sessions, backups, query, sortBy]);
 
   const handleSave = async () => {
     setSaving(true);
@@ -85,19 +112,21 @@ export function SessionsView({ query, sortBy, columns }: Props) {
     }
   };
 
-  const handleRestore = async (s: SavedSession) => {
-    setBusyId(s.id);
+  const handleRestore = async (item: UnifiedItem) => {
+    setBusyId(itemId(item));
     try {
-      await restoreSession(s);
+      if (item.kind === "session") await restoreSession(item.data);
+      else await restoreBackup(item.data);
     } finally {
       setBusyId(null);
     }
   };
 
-  const handleDelete = async (s: SavedSession) => {
-    setBusyId(s.id);
+  const handleDelete = async (item: UnifiedItem) => {
+    setBusyId(itemId(item));
     try {
-      await deleteSession(s.id);
+      if (item.kind === "session") await deleteSession(item.data.id);
+      else await deleteBackup(item.data.id);
       await refresh();
     } finally {
       setBusyId(null);
@@ -116,7 +145,7 @@ export function SessionsView({ query, sortBy, columns }: Props) {
           onKeyDown={(e) => {
             if (e.key === "Enter") handleSave();
           }}
-          placeholder="Session name (optional)"
+          placeholder="Snapshot name (optional)"
           class="flex-1 h-9 px-3 bg-surface border border-border rounded-md text-[13px] placeholder:text-fg-subtle focus:outline-none focus:bg-bg-elevated focus:border-accent focus:ring-4 focus:ring-accent/10 transition-colors"
         />
         <button
@@ -126,8 +155,29 @@ export function SessionsView({ query, sortBy, columns }: Props) {
           class="h-9 px-3.5 inline-flex items-center gap-1.5 text-[13px] font-medium rounded-md bg-accent text-white hover:bg-accent-hover disabled:opacity-40 transition-colors"
         >
           <FloppyDisk size={13} weight="fill" />
-          Save session
+          Snapshot now
         </button>
+      </div>
+
+      <div class="text-[11px] text-fg-subtle mb-3 flex items-center gap-3 flex-wrap">
+        <span class="inline-flex items-center gap-1.5">
+          <BookmarkSimple size={11} weight="fill" class="text-fg-muted" />
+          Manual snapshot (tabs)
+        </span>
+        <span class="text-border-strong">·</span>
+        <span class="inline-flex items-center gap-1.5">
+          <Broom size={11} weight="fill" class="text-accent" />
+          Auto (Wizard pre-cleanup)
+        </span>
+        <span class="text-border-strong">·</span>
+        <span class="inline-flex items-center gap-1.5">
+          <ClockCounterClockwise
+            size={11}
+            weight="fill"
+            class="text-warning"
+          />
+          Wizard metadata backup
+        </span>
       </div>
 
       {filtered.length === 0 ? (
@@ -138,11 +188,11 @@ export function SessionsView({ query, sortBy, columns }: Props) {
             class="mx-auto mb-3 text-fg-subtle"
           />
           <div class="text-[14px] font-medium">
-            {sessions.length === 0
-              ? "No saved sessions yet"
-              : `No sessions match "${query}"`}
+            {sessions.length === 0 && backups.length === 0
+              ? "No snapshots yet"
+              : `No snapshots match "${query}"`}
           </div>
-          {sessions.length === 0 && (
+          {sessions.length === 0 && backups.length === 0 && (
             <div class="text-[12px] text-fg-subtle mt-1">
               Save the current state to restore it later.
             </div>
@@ -150,17 +200,17 @@ export function SessionsView({ query, sortBy, columns }: Props) {
         </div>
       ) : (
         <div class={`grid ${COLUMN_GRID[columns]} gap-2`}>
-          {filtered.map((s) => (
-            <SessionCard
-              key={s.id}
-              session={s}
-              busy={busyId === s.id}
-              expanded={expandedId === s.id}
+          {filtered.map((item) => (
+            <UnifiedCard
+              key={itemId(item)}
+              item={item}
+              busy={busyId === itemId(item)}
+              expanded={expandedId === itemId(item)}
               onToggle={() =>
-                setExpandedId(expandedId === s.id ? null : s.id)
+                setExpandedId(expandedId === itemId(item) ? null : itemId(item))
               }
-              onRestore={() => handleRestore(s)}
-              onDelete={() => handleDelete(s)}
+              onRestore={() => handleRestore(item)}
+              onDelete={() => handleDelete(item)}
             />
           ))}
         </div>
@@ -169,102 +219,159 @@ export function SessionsView({ query, sortBy, columns }: Props) {
   );
 }
 
-function SessionCard(props: {
-  session: SavedSession;
+function itemId(item: UnifiedItem): string {
+  return `${item.kind}:${item.kind === "session" ? item.data.id : item.data.id}`;
+}
+
+function UnifiedCard(props: {
+  item: UnifiedItem;
   busy: boolean;
   expanded: boolean;
   onToggle: () => void;
   onRestore: () => void;
   onDelete: () => void;
 }) {
-  const windowCount = new Set(props.session.tabs.map((t) => t.windowId)).size;
+  if (props.item.kind === "session") {
+    const s = props.item.data;
+    const windowCount = new Set(s.tabs.map((t) => t.windowId)).size;
+    const isAuto = s.auto;
+    return (
+      <div class="border border-border rounded-md overflow-hidden hover:border-border-strong transition-colors">
+        <div
+          onClick={props.onToggle}
+          class="flex items-center gap-3 px-3 py-2.5 cursor-pointer hover:bg-surface transition-colors"
+        >
+          {isAuto ? (
+            <span
+              data-tooltip="Auto snapshot created before a Wizard cleanup"
+              data-tooltip-pos="right"
+              class="inline-flex size-7 items-center justify-center rounded bg-accent-subtle text-accent shrink-0"
+            >
+              <Broom size={14} weight="fill" />
+            </span>
+          ) : (
+            <span
+              data-tooltip="Manually saved snapshot"
+              data-tooltip-pos="right"
+              class="inline-flex size-7 items-center justify-center rounded bg-surface text-fg-muted shrink-0"
+            >
+              <BookmarkSimple size={14} weight="fill" />
+            </span>
+          )}
+          <div class="flex-1 min-w-0">
+            <div class="text-[13px] font-medium truncate flex items-center gap-1.5">
+              {s.sessionName}
+              {isAuto && (
+                <span class="text-[10px] font-normal px-1.5 h-4 inline-flex items-center bg-accent-subtle text-accent rounded uppercase tracking-wide">
+                  Auto
+                </span>
+              )}
+            </div>
+            <div class="text-[11px] text-fg-subtle truncate mt-0.5 flex items-center gap-1.5">
+              <Browsers size={10} />
+              {s.tabs.length} tabs · {windowCount} window
+              {windowCount === 1 ? "" : "s"} ·{" "}
+              {formatRelativeTime(s.dateTime)}
+            </div>
+          </div>
+          <Actions
+            busy={props.busy}
+            restoreLabel="Restore tabs in new windows"
+            onRestore={props.onRestore}
+            onDelete={props.onDelete}
+          />
+        </div>
 
+        {props.expanded && (
+          <div class="border-t border-border bg-surface/30 px-3 py-2 space-y-1 max-h-72 overflow-y-auto">
+            {s.tabs.map((t, i) => (
+              <div
+                key={`${t.id}-${i}`}
+                class="flex items-center gap-2 px-2 py-1 text-[12px]"
+              >
+                <span class="text-fg-subtle font-mono text-[10px] w-8 shrink-0">
+                  {getRootDomain(t.url).slice(0, 8) || "—"}
+                </span>
+                <span class="truncate flex-1 text-fg-muted">
+                  {t.title || t.url}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  const b = props.item.data;
   return (
     <div class="border border-border rounded-md overflow-hidden hover:border-border-strong transition-colors">
-      <div
-        onClick={props.onToggle}
-        class="flex items-center gap-3 px-3 py-2.5 cursor-pointer hover:bg-surface transition-colors"
-      >
-        {props.session.auto ? (
-          <span
-            data-tooltip="Created automatically before a Wizard cleanup"
-            data-tooltip-pos="right"
-            class="inline-flex size-6 items-center justify-center rounded bg-accent-subtle text-accent shrink-0"
-          >
-            <Broom size={13} weight="fill" />
-          </span>
-        ) : (
-          <span
-            data-tooltip="Manually saved snapshot"
-            data-tooltip-pos="right"
-            class="inline-flex size-6 items-center justify-center rounded bg-surface text-fg-muted shrink-0"
-          >
-            <BookmarkSimple size={13} weight="fill" />
-          </span>
-        )}
+      <div class="flex items-center gap-3 px-3 py-2.5">
+        <span
+          data-tooltip="Wizard metadata backup — restoring replaces stored snapshots, groups, tags, notes"
+          data-tooltip-pos="right"
+          class="inline-flex size-7 items-center justify-center rounded bg-warning-subtle text-warning shrink-0"
+        >
+          <ClockCounterClockwise size={14} weight="fill" />
+        </span>
         <div class="flex-1 min-w-0">
           <div class="text-[13px] font-medium truncate flex items-center gap-1.5">
-            {props.session.sessionName}
-            {props.session.auto && (
-              <span class="text-[10px] font-normal px-1.5 h-4 inline-flex items-center bg-accent-subtle text-accent rounded uppercase tracking-wide">
-                Auto
-              </span>
-            )}
+            {b.name}
+            <span class="text-[10px] font-normal px-1.5 h-4 inline-flex items-center bg-warning-subtle text-warning rounded uppercase tracking-wide">
+              Metadata
+            </span>
           </div>
-          <div class="text-[11px] text-fg-subtle truncate mt-0.5 flex items-center gap-1.5">
-            <Browsers size={10} />
-            {props.session.tabs.length} tabs · {windowCount} window
-            {windowCount === 1 ? "" : "s"} ·{" "}
-            {formatRelativeTime(props.session.dateTime)}
+          <div class="text-[11px] text-fg-subtle truncate mt-0.5">
+            Saved data only · {formatRelativeTime(b.createdAt)}
           </div>
         </div>
-        <div class="flex items-center gap-0.5 shrink-0">
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              props.onRestore();
-            }}
-            disabled={props.busy}
-            aria-label="Restore"
-            title="Restore"
-            class="size-8 inline-flex items-center justify-center rounded text-fg-muted hover:bg-accent-subtle hover:text-accent disabled:opacity-40 transition-colors"
-          >
-            <ArrowCounterClockwise size={14} />
-          </button>
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              props.onDelete();
-            }}
-            disabled={props.busy}
-            aria-label="Delete"
-            title="Delete"
-            class="size-8 inline-flex items-center justify-center rounded text-fg-muted hover:bg-danger-subtle hover:text-danger disabled:opacity-40 transition-colors"
-          >
-            <Trash size={14} />
-          </button>
-        </div>
+        <Actions
+          busy={props.busy}
+          restoreLabel="Restore saved data (overwrites current)"
+          onRestore={props.onRestore}
+          onDelete={props.onDelete}
+        />
       </div>
+    </div>
+  );
+}
 
-      {props.expanded && (
-        <div class="border-t border-border bg-surface/30 px-3 py-2 space-y-1 max-h-72 overflow-y-auto">
-          {props.session.tabs.map((t, i) => (
-            <div
-              key={`${t.id}-${i}`}
-              class="flex items-center gap-2 px-2 py-1 text-[12px]"
-            >
-              <span class="text-fg-subtle font-mono text-[10px] w-8 shrink-0">
-                {getRootDomain(t.url).slice(0, 8) || "—"}
-              </span>
-              <span class="truncate flex-1 text-fg-muted">
-                {t.title || t.url}
-              </span>
-            </div>
-          ))}
-        </div>
-      )}
+function Actions(props: {
+  busy: boolean;
+  restoreLabel: string;
+  onRestore: () => void;
+  onDelete: () => void;
+}) {
+  return (
+    <div class="flex items-center gap-0.5 shrink-0">
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          props.onRestore();
+        }}
+        disabled={props.busy}
+        aria-label="Restore"
+        data-tooltip={props.restoreLabel}
+        data-tooltip-pos="above"
+        class="size-8 inline-flex items-center justify-center rounded text-fg-muted hover:bg-accent-subtle hover:text-accent disabled:opacity-40 transition-colors"
+      >
+        <ArrowCounterClockwise size={14} />
+      </button>
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          props.onDelete();
+        }}
+        disabled={props.busy}
+        aria-label="Delete"
+        data-tooltip="Delete"
+        data-tooltip-pos="above"
+        class="size-8 inline-flex items-center justify-center rounded text-fg-muted hover:bg-danger-subtle hover:text-danger disabled:opacity-40 transition-colors"
+      >
+        <Trash size={14} />
+      </button>
     </div>
   );
 }
