@@ -8,6 +8,10 @@ import { TabsListView } from "./components/views/TabsListView";
 import { ColumnsPicker } from "./components/ColumnsPicker";
 import { GroupByDropdown } from "./components/GroupByDropdown";
 import { OrderByDropdown } from "./components/OrderByDropdown";
+import {
+  WindowsSortDropdown,
+  type WindowsSortKey,
+} from "./components/WindowsSortDropdown";
 import { TagsView } from "./components/views/TagsView";
 import { SessionsView } from "./components/views/SessionsView";
 import { BackupsView } from "./components/views/BackupsView";
@@ -91,6 +95,9 @@ export function MissionControl() {
   const setCurrentOrdering = (o: OrderBy) => {
     setOrderingByView((prev) => ({ ...prev, [view]: o }));
   };
+
+  const [windowsSort, setWindowsSort] = useState<WindowsSortKey>("default");
+  const [windowsColumns, setWindowsColumns] = useState<1 | 2 | 3 | 4>(3);
 
   const refreshWindowTitles = async () => {
     setWindowTitles(await getAllWindowTitles());
@@ -193,6 +200,17 @@ export function MissionControl() {
                     onChange={setCurrentColumns}
                   />
                 </>
+              ) : view === "windows" ? (
+                <>
+                  <WindowsSortDropdown
+                    value={windowsSort}
+                    onChange={setWindowsSort}
+                  />
+                  <ColumnsPicker
+                    value={windowsColumns}
+                    onChange={setWindowsColumns}
+                  />
+                </>
               ) : undefined
             }
           />
@@ -239,6 +257,8 @@ export function MissionControl() {
         {view === "windows" && (
           <WindowsView
             query={query}
+            sortBy={windowsSort}
+            columns={windowsColumns}
             onAction={() => {
               reload();
               refreshWindowTitles();
