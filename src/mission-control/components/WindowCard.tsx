@@ -186,32 +186,37 @@ export function WindowCard({
   const colorStyle = window.color ? WINDOW_COLOR_STYLES[window.color] : null;
   const hasIdentity = !!window.customTitle || !!window.color;
 
-  let borderClass: string;
+  let cardClass: string;
   if (isMoveTarget) {
-    borderClass =
+    cardClass =
       selectionCount > 0
         ? "border-2 border-accent bg-accent-subtle/30 ring-4 ring-accent/15 cursor-pointer hover:bg-accent-subtle/60 hover:ring-accent/30 hover:scale-[1.01]"
         : "border-2 border-dashed border-border opacity-60";
   } else if (isSelectionSource) {
-    borderClass = "border-2 border-border-strong shadow-md bg-surface/40";
-  } else if (window.focused) {
-    borderClass = "border-2 border-accent/40 bg-accent-subtle/10 shadow-sm";
+    cardClass = "border-2 border-border-strong shadow-md bg-surface/40";
   } else if (colorStyle) {
-    borderClass = `border border-border ${colorStyle.border} border-l-[4px] hover:border-border-strong shadow-sm`;
+    cardClass = `border-2 ${colorStyle.cardBorder} ${colorStyle.cardBg} shadow-sm`;
+  } else if (window.focused) {
+    cardClass = "border-2 border-accent/40 bg-accent-subtle/10 shadow-sm";
   } else if (hasIdentity) {
-    borderClass = "border border-border-strong shadow-sm";
+    cardClass = "border border-border-strong shadow-sm";
   } else {
-    borderClass = "border border-border hover:border-border-strong";
+    cardClass = "border border-border hover:border-border-strong";
   }
 
   const headerBgClass = !isMoveTarget && !isSelectionSource && colorStyle
     ? colorStyle.headerBg
     : "bg-surface/40";
 
+  const titleTextClass =
+    !isMoveTarget && !isSelectionSource && colorStyle
+      ? `font-semibold ${colorStyle.titleText}`
+      : "font-medium text-fg";
+
   return (
     <div
       onClick={handleCardClick}
-      class={`relative flex flex-col bg-bg rounded-lg overflow-visible transition-all ${borderClass}`}
+      class={`relative flex flex-col bg-bg rounded-lg overflow-visible transition-all ${cardClass}`}
     >
       {isMoveTarget && selectionCount > 0 && (
         <div class="absolute -top-2.5 left-3 z-10 inline-flex items-center gap-1 px-2 py-0.5 bg-accent text-white text-[10px] font-semibold rounded-full uppercase tracking-wider shadow-sm animate-pulse-soft">
@@ -293,7 +298,7 @@ export function WindowCard({
         ) : (
           <>
             <div class="flex-1 min-w-0">
-              <div class="text-[13px] font-medium text-fg truncate">
+              <div class={`text-[13px] truncate ${titleTextClass}`}>
                 {displayTitle}
               </div>
               <div class="text-[10px] text-fg-subtle">

@@ -1,6 +1,11 @@
 @import "@fontsource-variable/inter/wght.css";
 @import "./tokens.css";
 
+/* Window color palette — safelist for dynamic Tailwind classes */
+@source inline("{bg,border,text,dark:text}-{gray,blue,emerald,amber,red,purple,pink,cyan}-{300,400,500,600,700}");
+@source inline("{bg,border}-{gray,blue,emerald,amber,red,purple,pink,cyan}-500/{15,30,40}");
+@source inline("bg-{gray,blue,emerald,amber,red,purple,pink,cyan}-500/[0.04]");
+
 @layer components {
   [data-tooltip] {
     position: relative;
