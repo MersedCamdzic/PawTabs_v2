@@ -141,7 +141,8 @@ export function CommandPalette({
         i.kind === "tab" &&
         (i.tab.title.toLowerCase().includes(q) ||
           i.tab.url.toLowerCase().includes(q) ||
-          i.tab.tags.some((tag) => tag.toLowerCase().includes(q))),
+          i.tab.tags.some((tag) => tag.toLowerCase().includes(q)) ||
+          i.tab.notes.some((n) => n.text.toLowerCase().includes(q))),
     );
     return [...matchedActions, ...matchedTabs];
   }, [query, snapshot, actions]);

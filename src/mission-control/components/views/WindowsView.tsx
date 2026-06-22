@@ -100,18 +100,23 @@ export function WindowsView({ query, onAction }: Props) {
     const q = query.trim().toLowerCase();
     if (!q) return windows;
     return windows
-      .map((w) => ({
-        ...w,
-        tabs: w.tabs.filter(
-          (t) =>
-            t.title.toLowerCase().includes(q) ||
-            t.url.toLowerCase().includes(q),
-        ),
-      }))
-      .filter(
-        (w) =>
-          (w.customTitle ?? "").toLowerCase().includes(q) || w.tabs.length > 0,
-      );
+      .map((w) => {
+        const customTitleMatch = (w.customTitle ?? "")
+          .toLowerCase()
+          .includes(q);
+        return {
+          ...w,
+          tabs: w.tabs.filter(
+            (t) =>
+              customTitleMatch ||
+              t.title.toLowerCase().includes(q) ||
+              t.url.toLowerCase().includes(q) ||
+              t.tags.some((tag) => tag.toLowerCase().includes(q)) ||
+              t.notes.some((n) => n.text.toLowerCase().includes(q)),
+          ),
+        };
+      })
+      .filter((w) => w.tabs.length > 0);
   }, [windows, query]);
 
   const matchingTabIds = useMemo(() => {
