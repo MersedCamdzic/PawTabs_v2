@@ -11,6 +11,9 @@ import {
 import { useTabSnapshot } from "./hooks";
 import { TabGroupSection } from "./components/TabGroupSection";
 import { GroupBy } from "./components/GroupBy";
+import { OrderBy } from "./components/OrderBy";
+import { getAllWindowTitles } from "@/lib/windows";
+import { orderTabsInGroups } from "@/lib/grouping";
 
 const WizardModal = lazy(() =>
   import("./components/WizardModal").then((m) => ({ default: m.WizardModal })),
@@ -32,17 +35,27 @@ const TabDetailsModal = lazy(() =>
 );
 import { groupTabs } from "@/lib/grouping";
 import { getPreferences, setPreference } from "@/lib/preferences";
-import type { GroupBy as GroupByType, PawTab } from "@/types";
+import type {
+  GroupBy as GroupByType,
+  OrderBy as OrderByType,
+  PawTab,
+} from "@/types";
 
 export function Popup() {
   const { snapshot, error, reload } = useTabSnapshot();
   const [query, setQuery] = useState("");
   const [grouping, setGrouping] = useState<GroupByType>("window");
+  const [ordering, setOrdering] = useState<OrderByType>("none");
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
+  const [windowTitles, setWindowTitles] = useState<Record<number, string>>({});
   const [wizardOpen, setWizardOpen] = useState(false);
   const [sessionsOpen, setSessionsOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [detailsTab, setDetailsTab] = useState<PawTab | null>(null);
+
+  const refreshWindowTitles = async () => {
+    setWindowTitles(await getAllWindowTitles());
+  };
 
   const liveDetailsTab = useMemo<PawTab | null>(() => {
     if (!detailsTab || !snapshot) return detailsTab;
@@ -52,13 +65,20 @@ export function Popup() {
   useEffect(() => {
     getPreferences().then((prefs) => {
       setGrouping(prefs.grouping);
+      setOrdering(prefs.ordering);
       setCollapsed(new Set(prefs.collapsedGroups));
     });
+    refreshWindowTitles();
   }, []);
 
   const updateGrouping = (next: GroupByType) => {
     setGrouping(next);
     setPreference("grouping", next);
+  };
+
+  const updateOrdering = (next: OrderByType) => {
+    setOrdering(next);
+    setPreference("ordering", next);
   };
 
   const toggleCollapsed = (key: string) => {
@@ -67,6 +87,11 @@ export function Popup() {
     else next.add(key);
     setCollapsed(next);
     setPreference("collapsedGroups", Array.from(next));
+  };
+
+  const handleAction = () => {
+    reload();
+    refreshWindowTitles();
   };
 
   const filtered = useMemo<PawTab[]>(() => {
@@ -83,8 +108,8 @@ export function Popup() {
   }, [snapshot, query]);
 
   const groups = useMemo(
-    () => groupTabs(filtered, grouping),
-    [filtered, grouping],
+    () => orderTabsInGroups(groupTabs(filtered, grouping, windowTitles), ordering),
+    [filtered, grouping, ordering, windowTitles],
   );
 
   const openMissionControl = async () => {
@@ -148,11 +173,14 @@ export function Popup() {
         </div>
       </section>
 
-      <section class="px-4 pb-2 flex items-center justify-between">
+      <section class="px-4 pb-2 flex items-center justify-between gap-2">
         <span class="text-[11px] text-fg-subtle">
           {snapshot ? `${filtered.length} of ${snapshot.tabCount}` : ""}
         </span>
-        <GroupBy value={grouping} onChange={updateGrouping} />
+        <div class="flex items-center gap-1.5">
+          <OrderBy value={ordering} onChange={updateOrdering} />
+          <GroupBy value={grouping} onChange={updateGrouping} />
+        </div>
       </section>
 
       <div class="border-t border-border" />
@@ -181,10 +209,11 @@ export function Popup() {
             <TabGroupSection
               key={group.key}
               group={group}
+              grouping={grouping}
               showHeader={grouping !== "none"}
               collapsed={collapsed.has(group.key)}
               onToggle={() => toggleCollapsed(group.key)}
-              onAction={reload}
+              onAction={handleAction}
               onOpenDetails={setDetailsTab}
             />
           ))}

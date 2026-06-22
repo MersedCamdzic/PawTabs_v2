@@ -1,4 +1,4 @@
-import type { GroupBy, PawTab } from "@/types";
+import type { GroupBy, OrderBy, PawTab } from "@/types";
 import { getRootDomain } from "./utils";
 
 export interface TabGroup {
@@ -17,7 +17,17 @@ export const GROUP_BY_OPTIONS: { value: GroupBy; label: string }[] = [
   { value: "audible", label: "Audible" },
 ];
 
-export function groupTabs(tabs: PawTab[], by: GroupBy): TabGroup[] {
+export const ORDER_BY_OPTIONS: { value: OrderBy; label: string }[] = [
+  { value: "none", label: "Default" },
+  { value: "recency", label: "Recently used" },
+  { value: "title", label: "Title A→Z" },
+];
+
+export function groupTabs(
+  tabs: PawTab[],
+  by: GroupBy,
+  windowTitles: Record<number, string> = {},
+): TabGroup[] {
   if (by === "none") {
     return [{ key: "all", title: "All tabs", count: tabs.length, tabs }];
   }
@@ -32,12 +42,30 @@ export function groupTabs(tabs: PawTab[], by: GroupBy): TabGroup[] {
 
   const groups: TabGroup[] = Array.from(map.entries()).map(([key, items]) => ({
     key,
-    title: getGroupTitle(key, by, items),
+    title: getGroupTitle(key, by, items, windowTitles),
     count: items.length,
     tabs: items,
   }));
 
   return sortGroups(groups, by);
+}
+
+export function orderTabsInGroups(
+  groups: TabGroup[],
+  by: OrderBy,
+): TabGroup[] {
+  if (by === "none") return groups;
+  return groups.map((g) => ({ ...g, tabs: orderTabs(g.tabs, by) }));
+}
+
+function orderTabs(tabs: PawTab[], by: OrderBy): PawTab[] {
+  const sorted = [...tabs];
+  if (by === "recency") {
+    sorted.sort((a, b) => (b.lastAccessed ?? 0) - (a.lastAccessed ?? 0));
+  } else if (by === "title") {
+    sorted.sort((a, b) => a.title.localeCompare(b.title));
+  }
+  return sorted;
 }
 
 function getGroupKey(tab: PawTab, by: GroupBy): string {
@@ -59,10 +87,16 @@ function getGroupKey(tab: PawTab, by: GroupBy): string {
   }
 }
 
-function getGroupTitle(key: string, by: GroupBy, tabs: PawTab[]): string {
+function getGroupTitle(
+  key: string,
+  by: GroupBy,
+  tabs: PawTab[],
+  windowTitles: Record<number, string>,
+): string {
   switch (by) {
     case "window": {
       const wid = tabs[0]?.windowId;
+      if (wid && windowTitles[wid]) return windowTitles[wid]!;
       return wid ? `Window ${wid}` : "Window";
     }
     case "domain":
@@ -98,7 +132,9 @@ function sortGroups(groups: TabGroup[], by: GroupBy): TabGroup[] {
       sorted.sort((a, b) => audibleOrder(a.key) - audibleOrder(b.key));
       break;
     case "domain":
-      sorted.sort((a, b) => b.count - a.count || a.title.localeCompare(b.title));
+      sorted.sort(
+        (a, b) => b.count - a.count || a.title.localeCompare(b.title),
+      );
       break;
   }
   return sorted;

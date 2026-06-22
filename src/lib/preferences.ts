@@ -1,8 +1,15 @@
 import { storage } from "./storage";
-import type { Preferences, GroupBy, Theme, WizardThresholds } from "@/types";
+import type {
+  Preferences,
+  GroupBy,
+  OrderBy,
+  Theme,
+  WizardThresholds,
+} from "@/types";
 
 export const DEFAULT_PREFERENCES: Preferences = {
   grouping: "window",
+  ordering: "none",
   collapsedGroups: [],
   theme: "system",
   wizardThresholds: {
@@ -38,4 +45,4 @@ function mergePreferences(stored: Partial<Preferences> | undefined): Preferences
   };
 }
 
-export type { Preferences, GroupBy, Theme, WizardThresholds };
+export type { Preferences, GroupBy, OrderBy, Theme, WizardThresholds };

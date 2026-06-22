@@ -62,6 +62,8 @@ export type GroupBy =
   | "pawed"
   | "audible";
 
+export type OrderBy = "none" | "recency" | "title";
+
 export type Theme = "light" | "dark" | "system";
 
 export interface WizardThresholds {
@@ -72,6 +74,7 @@ export interface WizardThresholds {
 
 export interface Preferences {
   grouping: GroupBy;
+  ordering: OrderBy;
   collapsedGroups: string[];
   theme: Theme;
   wizardThresholds: WizardThresholds;

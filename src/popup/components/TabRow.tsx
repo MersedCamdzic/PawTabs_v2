@@ -158,6 +158,11 @@ export function TabRow({ tab, onAction, onOpenDetails }: Props) {
           <DotsThree size={15} weight="bold" />
         </button>
 
+        <span
+          class="w-px h-4 mx-1.5 bg-border opacity-0 group-hover:opacity-100 transition-opacity"
+          aria-hidden="true"
+        />
+
         <button
           type="button"
           onClick={handleClose}

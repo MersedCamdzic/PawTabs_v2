@@ -1,10 +1,13 @@
-import { CaretRight } from "@phosphor-icons/react";
+import { useState } from "preact/hooks";
+import { CaretRight, PencilSimple, Check, X } from "@phosphor-icons/react";
 import type { TabGroup } from "@/lib/grouping";
-import type { PawTab } from "@/types";
+import type { PawTab, GroupBy } from "@/types";
+import { setWindowTitle } from "@/lib/windows";
 import { TabRow } from "./TabRow";
 
 interface Props {
   group: TabGroup;
+  grouping: GroupBy;
   showHeader: boolean;
   collapsed: boolean;
   onToggle: () => void;
@@ -14,6 +17,7 @@ interface Props {
 
 export function TabGroupSection({
   group,
+  grouping,
   showHeader,
   collapsed,
   onToggle,
@@ -37,23 +41,13 @@ export function TabGroupSection({
 
   return (
     <div class="mb-1">
-      <button
-        type="button"
-        onClick={onToggle}
-        class="w-full flex items-center gap-1.5 px-2 py-1.5 rounded-md hover:bg-surface transition-colors group"
-      >
-        <CaretRight
-          size={11}
-          weight="bold"
-          class={`text-fg-subtle transition-transform ${collapsed ? "" : "rotate-90"}`}
-        />
-        <span class="text-[12px] font-medium text-fg-muted group-hover:text-fg uppercase tracking-wide truncate flex-1 text-left">
-          {group.title}
-        </span>
-        <span class="text-[11px] text-fg-subtle bg-surface px-1.5 py-0.5 rounded">
-          {group.count}
-        </span>
-      </button>
+      <GroupHeader
+        group={group}
+        grouping={grouping}
+        collapsed={collapsed}
+        onToggle={onToggle}
+        onAction={onAction}
+      />
 
       {!collapsed && (
         <div class="space-y-0.5 mt-0.5">
@@ -67,6 +61,128 @@ export function TabGroupSection({
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+function GroupHeader({
+  group,
+  grouping,
+  collapsed,
+  onToggle,
+  onAction,
+}: {
+  group: TabGroup;
+  grouping: GroupBy;
+  collapsed: boolean;
+  onToggle: () => void;
+  onAction: () => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState("");
+
+  const isWindow = grouping === "window";
+  const windowId = isWindow ? group.tabs[0]?.windowId : undefined;
+
+  const startEdit = (e: MouseEvent) => {
+    e.stopPropagation();
+    setDraft(group.title);
+    setEditing(true);
+  };
+
+  const cancelEdit = (e?: Event) => {
+    e?.stopPropagation();
+    setEditing(false);
+    setDraft("");
+  };
+
+  const commitEdit = async (e?: Event) => {
+    e?.stopPropagation();
+    if (windowId === undefined) {
+      setEditing(false);
+      return;
+    }
+    await setWindowTitle(windowId, draft);
+    setEditing(false);
+    setDraft("");
+    onAction();
+  };
+
+  if (editing && isWindow) {
+    return (
+      <div class="flex items-center gap-1.5 px-2 py-1.5">
+        <CaretRight
+          size={11}
+          weight="bold"
+          class="text-fg-subtle opacity-40"
+        />
+        <input
+          type="text"
+          autoFocus
+          value={draft}
+          onClick={(e) => e.stopPropagation()}
+          onInput={(e) =>
+            setDraft((e.currentTarget as HTMLInputElement).value)
+          }
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              commitEdit();
+            } else if (e.key === "Escape") {
+              e.preventDefault();
+              cancelEdit();
+            }
+          }}
+          placeholder={`Window ${windowId}`}
+          class="flex-1 h-6 px-2 bg-bg-elevated border border-accent rounded text-[12px] focus:outline-none focus:ring-4 focus:ring-accent/10"
+        />
+        <button
+          type="button"
+          onClick={commitEdit}
+          aria-label="Save"
+          class="size-6 inline-flex items-center justify-center rounded text-fg-muted hover:bg-success-subtle hover:text-success transition-colors"
+        >
+          <Check size={11} weight="bold" />
+        </button>
+        <button
+          type="button"
+          onClick={cancelEdit}
+          aria-label="Cancel"
+          class="size-6 inline-flex items-center justify-center rounded text-fg-muted hover:bg-surface hover:text-fg transition-colors"
+        >
+          <X size={11} weight="bold" />
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      onClick={onToggle}
+      class="group w-full flex items-center gap-1.5 px-2 py-1.5 rounded-md hover:bg-surface transition-colors cursor-pointer"
+    >
+      <CaretRight
+        size={11}
+        weight="bold"
+        class={`text-fg-subtle transition-transform ${collapsed ? "" : "rotate-90"}`}
+      />
+      <span class="text-[12px] font-medium text-fg-muted group-hover:text-fg uppercase tracking-wide truncate flex-1 text-left">
+        {group.title}
+      </span>
+      {isWindow && (
+        <button
+          type="button"
+          onClick={startEdit}
+          aria-label="Rename window"
+          title="Rename window"
+          class="size-5 inline-flex items-center justify-center rounded text-fg-subtle opacity-0 group-hover:opacity-100 hover:text-accent transition-all"
+        >
+          <PencilSimple size={10} />
+        </button>
+      )}
+      <span class="text-[11px] text-fg-subtle bg-surface px-1.5 py-0.5 rounded">
+        {group.count}
+      </span>
     </div>
   );
 }
