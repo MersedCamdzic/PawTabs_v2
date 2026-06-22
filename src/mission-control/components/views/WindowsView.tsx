@@ -1,10 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from "preact/hooks";
-import {
-  Plus,
-  Trash,
-  ArrowsLeftRight,
-  MagnifyingGlass,
-} from "@phosphor-icons/react";
+import { Plus } from "@phosphor-icons/react";
 import {
   getWindowsWithPawTabs,
   getWindowTitle,
@@ -169,32 +164,6 @@ export function WindowsView({
       .filter((w) => w.tabs.length > 0);
   }, [sorted, query]);
 
-  const matchingTabIds = useMemo(() => {
-    if (!query.trim()) return [];
-    return filtered.flatMap((w) => w.tabs.map((t) => t.id));
-  }, [filtered, query]);
-
-  const handleCloseAllMatching = async () => {
-    if (matchingTabIds.length === 0) return;
-    if (
-      !confirm(
-        `Close ${matchingTabIds.length} tab${matchingTabIds.length === 1 ? "" : "s"} matching "${query}"?`,
-      )
-    )
-      return;
-    await chrome.tabs.remove(matchingTabIds);
-    onAction();
-    await refresh();
-  };
-
-  const handleStartMoveAllMatching = () => {
-    if (matchingTabIds.length === 0) return;
-    setSelection({
-      sourceWindowId: -1,
-      selectedIds: new Set(matchingTabIds),
-    });
-  };
-
   const sourceWindow = useMemo(() => {
     if (!selection) return null;
     return windows.find((w) => w.id === selection.sourceWindowId) ?? null;
@@ -325,44 +294,6 @@ export function WindowsView({
 
   return (
     <div class="px-6 py-4">
-      {query.trim() && matchingTabIds.length > 0 && selection === null && (
-        <div class="mb-3 flex items-center justify-between gap-3 px-3 py-2 bg-surface border border-border rounded-md">
-          <div class="flex items-center gap-2 text-[12px] text-fg-muted">
-            <MagnifyingGlass size={12} class="text-accent" />
-            <span>
-              <span class="text-fg font-semibold">
-                {matchingTabIds.length} tab
-                {matchingTabIds.length === 1 ? "" : "s"}
-              </span>{" "}
-              match{" "}
-              <span class="font-mono text-fg">"{query}"</span>
-            </span>
-          </div>
-          <div class="flex items-center gap-1.5">
-            <button
-              type="button"
-              onClick={handleStartMoveAllMatching}
-              data-tooltip="Pick a window to move all matching tabs into"
-              data-tooltip-pos="below"
-              class="h-7 px-2.5 inline-flex items-center gap-1.5 text-[11px] font-medium rounded bg-bg border border-border text-fg-muted hover:border-accent hover:text-accent hover:bg-accent-subtle transition-colors"
-            >
-              <ArrowsLeftRight size={11} weight="bold" />
-              Move all to…
-            </button>
-            <button
-              type="button"
-              onClick={handleCloseAllMatching}
-              data-tooltip="Close every matching tab"
-              data-tooltip-pos="below"
-              class="h-7 px-2.5 inline-flex items-center gap-1.5 text-[11px] font-medium rounded bg-bg border border-border text-fg-muted hover:border-danger hover:text-danger hover:bg-danger-subtle transition-colors"
-            >
-              <Trash size={11} />
-              Close all
-            </button>
-          </div>
-        </div>
-      )}
-
       {selection !== null && (
         <div class="mb-3 flex items-center justify-between gap-3 text-[11px] text-accent bg-accent-subtle border border-accent/30 rounded-md px-3 py-2">
           <span>

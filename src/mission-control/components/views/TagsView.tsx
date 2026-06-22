@@ -23,6 +23,12 @@ interface Props {
   columns: 1 | 2 | 3 | 4;
   openTabs: PawTab[];
   onAction: () => void;
+  onSelectionChange?: (
+    info: {
+      activeTag: string | null;
+      items: { url: string; title: string; favIconUrl: string }[];
+    },
+  ) => void;
 }
 
 const COLUMN_LAYOUT: Record<1 | 2 | 3 | 4, string> = {
@@ -38,6 +44,7 @@ export function TagsView({
   columns,
   openTabs,
   onAction,
+  onSelectionChange,
 }: Props) {
   const [tagList, setTagList] = useState<TagAggregate[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
@@ -73,6 +80,18 @@ export function TagsView({
     });
     return list;
   }, [selected, tagList, sortBy]);
+
+  useEffect(() => {
+    if (!onSelectionChange) return;
+    onSelectionChange({
+      activeTag: selected,
+      items: selectedEntries.map((e) => ({
+        url: e.url,
+        title: e.title,
+        favIconUrl: e.favIconUrl,
+      })),
+    });
+  }, [selected, selectedEntries, onSelectionChange]);
 
   const openByUrl = useMemo(() => {
     const map = new Map<string, PawTab>();

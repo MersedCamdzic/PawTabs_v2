@@ -18,6 +18,11 @@ import {
   type SnapshotSortKey,
 } from "./components/SnapshotSortDropdown";
 import { SnapshotPromptModal } from "./components/SnapshotPromptModal";
+import { BulkActionsMenu } from "./components/BulkActionsMenu";
+import {
+  BulkUrlActionsMenu,
+  type BulkUrlItem,
+} from "./components/BulkUrlActionsMenu";
 import { FloppyDisk } from "@phosphor-icons/react";
 import { TagsView } from "./components/views/TagsView";
 import { SessionsView } from "./components/views/SessionsView";
@@ -85,6 +90,11 @@ export function MissionControl() {
   const [backupCount, setBackupCount] = useState(0);
   const [windowTitles, setWindowTitles] = useState<Record<number, string>>({});
   const [detailsTab, setDetailsTab] = useState<PawTab | null>(null);
+  const [pawedBulkItems, setPawedBulkItems] = useState<BulkUrlItem[]>([]);
+  const [tagsBulkState, setTagsBulkState] = useState<{
+    activeTag: string | null;
+    items: BulkUrlItem[];
+  }>({ activeTag: null, items: [] });
   const [columnsByView, setColumnsByView] = useState<
     Record<string, 1 | 2 | 3 | 4>
   >({});
@@ -213,8 +223,12 @@ export function MissionControl() {
             query={query}
             onQueryChange={setQuery}
             searchActions={
-              ["tabs", "pawed", "pinned"].includes(view) ? (
+              view === "tabs" || view === "pinned" ? (
                 <>
+                  <BulkActionsMenu
+                    tabs={view === "pinned" ? pinnedTabs : filteredTabs}
+                    onAction={reload}
+                  />
                   <GroupByDropdown
                     value={currentGrouping}
                     onChange={setCurrentGrouping}
@@ -228,8 +242,21 @@ export function MissionControl() {
                     onChange={setCurrentColumns}
                   />
                 </>
+              ) : view === "pawed" ? (
+                <>
+                  <BulkUrlActionsMenu
+                    items={pawedBulkItems}
+                    mode="pawed"
+                    onAction={reload}
+                  />
+                  <ColumnsPicker
+                    value={currentColumns}
+                    onChange={setCurrentColumns}
+                  />
+                </>
               ) : view === "windows" ? (
                 <>
+                  <BulkActionsMenu tabs={filteredTabs} onAction={reload} />
                   <WindowsSortDropdown
                     value={windowsSort}
                     onChange={setWindowsSort}
@@ -260,6 +287,17 @@ export function MissionControl() {
                 </>
               ) : view === "tags" ? (
                 <>
+                  <BulkUrlActionsMenu
+                    items={tagsBulkState.items}
+                    mode="tags"
+                    activeTag={tagsBulkState.activeTag}
+                    label={
+                      tagsBulkState.activeTag
+                        ? `Bulk "${tagsBulkState.activeTag}"`
+                        : "Bulk"
+                    }
+                    onAction={reload}
+                  />
                   <SnapshotSortDropdown
                     value={currentSnapshotSort}
                     onChange={setCurrentSnapshotSort}
@@ -352,6 +390,7 @@ export function MissionControl() {
             columns={currentColumns}
             openTabs={snapshot?.tabs ?? []}
             onAction={reload}
+            onFilteredChange={setPawedBulkItems}
           />
         )}
 
@@ -375,6 +414,7 @@ export function MissionControl() {
             columns={currentSnapshotColumns}
             openTabs={snapshot?.tabs ?? []}
             onAction={reload}
+            onSelectionChange={setTagsBulkState}
           />
         )}
 

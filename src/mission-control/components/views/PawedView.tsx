@@ -17,6 +17,9 @@ interface Props {
   columns: 1 | 2 | 3 | 4;
   openTabs: PawTab[];
   onAction: () => void;
+  onFilteredChange?: (
+    items: { url: string; title: string; favIconUrl: string }[],
+  ) => void;
 }
 
 const COLUMN_LAYOUT: Record<1 | 2 | 3 | 4, string> = {
@@ -31,7 +34,13 @@ interface Row {
   openTab: PawTab | null;
 }
 
-export function PawedView({ query, columns, openTabs, onAction }: Props) {
+export function PawedView({
+  query,
+  columns,
+  openTabs,
+  onAction,
+  onFilteredChange,
+}: Props) {
   const [entries, setEntries] = useState<PawedEntry[]>([]);
 
   const refresh = useCallback(async () => {
@@ -55,6 +64,17 @@ export function PawedView({ query, columns, openTabs, onAction }: Props) {
       )
       .map((entry) => ({ entry, openTab: openByUrl.get(entry.url) ?? null }));
   }, [entries, openTabs, query]);
+
+  useEffect(() => {
+    if (!onFilteredChange) return;
+    onFilteredChange(
+      rows.map((r) => ({
+        url: r.entry.url,
+        title: r.entry.title,
+        favIconUrl: r.entry.favIconUrl,
+      })),
+    );
+  }, [rows, onFilteredChange]);
 
   const handleOpen = async (row: Row) => {
     if (row.openTab) {
