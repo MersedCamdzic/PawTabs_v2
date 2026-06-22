@@ -1,0 +1,301 @@
+/* Shared Modal Styles */
+
+/* Compact Modal header with theme-based colors */
+.modal-header.bg-gradient {
+    background: var(--vz-primary);
+    border-bottom: none;
+    position: relative;
+    overflow: hidden;
+    padding: 12px 24px;
+    min-height: auto;
+}
+
+[data-bs-theme="dark"] .modal-header.bg-gradient {
+    background: var(--vz-dark);
+}
+
+.modal-header.bg-gradient > * {
+    /* position: relative; */
+    z-index: 2;
+}
+
+.modal-header .modal-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin: 0;
+    color: white;
+}
+
+/* Custom close button - copied from mission control */
+.btn-close-custom {
+    position: absolute;
+    top: 12px;
+    right: 16px;
+    width: 32px;
+    height: 32px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 3;
+    padding: 0;
+}
+
+.btn-close-custom:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.1);
+    color: white;
+}
+
+.btn-close-custom:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.25);
+}
+
+[data-bs-theme="light"] .btn-close-custom {
+    background: rgba(0, 0, 0, 0.05);
+    /* color: #495057; */
+}
+
+[data-bs-theme="light"] .btn-close-custom:hover {
+    background: rgba(0, 0, 0, 0.1);
+    /* color: #495057; */
+}
+
+/* Settings sections */
+.settings-section {
+    margin-bottom: 1.5rem;
+}
+
+.settings-section-title {
+    color: #495057;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 1rem;
+}
+
+.settings-item {
+    padding: 1rem 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.settings-item:last-child {
+    border-bottom: none;
+}
+
+.settings-item-info {
+    flex: 1;
+}
+
+.settings-label {
+    color: #495057;
+    font-size: 0.95rem;
+    margin-bottom: 0.25rem;
+}
+
+.settings-description {
+    color: #6c757d;
+    font-size: 0.85rem;
+    line-height: 1.4;
+}
+
+/* Compact Counter Controls */
+.counter-control-compact {
+    display: flex;
+    align-items: center;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 0;
+    padding: 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    transition: all 0.2s ease;
+}
+
+.counter-control-compact:hover {
+    border-color: #667eea;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.15);
+}
+
+[data-bs-theme="dark"] .counter-control-compact {
+    background: #2d3748;
+    border-color: #4a5568;
+}
+
+[data-bs-theme="dark"] .counter-control-compact:hover {
+    border-color: #667eea;
+}
+
+.counter-btn-compact {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border: none;
+    background: #f7fafc;
+    color: #4a5568;
+    border-radius: 0;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.counter-btn-compact:hover {
+    background: #667eea;
+    color: white;
+    transform: scale(1.05);
+}
+
+.counter-btn-compact:active {
+    transform: scale(0.95);
+}
+
+[data-bs-theme="dark"] .counter-btn-compact {
+    background: #4a5568;
+    color: #e2e8f0;
+}
+
+[data-bs-theme="dark"] .counter-btn-compact:hover {
+    background: #667eea;
+    color: white;
+}
+
+.counter-display-compact {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 32px;
+    padding: 0 8px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #2d3748;
+    text-align: center;
+}
+
+[data-bs-theme="dark"] .counter-display-compact {
+    color: #e2e8f0;
+}
+
+/* Settings divider */
+.settings-divider {
+    border: none;
+    height: 1px;
+    background: linear-gradient(to right, transparent, #dee2e6, transparent);
+    margin: 1.5rem 0;
+}
+
+/* Enhanced Form Switches - Light design when ON, theme-based when OFF */
+.form-switch-lg .form-check-input {
+    width: 52px;
+    height: 28px;
+    border-radius: 20px;
+    background-color: #e2e8f0;
+    border: 2px solid #cbd5e0;
+    transition: all 0.3s ease;
+    background-image: none !important;
+    position: relative;
+}
+
+.form-switch-lg .form-check-input:checked {
+    background-color: #667eea !important;
+    border-color: #667eea !important;
+    background-image: none !important;
+}
+
+.form-switch-lg .form-check-input:focus {
+    box-shadow: 0 0 0 0.25rem rgba(102, 126, 234, 0.25) !important;
+    border-color: #667eea !important;
+    background-image: none !important;
+}
+
+.form-switch-lg .form-check-input::before {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 20px;
+    height: 20px;
+    background: white;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    z-index: 2;
+}
+
+.form-switch-lg .form-check-input:checked::before {
+    transform: translateX(24px);
+    background: white !important;
+}
+
+/* Dark theme styles for OFF state only */
+[data-bs-theme="dark"] .form-switch-lg .form-check-input:not(:checked) {
+    background-color: #4a5568;
+    border-color: #718096;
+}
+
+[data-bs-theme="dark"] .form-switch-lg .form-check-input:not(:checked)::before {
+    background: #e2e8f0;
+}
+
+/* Keep light design for ON state regardless of theme */
+[data-bs-theme="dark"] .form-switch-lg .form-check-input:checked {
+    background-color: #667eea !important;
+    border-color: #667eea !important;
+    background-image: none !important;
+}
+
+[data-bs-theme="dark"] .form-switch-lg .form-check-input:checked::before {
+    background: white !important;
+}
+
+.form-switch-primary .form-check-input:checked {
+    background-color: #667eea;
+    border-color: #667eea;
+}
+
+/* Modal content styling */
+.modal-content.border-0 {
+    border: none;
+    box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.175);
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+.modal-body {
+    padding: 20px 24px;
+}
+
+.modal-header + .modal-body {
+    padding-top: 20px;
+}
+
+/* Modal footer styling */
+.modal-footer.bg-light {
+    background-color: var(--vz-light) !important;
+    border-top: 1px solid var(--vz-border-color);
+}
+
+[data-bs-theme="dark"] .modal-footer.bg-light {
+    background-color: var(--vz-dark-bg-subtle) !important;
+    border-top: 1px solid var(--vz-border-color-translucent);
+}
+
+/* Alert info styling */
+.alert-info {
+    background-color: rgba(102, 126, 234, 0.1);
+    border-color: rgba(102, 126, 234, 0.2);
+    color: #495057;
+    border-radius: 0.5rem;
+}
+
+.alert-info .bx-info-circle {
+    color: #667eea;
+    font-size: 1.1rem;
+}

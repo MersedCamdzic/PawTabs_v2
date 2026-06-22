@@ -1,0 +1,49 @@
+{
+  "manifest_version": 3,
+  "name": "PawTabs",
+  "version": "1.0",
+  "description": "Manage tabs and windows, group them, leave notes, tags, track memory, and handle groups.",
+  "permissions": [
+    "tabs",
+    "tabGroups",
+    "scripting",
+    "activeTab",
+    "storage",
+    "history",
+    "sessions",
+    "topSites",
+    "windows"
+  ],
+  "commands": {
+    "open_popup": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+Y"
+      },
+      "description": "Open the popup"
+    }
+  },
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "components/mission_control/mission_control.html",
+        "utils/utils.js"
+      ],
+      "matches": ["<all_urls>"]
+    }
+  ],
+  "action": {
+    "default_popup": "components/popup/popup.html"
+  },
+  "background": {
+    "service_worker": "background/background.js",
+    "type": "module"
+  },
+  "icons": {
+    "16": "assets/icons/icon-16.png",
+    "48": "assets/icons/icon-48.png",
+    "128": "assets/icons/icon-128.png"
+  }
+}

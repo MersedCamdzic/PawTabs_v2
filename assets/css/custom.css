@@ -1,0 +1,36 @@
+body{
+    min-width: 710px;
+}
+
+
+.cursor-pointer{
+    cursor: pointer;
+}
+
+#loading-spinner {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1000;
+}
+
+#tabs-container {
+    position: relative; /* Position relative for the spinner */
+    min-width: 650px; /* Set a minimum height for the table */
+}
+.empty-row{
+    min-width: 650px; /* Set a minimum height for the table */
+}
+
+.element-align-right {
+    text-align: right;
+}
+
+.custom-border-gray {
+    border: 2px solid gray;
+}
+
+.text-left {
+    text-align: left;
+}
