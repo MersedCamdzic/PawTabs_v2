@@ -1,0 +1,115 @@
+import { useState, useEffect, useMemo } from "preact/hooks";
+import {
+  ArrowCounterClockwise,
+  Trash,
+  ClockCounterClockwise,
+} from "@phosphor-icons/react";
+import { listBackups, restoreBackup, deleteBackup } from "@/lib/backups";
+import { formatRelativeTime } from "@/lib/sessions";
+import type { Backup } from "@/types";
+
+interface Props {
+  query: string;
+}
+
+export function BackupsView({ query }: Props) {
+  const [backups, setBackups] = useState<Backup[]>([]);
+  const [busyId, setBusyId] = useState<string | null>(null);
+
+  const refresh = async () => setBackups(await listBackups());
+
+  useEffect(() => {
+    refresh();
+  }, []);
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return backups;
+    return backups.filter((b) => b.name.toLowerCase().includes(q));
+  }, [backups, query]);
+
+  const handleRestore = async (b: Backup) => {
+    setBusyId(b.id);
+    try {
+      await restoreBackup(b);
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const handleDelete = async (b: Backup) => {
+    setBusyId(b.id);
+    try {
+      await deleteBackup(b.id);
+      await refresh();
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  return (
+    <div class="px-6 py-4 max-w-4xl">
+      <div class="text-[12px] text-fg-muted bg-surface rounded-md px-3 py-2 border border-border mb-4 max-w-2xl">
+        Backups are created automatically by the Wizard before any destructive
+        cleanup. Restoring overwrites your stored sessions, groups, and page
+        metadata. Open tabs are not touched.
+      </div>
+
+      {filtered.length === 0 ? (
+        <div class="py-16 text-center">
+          <ClockCounterClockwise
+            size={32}
+            weight="thin"
+            class="mx-auto mb-3 text-fg-subtle"
+          />
+          <div class="text-[14px] font-medium">
+            {backups.length === 0
+              ? "No backups yet"
+              : `No backups match "${query}"`}
+          </div>
+        </div>
+      ) : (
+        <div class="space-y-2">
+          {filtered.map((b) => (
+            <div
+              key={b.id}
+              class="border border-border rounded-md px-3 py-2.5 hover:border-border-strong transition-colors flex items-center gap-3"
+            >
+              <ClockCounterClockwise size={14} class="text-fg-muted shrink-0" />
+              <div class="flex-1 min-w-0">
+                <div class="text-[13px] font-medium truncate">{b.name}</div>
+                <div class="text-[11px] text-fg-subtle truncate mt-0.5">
+                  {b.tabCount} tabs · {b.windowCount} window
+                  {b.windowCount === 1 ? "" : "s"} ·{" "}
+                  {formatRelativeTime(b.createdAt)}
+                </div>
+              </div>
+              <div class="flex items-center gap-0.5 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => handleRestore(b)}
+                  disabled={busyId === b.id}
+                  aria-label="Restore"
+                  title="Restore"
+                  class="size-8 inline-flex items-center justify-center rounded text-fg-muted hover:bg-accent-subtle hover:text-accent disabled:opacity-40 transition-colors"
+                >
+                  <ArrowCounterClockwise size={14} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleDelete(b)}
+                  disabled={busyId === b.id}
+                  aria-label="Delete"
+                  title="Delete"
+                  class="size-8 inline-flex items-center justify-center rounded text-fg-muted hover:bg-danger-subtle hover:text-danger disabled:opacity-40 transition-colors"
+                >
+                  <Trash size={14} />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}

@@ -18,6 +18,14 @@ export default defineConfig({
     target: "esnext",
     minify: "esbuild",
     sourcemap: true,
+    rollupOptions: {
+      input: {
+        "mission-control": path.resolve(
+          __dirname,
+          "src/mission-control/index.html",
+        ),
+      },
+    },
   },
   server: {
     port: 5173,

@@ -1,6 +1,19 @@
 import { render } from "preact";
 import "@/styles/globals.css";
 import { MissionControl } from "./MissionControl";
+import { getPreferences } from "@/lib/preferences";
+import { applyTheme, watchSystemTheme } from "@/lib/theme";
 
-const root = document.getElementById("root");
-if (root) render(<MissionControl />, root);
+async function init() {
+  const prefs = await getPreferences();
+  applyTheme(prefs.theme);
+
+  if (prefs.theme === "system") {
+    watchSystemTheme(() => applyTheme("system"));
+  }
+
+  const root = document.getElementById("root");
+  if (root) render(<MissionControl />, root);
+}
+
+init();
