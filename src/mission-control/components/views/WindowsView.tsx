@@ -1,6 +1,11 @@
 import { useState, useEffect, useMemo, useCallback } from "preact/hooks";
 import { Plus } from "@phosphor-icons/react";
-import { getWindowsWithMeta, type WindowWithMeta } from "@/lib/windows";
+import {
+  getWindowsWithMeta,
+  getWindowTitle,
+  setWindowTitle,
+  type WindowWithMeta,
+} from "@/lib/windows";
 import { WindowCard } from "../WindowCard";
 
 interface Props {
@@ -113,6 +118,15 @@ export function WindowsView({ query, onAction }: Props) {
     setSelection({ sourceWindowId: windowId, selectedIds: new Set() });
   };
 
+  const handleStartMergeAll = (windowId: number) => {
+    const w = windows.find((x) => x.id === windowId);
+    if (!w) return;
+    const allIds = new Set(
+      w.tabs.map((t) => t.id).filter((id): id is number => id !== undefined),
+    );
+    setSelection({ sourceWindowId: windowId, selectedIds: allIds });
+  };
+
   const handleToggleTab = (tabId: number) => {
     if (!selection) return;
     const next = new Set(selection.selectedIds);
@@ -167,10 +181,12 @@ export function WindowsView({ query, onAction }: Props) {
   };
 
   const handleSplit = async (windowId: number, chunkSize: number) => {
+    const sourceTitle = await getWindowTitle(windowId);
     const tabs = await chrome.tabs.query({ windowId });
     const sorted = tabs.filter((t) => t.id !== undefined);
     if (sorted.length <= chunkSize) return;
 
+    let chunkIndex = 2;
     for (let i = chunkSize; i < sorted.length; i += chunkSize) {
       const chunk = sorted.slice(i, i + chunkSize);
       const firstId = chunk[0]?.id;
@@ -185,6 +201,10 @@ export function WindowsView({ query, onAction }: Props) {
       if (restIds.length > 0) {
         await chrome.tabs.move(restIds, { windowId: targetId, index: -1 });
       }
+      if (sourceTitle) {
+        await setWindowTitle(targetId, `${sourceTitle}_${chunkIndex}`);
+      }
+      chunkIndex += 1;
     }
     onAction();
     await refresh();
@@ -197,6 +217,12 @@ export function WindowsView({ query, onAction }: Props) {
       .map((t) => t.id!);
     if (ids.length === 0) return;
     await chrome.tabs.remove(ids);
+    onAction();
+    await refresh();
+  };
+
+  const handleCloseWindow = async (windowId: number) => {
+    await chrome.windows.remove(windowId);
     onAction();
     await refresh();
   };
@@ -235,12 +261,14 @@ export function WindowsView({ query, onAction }: Props) {
             }
             selectedIds={selection?.selectedIds ?? new Set()}
             onStartSelection={handleStartSelection}
+            onStartMergeAll={handleStartMergeAll}
             onToggleTab={handleToggleTab}
             onSelectAll={handleSelectAll}
             onPickDestination={handlePickDestination}
             onCancel={() => setSelection(null)}
             onSplit={handleSplit}
             onCloseNonPinned={handleCloseNonPinned}
+            onCloseWindow={handleCloseWindow}
             onReload={refresh}
           />
         ))}

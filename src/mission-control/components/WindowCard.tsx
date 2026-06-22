@@ -10,7 +10,10 @@ import {
   DotsThree,
   Broom,
   ArrowsSplit,
+  ArrowsMerge,
   ArrowRight,
+  Trash,
+  XCircle,
 } from "@phosphor-icons/react";
 import { setWindowTitle, type WindowWithMeta } from "@/lib/windows";
 import { focusTab } from "@/lib/chrome";
@@ -21,12 +24,14 @@ interface Props {
   isMoveTarget: boolean;
   selectedIds: Set<number>;
   onStartSelection: (windowId: number) => void;
+  onStartMergeAll: (windowId: number) => void;
   onToggleTab: (tabId: number) => void;
   onSelectAll: () => void;
   onPickDestination: (windowId: number) => Promise<void>;
   onCancel: () => void;
   onSplit: (windowId: number, chunkSize: number) => Promise<void>;
   onCloseNonPinned: (windowId: number) => Promise<void>;
+  onCloseWindow: (windowId: number) => Promise<void>;
   onReload: () => void;
 }
 
@@ -38,12 +43,14 @@ export function WindowCard({
   isMoveTarget,
   selectedIds,
   onStartSelection,
+  onStartMergeAll,
   onToggleTab,
   onSelectAll,
   onPickDestination,
   onCancel,
   onSplit,
   onCloseNonPinned,
+  onCloseWindow,
   onReload,
 }: Props) {
   const [editing, setEditing] = useState(false);
@@ -99,6 +106,12 @@ export function WindowCard({
     onStartSelection(window.id);
   };
 
+  const handleStartMerge = (e: MouseEvent) => {
+    e.stopPropagation();
+    setMode("view");
+    onStartMergeAll(window.id);
+  };
+
   const handleSplitConfirm = async (e: Event) => {
     e.stopPropagation();
     await onSplit(window.id, Math.max(1, splitSize));
@@ -109,6 +122,12 @@ export function WindowCard({
     e.stopPropagation();
     await onCloseNonPinned(window.id);
     setMode("view");
+  };
+
+  const handleCloseWindow = async (e: MouseEvent) => {
+    e.stopPropagation();
+    setMode("view");
+    await onCloseWindow(window.id);
   };
 
   const inSelectMode = isSelectionSource || isMoveTarget;
@@ -265,6 +284,12 @@ export function WindowCard({
                         disabled={window.tabs.length === 0}
                       />
                       <MenuItem
+                        icon={<ArrowsMerge size={12} />}
+                        label="Merge into another…"
+                        onClick={handleStartMerge}
+                        disabled={window.tabs.length === 0}
+                      />
+                      <MenuItem
                         icon={<ArrowsSplit size={12} />}
                         label="Split window…"
                         onClick={(e) => {
@@ -279,6 +304,13 @@ export function WindowCard({
                         label={`Close ${nonPinnedCount} non-pinned`}
                         onClick={handleCloseNonPinned}
                         disabled={nonPinnedCount === 0}
+                        tone="danger"
+                      />
+                      <MenuItem
+                        icon={<XCircle size={12} />}
+                        label={`Close window (${window.tabs.length} ${window.tabs.length === 1 ? "tab" : "tabs"})`}
+                        onClick={handleCloseWindow}
+                        disabled={window.tabs.length === 0}
                         tone="danger"
                       />
                     </div>
