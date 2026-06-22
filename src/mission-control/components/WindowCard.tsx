@@ -420,19 +420,24 @@ function CompactTabRow(props: {
   onToggleSelect: () => void;
 }) {
   const handleClick = async (e: MouseEvent) => {
+    if (props.isOtherCardSelectMode) {
+      // Let click bubble up to the WindowCard so the entire target
+      // card acts as a drop zone.
+      return;
+    }
     e.stopPropagation();
     if (props.inSelectMode) {
       props.onToggleSelect();
       return;
     }
-    if (props.isOtherCardSelectMode) return;
     if (props.tab.id === undefined) return;
     await focusTab(props.tab.id, props.tab.windowId ?? 0);
   };
 
   let rowClass = "hover:bg-surface cursor-pointer";
   if (props.selected) rowClass = "bg-accent-subtle ring-1 ring-accent/40";
-  else if (props.isOtherCardSelectMode) rowClass = "opacity-50";
+  else if (props.isOtherCardSelectMode)
+    rowClass = "opacity-70 pointer-events-none";
 
   return (
     <div
