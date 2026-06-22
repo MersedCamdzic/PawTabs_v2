@@ -13,7 +13,6 @@ import { TabGroupSection } from "./components/TabGroupSection";
 import { GroupBy } from "./components/GroupBy";
 import { OrderBy } from "./components/OrderBy";
 import { SelectionBar } from "./components/SelectionBar";
-import { BulkActionsMenu } from "@/mission-control/components/BulkActionsMenu";
 import { getAllWindowMeta } from "@/lib/windows";
 import type { WindowColor } from "@/types";
 import { orderTabsInGroups } from "@/lib/grouping";
@@ -251,7 +250,6 @@ export function Popup() {
         <div class="flex items-center gap-1.5">
           <OrderBy value={ordering} onChange={updateOrdering} />
           <GroupBy value={grouping} onChange={updateGrouping} />
-          <BulkActionsMenu tabs={filtered} onAction={handleAction} compact />
         </div>
       </section>
 
