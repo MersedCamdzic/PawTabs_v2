@@ -195,7 +195,8 @@ export function TabRow({
             onOpenDetails(tab);
           }}
           aria-label="Tab details"
-          title="Tags, notes, move…"
+          data-tooltip="Tags, notes, move…"
+          data-tooltip-pos="above"
           class="size-6 inline-flex items-center justify-center rounded text-fg-subtle opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 hover:bg-surface-hover hover:text-fg transition-all"
         >
           <DotsThree size={15} weight="bold" />
@@ -210,7 +211,8 @@ export function TabRow({
           type="button"
           onClick={handleClose}
           aria-label="Close tab"
-          title="Close tab"
+          data-tooltip="Close tab"
+          data-tooltip-pos="above"
           class="size-6 inline-flex items-center justify-center rounded text-fg-subtle opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 hover:bg-danger-subtle hover:text-danger transition-all"
         >
           <X size={13} />
@@ -282,7 +284,8 @@ function ActionButton(props: ActionButtonProps) {
       type="button"
       onClick={props.onClick}
       aria-label={props.title}
-      title={props.title}
+      data-tooltip={props.title}
+      data-tooltip-pos="above"
       class={`size-6 inline-flex items-center justify-center rounded ${activeClass} ${visibility} ${TONE_HOVER_BG[props.tone]} ${TONE_HOVER_FG[props.tone]} transition-all`}
     >
       {props.children}

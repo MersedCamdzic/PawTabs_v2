@@ -370,7 +370,8 @@ function IconButton(props: {
   return (
     <button
       type="button"
-      title={props.label}
+      data-tooltip={props.label}
+      data-tooltip-pos="below"
       aria-label={props.label}
       onClick={props.onClick}
       class="size-7 inline-flex items-center justify-center rounded-md text-fg-muted hover:bg-accent-subtle hover:text-accent transition-colors"

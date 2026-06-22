@@ -13,6 +13,8 @@ import {
   ArrowsMerge,
   ArrowRight,
   ArrowsLeftRight,
+  ArrowSquareIn,
+  ArrowSquareUpRight,
   XCircle,
   PawPrint,
   SpeakerHigh,
@@ -164,17 +166,20 @@ export function WindowCard({
       class={`relative flex flex-col bg-bg rounded-lg overflow-visible transition-all ${borderClass}`}
     >
       {isMoveTarget && selectionCount > 0 && (
-        <div class="absolute -top-2 left-3 z-10 px-2 py-0.5 bg-accent text-white text-[10px] font-medium rounded uppercase tracking-wide">
+        <div class="absolute -top-2.5 left-3 z-10 inline-flex items-center gap-1 px-2 py-0.5 bg-accent text-white text-[10px] font-semibold rounded-full uppercase tracking-wider shadow-sm animate-pulse-soft">
+          <ArrowSquareIn size={10} weight="bold" />
           Drop here
         </div>
       )}
       {isSelectionSource && (
-        <div class="absolute -top-2 left-3 z-10 px-2 py-0.5 bg-fg text-bg text-[10px] font-medium rounded uppercase tracking-wide">
+        <div class="absolute -top-2.5 left-3 z-10 inline-flex items-center gap-1 px-2 py-0.5 bg-fg text-bg text-[10px] font-semibold rounded-full uppercase tracking-wider shadow-sm">
+          <ArrowSquareUpRight size={10} weight="bold" />
           From
         </div>
       )}
       {window.focused && !isMoveTarget && !isSelectionSource && (
-        <div class="absolute -top-2 left-3 z-10 px-2 py-0.5 bg-accent text-white text-[10px] font-medium rounded uppercase tracking-wide">
+        <div class="absolute -top-2.5 left-3 z-10 inline-flex items-center gap-1 px-2 py-0.5 bg-accent text-white text-[10px] font-semibold rounded-full uppercase tracking-wider shadow-sm">
+          <span class="size-1.5 rounded-full bg-white animate-pulse" />
           Current
         </div>
       )}
@@ -240,7 +245,9 @@ export function WindowCard({
               }}
               disabled={inSelectMode}
               class="flex-1 min-w-0 text-left group/title rounded px-1 -mx-1 hover:bg-surface transition-colors disabled:cursor-default disabled:hover:bg-transparent"
-              title={inSelectMode ? "" : "Click to rename window"}
+              {...(inSelectMode
+                ? {}
+                : { "data-tooltip": "Click to rename window", "data-tooltip-pos": "below" })}
             >
               <div class="text-[13px] font-medium text-fg truncate flex items-center gap-1.5">
                 <span class="truncate">{displayTitle}</span>
@@ -273,8 +280,9 @@ export function WindowCard({
                 <button
                   type="button"
                   onClick={handleFocusWindow}
-                  aria-label="Focus window"
-                  title="Focus this window"
+                  aria-label="Focus this window in Chrome"
+                  data-tooltip="Focus this window in Chrome"
+                  data-tooltip-pos="above"
                   class="size-7 inline-flex items-center justify-center rounded text-fg-muted hover:bg-accent-subtle hover:text-accent transition-colors"
                 >
                   <ArrowSquareOut size={12} />
@@ -287,7 +295,8 @@ export function WindowCard({
                       setMode(mode === "menu" ? "view" : "menu");
                     }}
                     aria-label="Window actions"
-                    title="More actions"
+                    data-tooltip="More actions"
+                    data-tooltip-pos="above"
                     class={`size-7 inline-flex items-center justify-center rounded transition-colors ${
                       mode === "menu"
                         ? "bg-surface text-fg"
@@ -624,7 +633,7 @@ function CompactTabRow(props: {
             tone="accent"
             onClick={handleMoveSingle}
           >
-            <ArrowsLeftRight size={11} />
+            <ArrowsLeftRight size={12} weight="bold" />
           </TinyActionBtn>
           <TinyActionBtn
             title="Jump to tab"
@@ -684,8 +693,8 @@ function TinyActionBtn(props: {
     <button
       type="button"
       onClick={props.onClick}
-      title={props.title}
       aria-label={props.title}
+      data-tooltip={props.title}
       class={`size-5 inline-flex items-center justify-center rounded ${activeCls} ${visibility} ${TONE_HOVER[props.tone]} transition-all`}
     >
       {props.children}
