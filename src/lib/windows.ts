@@ -63,16 +63,17 @@ export interface WindowWithPawTabs {
 }
 
 export async function getWindowsWithPawTabs(): Promise<WindowWithPawTabs[]> {
-  const [snapshot, titles, chromeWindows] = await Promise.all([
+  // chrome.windows.getCurrent() from an extension page returns the window
+  // containing that page (MC's own window). It is STABLE — clicking another
+  // browser window does not change it. Using this for the 'Current' badge
+  // keeps MC anchored where the user opened it.
+  const [snapshot, titles, currentWindow] = await Promise.all([
     fetchAllTabs(),
     getAllWindowTitles(),
-    chrome.windows.getAll(),
+    chrome.windows.getCurrent(),
   ]);
 
-  const focusedById = new Map<number, boolean>();
-  for (const w of chromeWindows) {
-    if (w.id !== undefined) focusedById.set(w.id, w.focused ?? false);
-  }
+  const currentWindowId = currentWindow.id;
 
   const grouped = new Map<number, PawTab[]>();
   for (const tab of snapshot.tabs) {
@@ -85,6 +86,6 @@ export async function getWindowsWithPawTabs(): Promise<WindowWithPawTabs[]> {
     id,
     customTitle: titles[id] ?? null,
     tabs,
-    focused: focusedById.get(id) ?? false,
+    focused: id === currentWindowId,
   }));
 }

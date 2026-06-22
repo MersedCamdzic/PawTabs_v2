@@ -536,6 +536,9 @@ function CompactTabRow(props: {
   if (props.selected) rowClass = "bg-accent-subtle ring-1 ring-accent/40";
   else if (props.isOtherCardSelectMode)
     rowClass = "opacity-70 pointer-events-none";
+  else if (props.tab.discarded)
+    rowClass =
+      "opacity-60 hover:opacity-100 hover:bg-surface bg-surface/30 cursor-pointer";
 
   const showActions = !props.inSelectMode && !props.isOtherCardSelectMode;
 
@@ -577,40 +580,47 @@ function CompactTabRow(props: {
         <img
           src={props.tab.favIconUrl}
           alt=""
-          class="size-4 shrink-0 rounded-sm"
+          class={`size-4 shrink-0 rounded-sm ${props.tab.discarded ? "grayscale" : ""}`}
           onError={(e) => {
             (e.currentTarget as HTMLImageElement).style.display = "none";
           }}
         />
       ) : (
-        <Globe size={14} class="text-fg-subtle shrink-0" />
+        <Globe
+          size={14}
+          class={`text-fg-subtle shrink-0 ${props.tab.discarded ? "grayscale" : ""}`}
+        />
       )}
 
       <div class="flex-1 min-w-0">
-        <div class="text-[13px] text-fg leading-snug break-words line-clamp-2">
-          {props.tab.title || domain || "Untitled"}
+        <div
+          class={`text-[13px] leading-snug break-words line-clamp-2 flex items-baseline gap-1.5 ${
+            props.tab.discarded ? "italic text-fg-muted" : "text-fg"
+          }`}
+        >
+          {props.tab.discarded && (
+            <Moon
+              size={11}
+              weight="fill"
+              class="text-fg-subtle shrink-0 relative top-[2px]"
+            />
+          )}
+          <span>{props.tab.title || domain || "Untitled"}</span>
         </div>
         <div class="text-[11px] text-fg-subtle leading-tight mt-1 break-all line-clamp-2">
           {props.tab.url}
         </div>
-        {(props.tab.notes.length > 0 || props.tab.discarded) && (
+        {props.tab.notes.length > 0 && (
           <div class="text-[11px] text-fg-subtle mt-1 flex items-center gap-2 flex-wrap">
-            {props.tab.notes.length > 0 && (
-              <span
-                data-tooltip={notesTooltipText(props.tab.notes)}
-                data-tooltip-pos="above"
-                class="inline-flex items-center gap-0.5 text-accent shrink-0 cursor-help"
-              >
-                <NotePencil size={10} weight="fill" />
-                {props.tab.notes.length} note
-                {props.tab.notes.length === 1 ? "" : "s"}
-              </span>
-            )}
-            {props.tab.discarded && (
-              <span class="inline-flex items-center gap-1 text-fg-subtle shrink-0">
-                inactive
-              </span>
-            )}
+            <span
+              data-tooltip={notesTooltipText(props.tab.notes)}
+              data-tooltip-pos="above"
+              class="inline-flex items-center gap-0.5 text-accent shrink-0 cursor-help"
+            >
+              <NotePencil size={10} weight="fill" />
+              {props.tab.notes.length} note
+              {props.tab.notes.length === 1 ? "" : "s"}
+            </span>
           </div>
         )}
         {props.tab.tags.length > 0 && (

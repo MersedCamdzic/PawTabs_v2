@@ -75,20 +75,35 @@ export function MCTabRow({ tab, windowTitle, onAction, onOpenDetails }: Props) {
     onOpenDetails(tab);
   };
 
+  const rowClass = tab.discarded
+    ? "opacity-60 hover:opacity-100 hover:bg-surface bg-surface/30"
+    : "hover:bg-surface";
+
   return (
     <div
       onClick={handleRowClick}
-      class="group flex items-start gap-3 px-3 py-2.5 rounded-md hover:bg-surface cursor-pointer transition-colors"
+      class={`group flex items-start gap-3 px-3 py-2.5 rounded-md cursor-pointer transition-all ${rowClass}`}
     >
-      <Favicon url={tab.favIconUrl} />
+      <Favicon url={tab.favIconUrl} discarded={tab.discarded} />
 
       <div class="flex-1 min-w-0">
-        <div class="text-[13px] text-fg leading-snug flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+        <div
+          class={`text-[13px] leading-snug flex flex-wrap items-baseline gap-x-2 gap-y-0.5 ${
+            tab.discarded ? "italic text-fg-muted" : "text-fg"
+          }`}
+        >
+          {tab.discarded && (
+            <Moon
+              size={11}
+              weight="fill"
+              class="text-fg-subtle shrink-0 relative top-[2px]"
+            />
+          )}
           <span class="break-words line-clamp-2">
             {tab.title || domain || "Untitled"}
           </span>
           {windowTitle && (
-            <span class="inline-flex items-center gap-1 px-1.5 py-0.5 bg-accent-subtle text-accent text-[10px] font-medium rounded shrink-0 relative top-[-1px]">
+            <span class="inline-flex items-center gap-1 px-1.5 py-0.5 bg-accent-subtle text-accent text-[10px] font-medium rounded shrink-0 relative top-[-1px] not-italic">
               <Browsers size={9} weight="fill" />
               {windowTitle}
             </span>
@@ -97,24 +112,16 @@ export function MCTabRow({ tab, windowTitle, onAction, onOpenDetails }: Props) {
         <div class="text-[11px] text-fg-subtle leading-tight mt-1 break-all line-clamp-2">
           {tab.url}
         </div>
-        {(tab.notes.length > 0 || tab.discarded) && (
+        {tab.notes.length > 0 && (
           <div class="text-[11px] text-fg-subtle mt-1 flex items-center gap-2 flex-wrap">
-            {tab.notes.length > 0 && (
-              <span
-                data-tooltip={notesTooltip(tab.notes)}
-                data-tooltip-pos="above"
-                class="inline-flex items-center gap-0.5 text-accent shrink-0 cursor-help"
-              >
-                <NotePencil size={10} weight="fill" />
-                {tab.notes.length} note{tab.notes.length === 1 ? "" : "s"}
-              </span>
-            )}
-            {tab.discarded && (
-              <span class="inline-flex items-center gap-1 text-fg-subtle shrink-0">
-                <Moon size={10} />
-                inactive
-              </span>
-            )}
+            <span
+              data-tooltip={notesTooltip(tab.notes)}
+              data-tooltip-pos="above"
+              class="inline-flex items-center gap-0.5 text-accent shrink-0 cursor-help"
+            >
+              <NotePencil size={10} weight="fill" />
+              {tab.notes.length} note{tab.notes.length === 1 ? "" : "s"}
+            </span>
           </div>
         )}
         {tab.tags.length > 0 && (
@@ -199,10 +206,13 @@ export function MCTabRow({ tab, windowTitle, onAction, onOpenDetails }: Props) {
   );
 }
 
-function Favicon({ url }: { url: string }) {
+function Favicon({ url, discarded }: { url: string; discarded?: boolean }) {
+  const cls = discarded ? "grayscale" : "";
   if (!url) {
     return (
-      <div class="size-5 shrink-0 inline-flex items-center justify-center text-fg-subtle">
+      <div
+        class={`size-5 shrink-0 inline-flex items-center justify-center text-fg-subtle ${cls}`}
+      >
         <Globe size={16} />
       </div>
     );
@@ -211,7 +221,7 @@ function Favicon({ url }: { url: string }) {
     <img
       src={url}
       alt=""
-      class="size-5 shrink-0 rounded"
+      class={`size-5 shrink-0 rounded ${cls}`}
       onError={(e) => {
         (e.currentTarget as HTMLImageElement).style.display = "none";
       }}

@@ -89,7 +89,9 @@ export function WindowsView({ query, onAction, onOpenDetails }: Props) {
     chrome.tabs.onUpdated.addListener(onTabUpdated);
     chrome.windows.onCreated.addListener(onSimpleEvent);
     chrome.windows.onRemoved.addListener(onSimpleEvent);
-    chrome.windows.onFocusChanged.addListener(onSimpleEvent);
+    // chrome.windows.onFocusChanged intentionally NOT subscribed:
+    // 'Current' is now anchored to MC's window (stable), not Chrome's focused
+    // window. Refreshing on every focus change just causes flicker.
     return () => {
       chrome.tabs.onCreated.removeListener(onSimpleEvent);
       chrome.tabs.onRemoved.removeListener(onSimpleEvent);
@@ -98,7 +100,6 @@ export function WindowsView({ query, onAction, onOpenDetails }: Props) {
       chrome.tabs.onUpdated.removeListener(onTabUpdated);
       chrome.windows.onCreated.removeListener(onSimpleEvent);
       chrome.windows.onRemoved.removeListener(onSimpleEvent);
-      chrome.windows.onFocusChanged.removeListener(onSimpleEvent);
     };
   }, [refresh]);
 
