@@ -221,21 +221,19 @@ export function WindowCard({
       class={`relative flex flex-col bg-bg rounded-lg overflow-visible transition-all ${cardClass}`}
     >
       {isMoveTarget && selectionCount > 0 && (
-        <div class="absolute -top-2.5 left-3 z-10 inline-flex items-center gap-1 px-2 py-0.5 bg-accent text-white text-[10px] font-semibold rounded-full uppercase tracking-wider shadow-sm animate-pulse-soft">
-          <ArrowSquareIn size={10} weight="bold" />
-          Drop here
+        <div class="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+          <div class="flex flex-col items-center gap-1 text-accent/40 group-hover:text-accent/60 transition-colors">
+            <ArrowSquareIn size={40} weight="duotone" />
+            <span class="text-[14px] font-bold uppercase tracking-[0.2em]">
+              Drop here
+            </span>
+          </div>
         </div>
       )}
       {isSelectionSource && (
         <div class="absolute -top-2.5 left-3 z-10 inline-flex items-center gap-1 px-2 py-0.5 bg-fg text-bg text-[10px] font-semibold rounded-full uppercase tracking-wider shadow-sm">
           <ArrowSquareUpRight size={10} weight="bold" />
           From
-        </div>
-      )}
-      {window.focused && !isMoveTarget && !isSelectionSource && (
-        <div class="absolute -top-2.5 left-3 z-10 inline-flex items-center gap-1 px-2 py-0.5 bg-accent text-white text-[10px] font-semibold rounded-full uppercase tracking-wider shadow-sm">
-          <span class="size-1.5 rounded-full bg-white animate-pulse" />
-          Current
         </div>
       )}
       <div class={`flex items-center gap-2 px-3 py-2 border-b border-border ${headerBgClass}`}>
@@ -300,14 +298,19 @@ export function WindowCard({
         ) : (
           <>
             <div class="flex-1 min-w-0">
-              <div class={`text-[13px] truncate ${titleTextClass}`}>
-                {displayTitle}
+              <div
+                class={`text-[13px] truncate flex items-center gap-1.5 ${titleTextClass}`}
+              >
+                {window.focused && (
+                  <span class="inline-flex items-center gap-1 px-1.5 h-4 bg-accent text-white text-[9px] font-semibold rounded uppercase tracking-wider shrink-0">
+                    <span class="size-1 rounded-full bg-white animate-pulse" />
+                    Current
+                  </span>
+                )}
+                <span class="truncate">{displayTitle}</span>
               </div>
               <div class="text-[10px] text-fg-subtle">
                 {window.tabs.length} tab{window.tabs.length === 1 ? "" : "s"}
-                {window.focused && (
-                  <span class="ml-1.5 text-accent">· focused</span>
-                )}
                 {isMoveTarget && selectionCount > 0 && (
                   <span class="ml-1.5 text-accent">
                     · click to move {selectionCount} here
