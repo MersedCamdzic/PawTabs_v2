@@ -30,7 +30,6 @@ import {
 } from "@/lib/tabs";
 import {
   focusTab,
-  closeTab,
   togglePinned,
   toggleMuted,
   toggleStarred,
@@ -129,11 +128,6 @@ export function TabDetailsModal({ tab, open, onClose, onAction }: Props) {
   const handleMute = async () => {
     await toggleMuted(tab.id, !tab.muted);
     onAction();
-  };
-
-  const handleCloseTab = async () => {
-    await closeTab(tab.id);
-    onClose();
   };
 
   const handleCopyUrl = async () => {
