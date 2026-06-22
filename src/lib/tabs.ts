@@ -122,6 +122,7 @@ export async function moveManyToNewWindow(tabIds: number[]): Promise<void> {
 
 export interface WindowInfo {
   id: number;
+  customTitle: string | null;
   tabCount: number;
   firstTabTitle: string;
 }
@@ -129,11 +130,16 @@ export interface WindowInfo {
 export async function listWindowsForMove(
   excludeTabId: number,
 ): Promise<WindowInfo[]> {
-  const windows = await chrome.windows.getAll({ populate: true });
+  const { getAllWindowTitles } = await import("./windows");
+  const [windows, titles] = await Promise.all([
+    chrome.windows.getAll({ populate: true }),
+    getAllWindowTitles(),
+  ]);
   return windows
     .filter((w) => w.id !== undefined)
     .map((w) => ({
       id: w.id!,
+      customTitle: titles[w.id!] ?? null,
       tabCount: w.tabs?.length ?? 0,
       firstTabTitle:
         w.tabs?.find((t) => t.id !== excludeTabId)?.title ?? "Empty",

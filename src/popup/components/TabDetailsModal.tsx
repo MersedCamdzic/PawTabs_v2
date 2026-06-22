@@ -31,6 +31,7 @@ interface Props {
 
 interface WindowItem {
   id: number;
+  customTitle: string | null;
   tabCount: number;
   firstTabTitle: string;
 }
@@ -221,7 +222,8 @@ export function TabDetailsModal({ tab, open, onClose, onAction }: Props) {
               ? others.filter(
                   (w) =>
                     String(w.id).includes(q) ||
-                    w.firstTabTitle.toLowerCase().includes(q),
+                    w.firstTabTitle.toLowerCase().includes(q) ||
+                    (w.customTitle ?? "").toLowerCase().includes(q),
                 )
               : others;
             return (
@@ -244,6 +246,7 @@ export function TabDetailsModal({ tab, open, onClose, onAction }: Props) {
                     <WindowOption
                       key={w.id}
                       windowId={w.id}
+                      customTitle={w.customTitle}
                       tabCount={w.tabCount}
                       preview={w.firstTabTitle}
                       onClick={() => handleMove(w.id)}
@@ -325,10 +328,12 @@ function Favicon({ url }: { url: string }) {
 
 function WindowOption(props: {
   windowId: number;
+  customTitle: string | null;
   tabCount: number;
   preview: string;
   onClick: () => void;
 }) {
+  const displayTitle = props.customTitle || `Window ${props.windowId}`;
   return (
     <button
       type="button"
@@ -337,8 +342,13 @@ function WindowOption(props: {
     >
       <Browser size={13} class="text-fg-muted shrink-0" />
       <div class="flex-1 min-w-0">
-        <div class="text-[12px] font-medium text-fg">
-          Window {props.windowId}
+        <div class="text-[12px] font-medium text-fg truncate">
+          {displayTitle}
+          {props.customTitle && (
+            <span class="text-fg-subtle font-normal ml-1.5">
+              · Window {props.windowId}
+            </span>
+          )}
         </div>
         <div class="text-[10px] text-fg-subtle truncate mt-0.5">
           {props.tabCount} tab{props.tabCount === 1 ? "" : "s"} ·{" "}
