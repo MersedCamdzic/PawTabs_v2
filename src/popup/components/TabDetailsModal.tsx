@@ -158,128 +158,115 @@ export function TabDetailsModal({ tab, open, onClose, onAction }: Props) {
       onClose={onClose}
       title="Tab details"
       headerActions={
-        <button
-          type="button"
-          onClick={handleJump}
-          aria-label="Jump to tab"
-          data-tooltip="Jump to this tab"
-          data-tooltip-pos="below"
-          class="size-7 inline-flex items-center justify-center rounded-md text-fg-muted hover:bg-accent-subtle hover:text-accent transition-colors"
-        >
-          <ArrowSquareOut size={14} />
-        </button>
+        <div class="flex items-center gap-0.5">
+          <HeaderAction
+            title={tab.starred ? "Unpaw" : "Paw this tab"}
+            active={tab.starred}
+            tone="accent"
+            onClick={handlePaw}
+          >
+            <PawPrint size={13} weight={tab.starred ? "fill" : "regular"} />
+          </HeaderAction>
+          <HeaderAction
+            title={tab.pinned ? "Unpin" : "Pin"}
+            active={tab.pinned}
+            tone="warning"
+            onClick={handlePin}
+          >
+            <PushPin size={13} weight={tab.pinned ? "fill" : "regular"} />
+          </HeaderAction>
+          {(tab.audible || tab.muted) && (
+            <HeaderAction
+              title={tab.muted ? "Unmute" : "Mute"}
+              active={tab.muted ? true : tab.audible}
+              tone={tab.muted ? "danger" : "success"}
+              onClick={handleMute}
+            >
+              {tab.muted ? (
+                <SpeakerSlash size={13} />
+              ) : (
+                <SpeakerHigh size={13} />
+              )}
+            </HeaderAction>
+          )}
+          <HeaderAction
+            title="Jump to this tab"
+            tone="accent"
+            onClick={handleJump}
+          >
+            <ArrowSquareOut size={13} />
+          </HeaderAction>
+          <span class="w-px h-4 bg-border mx-0.5" aria-hidden="true" />
+          <HeaderAction
+            title="Close tab"
+            tone="danger"
+            onClick={handleCloseTab}
+          >
+            <Trash size={13} />
+          </HeaderAction>
+        </div>
       }
     >
-      <div class="space-y-4">
-        <div class="relative overflow-hidden rounded-lg border border-border bg-gradient-to-br from-accent-subtle/40 via-surface to-bg p-3.5">
-          <div class="flex items-start gap-3">
-            <div class="size-10 shrink-0 rounded-md bg-bg border border-border flex items-center justify-center overflow-hidden shadow-sm">
-              {tab.favIconUrl ? (
-                <img
-                  src={tab.favIconUrl}
-                  alt=""
-                  class="size-6"
-                  onError={(e) => {
-                    (e.currentTarget as HTMLImageElement).style.display = "none";
-                  }}
-                />
-              ) : (
-                <Globe size={18} class="text-fg-subtle" />
-              )}
-            </div>
-            <div class="flex-1 min-w-0">
-              <div class="text-[14px] font-semibold text-fg line-clamp-2 leading-snug">
-                {tab.title || domain || "Untitled"}
-              </div>
-              <div class="text-[11px] text-fg-subtle mt-1 flex items-center gap-1.5 flex-wrap">
-                <span class="font-medium text-fg-muted">{domain}</span>
-                <span class="text-border-strong">·</span>
-                <span class="inline-flex items-center gap-1 px-1.5 h-4 bg-accent-subtle text-accent text-[10px] font-medium rounded">
-                  <Browsers size={9} weight="fill" />
-                  {currentWindowDisplay}
-                </span>
-              </div>
-              <div class="text-[10px] text-fg-subtle/70 mt-1.5 font-mono truncate flex items-center gap-1.5">
-                <span class="truncate">{tab.url}</span>
-                <button
-                  type="button"
-                  onClick={handleCopyUrl}
-                  data-tooltip={copied ? "Copied!" : "Copy URL"}
-                  data-tooltip-pos="above"
-                  aria-label="Copy URL"
-                  class="size-5 shrink-0 inline-flex items-center justify-center rounded text-fg-subtle hover:bg-surface hover:text-accent transition-colors"
-                >
-                  {copied ? (
-                    <Check size={11} weight="bold" class="text-success" />
-                  ) : (
-                    <Copy size={11} />
-                  )}
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div class="flex items-center gap-1 mt-3 pt-3 border-t border-border/60">
-            <QuickAction
-              title={tab.starred ? "Unpaw" : "Paw this tab"}
-              active={tab.starred}
-              tone="accent"
-              onClick={handlePaw}
-            >
-              <PawPrint
-                size={13}
-                weight={tab.starred ? "fill" : "regular"}
+      <div class="space-y-5">
+        <div class="flex items-start gap-3.5">
+          <div class="size-12 shrink-0 rounded-lg bg-surface border border-border flex items-center justify-center overflow-hidden shadow-sm">
+            {tab.favIconUrl ? (
+              <img
+                src={tab.favIconUrl}
+                alt=""
+                class="size-7"
+                onError={(e) => {
+                  (e.currentTarget as HTMLImageElement).style.display = "none";
+                }}
               />
-            </QuickAction>
-            <QuickAction
-              title={tab.pinned ? "Unpin" : "Pin"}
-              active={tab.pinned}
-              tone="warning"
-              onClick={handlePin}
-            >
-              <PushPin
-                size={13}
-                weight={tab.pinned ? "fill" : "regular"}
-              />
-            </QuickAction>
-            {(tab.audible || tab.muted) && (
-              <QuickAction
-                title={tab.muted ? "Unmute" : "Mute"}
-                active={tab.muted ? true : tab.audible}
-                tone={tab.muted ? "danger" : "success"}
-                onClick={handleMute}
-              >
-                {tab.muted ? (
-                  <SpeakerSlash size={13} />
-                ) : (
-                  <SpeakerHigh size={13} />
-                )}
-              </QuickAction>
+            ) : (
+              <Globe size={22} class="text-fg-subtle" />
             )}
-            <div class="flex-1" />
-            <div class="flex items-center gap-3 text-[10px] text-fg-subtle">
-              {tab.tags.length > 0 && (
-                <span class="inline-flex items-center gap-1">
-                  <Tag size={10} weight="fill" class="text-accent" />
-                  {tab.tags.length}
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="text-[15px] font-semibold text-fg leading-snug line-clamp-2">
+              {tab.title || domain || "Untitled"}
+            </div>
+            <div class="text-[11px] mt-1.5 flex items-center gap-1.5 flex-wrap">
+              <span class="font-medium text-fg-muted">{domain}</span>
+              <span class="inline-flex items-center gap-1 px-1.5 h-4 bg-accent-subtle text-accent text-[10px] font-medium rounded">
+                <Browsers size={9} weight="fill" />
+                {currentWindowDisplay}
+              </span>
+              {tab.starred && (
+                <span class="inline-flex items-center gap-1 px-1.5 h-4 bg-accent-subtle text-accent text-[10px] font-medium rounded">
+                  <PawPrint size={9} weight="fill" />
+                  pawed
                 </span>
               )}
-              {tab.notes.length > 0 && (
-                <span class="inline-flex items-center gap-1">
-                  <NotePencil size={10} weight="fill" class="text-accent" />
-                  {tab.notes.length}
+              {tab.pinned && (
+                <span class="inline-flex items-center gap-1 px-1.5 h-4 bg-warning-subtle text-warning text-[10px] font-medium rounded">
+                  <PushPin size={9} weight="fill" />
+                  pinned
                 </span>
               )}
             </div>
-            <span class="w-px h-4 bg-border mx-1" />
-            <QuickAction
-              title="Close tab"
-              tone="danger"
-              onClick={handleCloseTab}
-            >
-              <X size={13} />
-            </QuickAction>
           </div>
+        </div>
+
+        <div class="flex items-center gap-2 px-2.5 py-2 bg-surface rounded-md border border-border">
+          <span class="font-mono text-[11px] text-fg-subtle truncate flex-1">
+            {tab.url}
+          </span>
+          <button
+            type="button"
+            onClick={handleCopyUrl}
+            data-tooltip={copied ? "Copied!" : "Copy URL"}
+            data-tooltip-pos="above"
+            aria-label="Copy URL"
+            class="size-6 shrink-0 inline-flex items-center justify-center rounded text-fg-subtle hover:bg-bg-elevated hover:text-accent transition-colors"
+          >
+            {copied ? (
+              <Check size={12} weight="bold" class="text-success" />
+            ) : (
+              <Copy size={12} />
+            )}
+          </button>
         </div>
 
         <Section icon={<Tag size={11} />} title="Tags">
@@ -528,7 +515,7 @@ function TagChip(props: { label: string; onRemove: () => void }) {
   );
 }
 
-const QUICK_TONE = {
+const HEADER_TONE = {
   accent: {
     active: "bg-accent-subtle text-accent",
     hover: "hover:bg-accent-subtle hover:text-accent",
@@ -547,25 +534,23 @@ const QUICK_TONE = {
   },
 } as const;
 
-function QuickAction(props: {
+function HeaderAction(props: {
   title: string;
-  tone: keyof typeof QUICK_TONE;
+  tone: keyof typeof HEADER_TONE;
   active?: boolean;
   onClick: () => void;
   children: preact.ComponentChildren;
 }) {
-  const t = QUICK_TONE[props.tone];
-  const cls = props.active
-    ? t.active
-    : `text-fg-muted bg-bg ${t.hover}`;
+  const t = HEADER_TONE[props.tone];
+  const cls = props.active ? t.active : `text-fg-muted ${t.hover}`;
   return (
     <button
       type="button"
       onClick={props.onClick}
       data-tooltip={props.title}
-      data-tooltip-pos="above"
+      data-tooltip-pos="below"
       aria-label={props.title}
-      class={`size-7 inline-flex items-center justify-center rounded-md border border-border transition-colors ${cls}`}
+      class={`size-7 inline-flex items-center justify-center rounded-md transition-colors ${cls}`}
     >
       {props.children}
     </button>
