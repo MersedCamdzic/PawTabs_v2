@@ -25,6 +25,7 @@ export interface SessionTab {
 export interface SavedSession {
   id: string;
   sessionName: string;
+  description?: string;
   dateTime: string;
   tabs: SessionTab[];
   windows: { id: number; title?: string }[];

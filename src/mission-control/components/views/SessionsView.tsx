@@ -24,6 +24,7 @@ interface Props {
   query: string;
   sortBy: SnapshotSortKey;
   columns: 1 | 2 | 3 | 4;
+  refreshSignal: number;
 }
 
 const COLUMN_GRID: Record<1 | 2 | 3 | 4, string> = {
@@ -37,11 +38,14 @@ type UnifiedItem =
   | { kind: "session"; data: SavedSession; dateTime: string }
   | { kind: "backup"; data: Backup; dateTime: string };
 
-export function SessionsView({ query, sortBy, columns }: Props) {
+export function SessionsView({
+  query,
+  sortBy,
+  columns,
+  refreshSignal,
+}: Props) {
   const [sessions, setSessions] = useState<SavedSession[]>([]);
   const [backups, setBackups] = useState<Backup[]>([]);
-  const [name, setName] = useState("");
-  const [saving, setSaving] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
@@ -53,7 +57,7 @@ export function SessionsView({ query, sortBy, columns }: Props) {
 
   useEffect(() => {
     refresh();
-  }, []);
+  }, [refreshSignal]);
 
   const filtered = useMemo<UnifiedItem[]>(() => {
     const q = query.trim().toLowerCase();
@@ -101,17 +105,6 @@ export function SessionsView({ query, sortBy, columns }: Props) {
     return all;
   }, [sessions, backups, query, sortBy]);
 
-  const handleSave = async () => {
-    setSaving(true);
-    try {
-      await saveSession(name);
-      setName("");
-      await refresh();
-    } finally {
-      setSaving(false);
-    }
-  };
-
   const handleRestore = async (item: UnifiedItem) => {
     setBusyId(itemId(item));
     try {
@@ -135,30 +128,6 @@ export function SessionsView({ query, sortBy, columns }: Props) {
 
   return (
     <div class="px-6 py-4">
-      <div class="flex gap-2 mb-4 max-w-md">
-        <input
-          type="text"
-          value={name}
-          onInput={(e) =>
-            setName((e.currentTarget as HTMLInputElement).value)
-          }
-          onKeyDown={(e) => {
-            if (e.key === "Enter") handleSave();
-          }}
-          placeholder="Snapshot name (optional)"
-          class="flex-1 h-9 px-3 bg-surface border border-border rounded-md text-[13px] placeholder:text-fg-subtle focus:outline-none focus:bg-bg-elevated focus:border-accent focus:ring-4 focus:ring-accent/10 transition-colors"
-        />
-        <button
-          type="button"
-          onClick={handleSave}
-          disabled={saving}
-          class="h-9 px-3.5 inline-flex items-center gap-1.5 text-[13px] font-medium rounded-md bg-accent text-white hover:bg-accent-hover disabled:opacity-40 transition-colors"
-        >
-          <FloppyDisk size={13} weight="fill" />
-          Snapshot now
-        </button>
-      </div>
-
       <div class="text-[11px] text-fg-subtle mb-3 flex items-center gap-3 flex-wrap">
         <span class="inline-flex items-center gap-1.5">
           <BookmarkSimple size={11} weight="fill" class="text-fg-muted" />
@@ -273,6 +242,11 @@ function UnifiedCard(props: {
               {windowCount === 1 ? "" : "s"} ·{" "}
               {formatRelativeTime(s.dateTime)}
             </div>
+            {s.description && (
+              <div class="text-[11px] text-fg-muted mt-1 italic whitespace-pre-wrap break-words">
+                {s.description}
+              </div>
+            )}
           </div>
           <Actions
             busy={props.busy}

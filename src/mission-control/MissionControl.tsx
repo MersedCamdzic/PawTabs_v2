@@ -16,6 +16,8 @@ import {
   SnapshotSortDropdown,
   type SnapshotSortKey,
 } from "./components/SnapshotSortDropdown";
+import { SnapshotPromptModal } from "./components/SnapshotPromptModal";
+import { FloppyDisk } from "@phosphor-icons/react";
 import { TagsView } from "./components/views/TagsView";
 import { SessionsView } from "./components/views/SessionsView";
 import { BackupsView } from "./components/views/BackupsView";
@@ -102,6 +104,8 @@ export function MissionControl() {
 
   const [windowsSort, setWindowsSort] = useState<WindowsSortKey>("default");
   const [windowsColumns, setWindowsColumns] = useState<1 | 2 | 3 | 4>(3);
+  const [snapshotPromptOpen, setSnapshotPromptOpen] = useState(false);
+  const [snapshotsRefreshSignal, setSnapshotsRefreshSignal] = useState(0);
   const [snapshotSortByView, setSnapshotSortByView] = useState<
     Record<string, SnapshotSortKey>
   >({});
@@ -229,6 +233,14 @@ export function MissionControl() {
                 </>
               ) : view === "sessions" || view === "backups" ? (
                 <>
+                  <button
+                    type="button"
+                    onClick={() => setSnapshotPromptOpen(true)}
+                    class="h-9 px-3 inline-flex items-center gap-1.5 text-[12px] font-medium rounded-md bg-accent text-white hover:bg-accent-hover transition-colors"
+                  >
+                    <FloppyDisk size={12} weight="fill" />
+                    Snapshot now
+                  </button>
                   <SnapshotSortDropdown
                     value={currentSnapshotSort}
                     onChange={setCurrentSnapshotSort}
@@ -351,6 +363,7 @@ export function MissionControl() {
             query={query}
             sortBy={currentSnapshotSort}
             columns={currentSnapshotColumns}
+            refreshSignal={snapshotsRefreshSignal}
           />
         )}
 
@@ -389,6 +402,12 @@ export function MissionControl() {
           />
         )}
       </Suspense>
+
+      <SnapshotPromptModal
+        open={snapshotPromptOpen}
+        onClose={() => setSnapshotPromptOpen(false)}
+        onSaved={() => setSnapshotsRefreshSignal((n) => n + 1)}
+      />
     </div>
   );
 }
