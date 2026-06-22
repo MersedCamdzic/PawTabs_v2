@@ -8,6 +8,8 @@ import {
   Tag,
   NotePencil,
   Moon,
+  ArrowSquareOut,
+  Browsers,
 } from "@phosphor-icons/react";
 import {
   focusTab,
@@ -21,13 +23,15 @@ import type { PawTab } from "@/types";
 
 interface Props {
   tab: PawTab;
+  windowTitle?: string;
   onAction: () => void;
+  onOpenDetails: (tab: PawTab) => void;
 }
 
-export function MCTabRow({ tab, onAction }: Props) {
+export function MCTabRow({ tab, windowTitle, onAction, onOpenDetails }: Props) {
   const domain = getRootDomain(tab.url);
 
-  const handleFocus = () => focusTab(tab.id, tab.windowId);
+  const handleRowClick = () => onOpenDetails(tab);
 
   const stop = (e: Event) => e.stopPropagation();
 
@@ -52,9 +56,14 @@ export function MCTabRow({ tab, onAction }: Props) {
     onAction();
   };
 
+  const handleJump = async (e: MouseEvent) => {
+    stop(e);
+    await focusTab(tab.id, tab.windowId);
+  };
+
   return (
     <div
-      onClick={handleFocus}
+      onClick={handleRowClick}
       class="group flex items-center gap-3 px-3 py-2.5 rounded-md hover:bg-surface cursor-pointer transition-colors"
     >
       <Favicon url={tab.favIconUrl} />
@@ -64,6 +73,12 @@ export function MCTabRow({ tab, onAction }: Props) {
           {tab.title || domain || "Untitled"}
         </div>
         <div class="text-[11px] text-fg-subtle truncate leading-tight mt-0.5 flex items-center gap-2">
+          {windowTitle && (
+            <span class="inline-flex items-center gap-1 text-accent font-medium shrink-0">
+              <Browsers size={10} weight="fill" />
+              {windowTitle}
+            </span>
+          )}
           <span class="truncate">{domain || tab.url}</span>
           {tab.tags.length > 0 && (
             <span class="inline-flex items-center gap-0.5 text-accent shrink-0">
@@ -118,6 +133,14 @@ export function MCTabRow({ tab, onAction }: Props) {
             )}
           </ActionBtn>
         )}
+        <ActionBtn
+          title="Jump to tab"
+          active={false}
+          tone="accent"
+          onClick={handleJump}
+        >
+          <ArrowSquareOut size={13} />
+        </ActionBtn>
         <span
           class="w-px h-4 mx-1 bg-border opacity-0 group-hover:opacity-100 transition-opacity"
           aria-hidden="true"
@@ -126,6 +149,8 @@ export function MCTabRow({ tab, onAction }: Props) {
           type="button"
           onClick={handleClose}
           aria-label="Close tab"
+          data-tooltip="Close tab"
+          data-tooltip-pos="above"
           class="size-7 inline-flex items-center justify-center rounded text-fg-subtle opacity-0 group-hover:opacity-100 hover:bg-danger-subtle hover:text-danger transition-all"
         >
           <X size={13} />
@@ -191,7 +216,8 @@ function ActionBtn(props: {
     <button
       type="button"
       onClick={props.onClick}
-      title={props.title}
+      data-tooltip={props.title}
+      data-tooltip-pos="above"
       aria-label={props.title}
       class={`size-7 inline-flex items-center justify-center rounded ${activeClass} ${visibility} ${TONE_HOVER_BG[props.tone]} ${TONE_HOVER_FG[props.tone]} transition-all`}
     >

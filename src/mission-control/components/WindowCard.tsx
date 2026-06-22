@@ -244,7 +244,7 @@ export function WindowCard({
                 startEdit();
               }}
               disabled={inSelectMode}
-              class="flex-1 min-w-0 text-left group/title rounded px-1 -mx-1 hover:bg-surface transition-colors disabled:cursor-default disabled:hover:bg-transparent"
+              class="flex-1 min-w-0 text-left group/title rounded px-1 -mx-1 hover:bg-surface transition-colors disabled:cursor-default disabled:hover:bg-transparent disabled:pointer-events-none"
               {...(inSelectMode
                 ? {}
                 : { "data-tooltip": "Click to rename window", "data-tooltip-pos": "below" })}

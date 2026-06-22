@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "preact/hooks";
+import { lazy, Suspense } from "preact/compat";
 import { Sidebar } from "./components/Sidebar";
 import type { View } from "./components/Sidebar";
 import { Toolbar } from "./components/Toolbar";
@@ -13,6 +14,14 @@ import { useTabSnapshot } from "./hooks";
 import { computeInsights } from "@/lib/stats";
 import { listBackups } from "@/lib/backups";
 import { listSessions } from "@/lib/sessions";
+import { getAllWindowTitles } from "@/lib/windows";
+import type { PawTab } from "@/types";
+
+const TabDetailsModal = lazy(() =>
+  import("@/popup/components/TabDetailsModal").then((m) => ({
+    default: m.TabDetailsModal,
+  })),
+);
 
 const VIEW_META: Record<View, { title: string; subtitle: string }> = {
   overview: {
@@ -52,6 +61,21 @@ export function MissionControl() {
   const [query, setQuery] = useState("");
   const [sessionCount, setSessionCount] = useState(0);
   const [backupCount, setBackupCount] = useState(0);
+  const [windowTitles, setWindowTitles] = useState<Record<number, string>>({});
+  const [detailsTab, setDetailsTab] = useState<PawTab | null>(null);
+
+  const refreshWindowTitles = async () => {
+    setWindowTitles(await getAllWindowTitles());
+  };
+
+  useEffect(() => {
+    refreshWindowTitles();
+  }, []);
+
+  const liveDetailsTab = useMemo<PawTab | null>(() => {
+    if (!detailsTab || !snapshot) return detailsTab;
+    return snapshot.tabs.find((t) => t.id === detailsTab.id) ?? detailsTab;
+  }, [detailsTab, snapshot]);
 
   useEffect(() => {
     const refresh = async () => {
@@ -148,19 +172,29 @@ export function MissionControl() {
             emptyText={
               query ? `No tabs match "${query}"` : "No tabs open"
             }
+            windowTitles={windowTitles}
             onAction={reload}
+            onOpenDetails={setDetailsTab}
           />
         )}
 
         {view === "windows" && (
-          <WindowsView query={query} onAction={reload} />
+          <WindowsView
+            query={query}
+            onAction={() => {
+              reload();
+              refreshWindowTitles();
+            }}
+          />
         )}
 
         {view === "pawed" && (
           <TabsListView
             tabs={pawedTabs}
             emptyText="No pawed tabs. Paw a tab from the popup to add it here."
+            windowTitles={windowTitles}
             onAction={reload}
+            onOpenDetails={setDetailsTab}
           />
         )}
 
@@ -168,12 +202,20 @@ export function MissionControl() {
           <TabsListView
             tabs={pinnedTabs}
             emptyText="No pinned tabs."
+            windowTitles={windowTitles}
             onAction={reload}
+            onOpenDetails={setDetailsTab}
           />
         )}
 
         {view === "tags" && snapshot && (
-          <TagsView tabs={snapshot.tabs} query={query} onAction={reload} />
+          <TagsView
+            tabs={snapshot.tabs}
+            query={query}
+            windowTitles={windowTitles}
+            onAction={reload}
+            onOpenDetails={setDetailsTab}
+          />
         )}
 
         {view === "sessions" && <SessionsView query={query} />}
@@ -190,6 +232,17 @@ export function MissionControl() {
           </div>
         )}
       </main>
+
+      <Suspense fallback={null}>
+        {detailsTab !== null && (
+          <TabDetailsModal
+            tab={liveDetailsTab}
+            open={detailsTab !== null}
+            onClose={() => setDetailsTab(null)}
+            onAction={reload}
+          />
+        )}
+      </Suspense>
     </div>
   );
 }

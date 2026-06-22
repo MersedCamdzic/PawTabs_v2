@@ -6,10 +6,18 @@ import { MCTabRow } from "../MCTabRow";
 interface Props {
   tabs: PawTab[];
   query: string;
+  windowTitles: Record<number, string>;
   onAction: () => void;
+  onOpenDetails: (tab: PawTab) => void;
 }
 
-export function TagsView({ tabs, query, onAction }: Props) {
+export function TagsView({
+  tabs,
+  query,
+  windowTitles,
+  onAction,
+  onOpenDetails,
+}: Props) {
   const [selected, setSelected] = useState<string | null>(null);
 
   const tagCounts = useMemo(() => {
@@ -92,7 +100,13 @@ export function TagsView({ tabs, query, onAction }: Props) {
             </div>
             <div class="space-y-0.5">
               {tagsTabs.map((t) => (
-                <MCTabRow key={t.id} tab={t} onAction={onAction} />
+                <MCTabRow
+                  key={t.id}
+                  tab={t}
+                  windowTitle={windowTitles[t.windowId]}
+                  onAction={onAction}
+                  onOpenDetails={onOpenDetails}
+                />
               ))}
             </div>
           </>
