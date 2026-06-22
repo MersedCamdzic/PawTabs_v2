@@ -39,7 +39,7 @@ export function Modal({
       onClick={closeOnBackdrop ? onClose : undefined}
     >
       <div
-        class="relative w-[380px] max-h-[90vh] bg-bg-elevated border border-border rounded-lg shadow-lg flex flex-col"
+        class="relative w-[400px] max-h-[92vh] bg-bg-elevated border border-border rounded-xl shadow-xl flex flex-col animate-modal-in"
         onClick={(e) => e.stopPropagation()}
       >
         <div class="flex items-center gap-2 px-4 py-3 border-b border-border">

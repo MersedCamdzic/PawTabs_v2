@@ -221,19 +221,31 @@ export function TabDetailsModal({ tab, open, onClose, onAction }: Props) {
       }
     >
       <div class="space-y-5">
-        <div class="flex items-start gap-3.5">
-          <div class="size-12 shrink-0 rounded-lg bg-surface border border-border flex items-center justify-center overflow-hidden shadow-sm">
-            {tab.favIconUrl ? (
-              <img
-                src={tab.favIconUrl}
-                alt=""
-                class="size-7"
-                onError={(e) => {
-                  (e.currentTarget as HTMLImageElement).style.display = "none";
-                }}
-              />
-            ) : (
-              <Globe size={22} class="text-fg-subtle" />
+        <div class="relative flex items-center gap-4 px-4 py-4 bg-gradient-to-br from-accent-subtle/40 via-bg-elevated to-bg-elevated rounded-xl border border-border">
+          <div class="relative shrink-0">
+            <div class="size-14 rounded-xl bg-bg border border-border flex items-center justify-center overflow-hidden shadow-md">
+              {tab.favIconUrl ? (
+                <img
+                  src={tab.favIconUrl}
+                  alt=""
+                  class="size-8"
+                  onError={(e) => {
+                    (e.currentTarget as HTMLImageElement).style.display = "none";
+                  }}
+                />
+              ) : (
+                <Globe size={26} class="text-fg-subtle" />
+              )}
+            </div>
+            {tab.starred && (
+              <span class="absolute -top-1 -right-1 inline-flex size-5 items-center justify-center rounded-full bg-accent text-white shadow ring-2 ring-bg-elevated">
+                <PawPrint size={10} weight="fill" />
+              </span>
+            )}
+            {tab.pinned && !tab.starred && (
+              <span class="absolute -top-1 -right-1 inline-flex size-5 items-center justify-center rounded-full bg-warning text-white shadow ring-2 ring-bg-elevated">
+                <PushPin size={10} weight="fill" />
+              </span>
             )}
           </div>
           <div class="flex-1 min-w-0">
@@ -242,27 +254,16 @@ export function TabDetailsModal({ tab, open, onClose, onAction }: Props) {
             </div>
             <div class="text-[11px] mt-1.5 flex items-center gap-1.5 flex-wrap">
               <span class="font-medium text-fg-muted">{domain}</span>
-              <span class="inline-flex items-center gap-1 px-1.5 h-4 bg-accent-subtle text-accent text-[10px] font-medium rounded">
+              <span class="inline-flex items-center gap-1 px-1.5 h-4 bg-accent-subtle text-accent text-[10px] font-semibold rounded">
                 <Browsers size={9} weight="fill" />
                 {currentWindowDisplay}
               </span>
-              {tab.starred && (
-                <span class="inline-flex items-center gap-1 px-1.5 h-4 bg-accent-subtle text-accent text-[10px] font-medium rounded">
-                  <PawPrint size={9} weight="fill" />
-                  pawed
-                </span>
-              )}
-              {tab.pinned && (
-                <span class="inline-flex items-center gap-1 px-1.5 h-4 bg-warning-subtle text-warning text-[10px] font-medium rounded">
-                  <PushPin size={9} weight="fill" />
-                  pinned
-                </span>
-              )}
             </div>
           </div>
         </div>
 
-        <div class="flex items-center gap-2 px-2.5 py-2 bg-surface rounded-md border border-border">
+        <div class="flex items-center gap-2 px-3 h-8 bg-surface rounded-md">
+          <Copy size={11} class="text-fg-subtle shrink-0" />
           <span class="font-mono text-[11px] text-fg-subtle truncate flex-1">
             {tab.url}
           </span>
@@ -282,7 +283,7 @@ export function TabDetailsModal({ tab, open, onClose, onAction }: Props) {
           </button>
         </div>
 
-        <Section icon={<Tag size={11} />} title="Tags">
+        <Section icon={<Tag size={11} weight="fill" />} title="Tags" count={tab.tags.length}>
           {tab.tags.length === 0 && (
             <div class="text-[11px] text-fg-subtle italic mb-1.5">
               No tags yet
@@ -320,7 +321,7 @@ export function TabDetailsModal({ tab, open, onClose, onAction }: Props) {
           </form>
         </Section>
 
-        <Section icon={<NotePencil size={11} />} title="Notes">
+        <Section icon={<NotePencil size={11} weight="fill" />} title="Notes" count={tab.notes.length}>
           {tab.notes.length === 0 && (
             <div class="text-[11px] text-fg-subtle italic mb-1.5">
               No notes yet
@@ -389,7 +390,7 @@ export function TabDetailsModal({ tab, open, onClose, onAction }: Props) {
           </form>
         </Section>
 
-        <Section icon={<Browser size={11} />} title="Move to window">
+        <Section icon={<Browser size={11} weight="fill" />} title="Move to window">
           {(() => {
             const others = windows.filter((w) => w.id !== tab.windowId);
             const q = windowQuery.trim().toLowerCase();
@@ -499,13 +500,19 @@ export function TabDetailsModal({ tab, open, onClose, onAction }: Props) {
 function Section(props: {
   icon: preact.ComponentChildren;
   title: string;
+  count?: number;
   children: preact.ComponentChildren;
 }) {
   return (
     <div>
-      <div class="text-[11px] uppercase tracking-wide text-fg-subtle mb-2 font-medium flex items-center gap-1.5">
-        {props.icon}
+      <div class="text-[10px] uppercase tracking-wider text-fg-subtle mb-2.5 font-semibold flex items-center gap-1.5">
+        <span class="text-accent">{props.icon}</span>
         {props.title}
+        {props.count !== undefined && props.count > 0 && (
+          <span class="ml-0.5 text-fg-subtle/60 font-normal normal-case tracking-normal">
+            · {props.count}
+          </span>
+        )}
       </div>
       {props.children}
     </div>
@@ -514,13 +521,14 @@ function Section(props: {
 
 function TagChip(props: { label: string; onRemove: () => void }) {
   return (
-    <span class="inline-flex items-center gap-1 h-6 pl-2 pr-1 bg-accent-subtle text-accent-fg rounded text-[11px] font-medium">
+    <span class="group/chip inline-flex items-center gap-1 h-6 pl-2 pr-1 bg-accent-subtle text-accent-fg rounded-full text-[11px] font-medium border border-accent/20 hover:border-accent/40 transition-colors">
+      <Tag size={9} weight="fill" class="text-accent" />
       {props.label}
       <button
         type="button"
         onClick={props.onRemove}
         aria-label={`Remove tag ${props.label}`}
-        class="inline-flex items-center justify-center size-4 rounded hover:bg-accent/20 transition-colors"
+        class="inline-flex items-center justify-center size-4 rounded-full text-accent/60 hover:bg-accent hover:text-white transition-colors"
       >
         <X size={9} weight="bold" />
       </button>
