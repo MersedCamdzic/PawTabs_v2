@@ -1,7 +1,5 @@
 import { useState, useRef, useEffect } from "preact/hooks";
 import {
-  X,
-  Trash,
   PawPrint,
   PushPin,
   Tag,
@@ -11,7 +9,6 @@ import {
   CaretDown,
 } from "@phosphor-icons/react";
 import {
-  closeMany,
   setStarredMany,
   setPinnedMany,
   addTagToMany,
@@ -66,7 +63,6 @@ export function SelectionBar({ selectedIds, onClear, onAction }: Props) {
     }
   };
 
-  const handleClose = wrap(() => closeMany(selectedIds));
   const handlePaw = wrap(() => setStarredMany(selectedIds, true));
   const handlePin = wrap(() => setPinnedMany(selectedIds, true));
 
@@ -125,13 +121,17 @@ export function SelectionBar({ selectedIds, onClear, onAction }: Props) {
           >
             <ArrowSquareOut size={13} />
           </ActionBtn>
-          <ActionBtn title="Close all" onClick={handleClose} disabled={busy} tone="danger">
-            <Trash size={13} />
-          </ActionBtn>
           <span class="w-px h-4 mx-1 bg-border" />
-          <ActionBtn title="Clear selection (Esc)" onClick={onClear} disabled={busy} tone="muted">
-            <X size={13} />
-          </ActionBtn>
+          <button
+            type="button"
+            onClick={onClear}
+            disabled={busy}
+            title="Clear selection (Esc)"
+            aria-label="Close selection"
+            class="h-7 px-2.5 text-[11px] font-medium rounded text-fg-muted hover:bg-surface hover:text-fg disabled:opacity-40 transition-colors"
+          >
+            Close
+          </button>
         </div>
       </div>
 
