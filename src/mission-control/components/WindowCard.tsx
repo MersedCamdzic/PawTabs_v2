@@ -191,44 +191,52 @@ function CompactTabRow(props: {
     await focusTab(props.tab.id, props.tab.windowId ?? 0);
   };
 
+  const handleDragStart = (e: DragEvent) => {
+    if (props.tab.id === undefined || !e.dataTransfer) {
+      e.preventDefault();
+      return;
+    }
+    e.dataTransfer.setData("text/plain", String(props.tab.id));
+    e.dataTransfer.setData("text/tab-id", String(props.tab.id));
+    e.dataTransfer.effectAllowed = "move";
+    props.onDragStart();
+  };
+
   return (
     <div
-      draggable
-      onDragStart={(e) => {
-        if (props.tab.id === undefined) {
-          e.preventDefault();
-          return;
-        }
-        e.dataTransfer!.setData("text/tab-id", String(props.tab.id));
-        e.dataTransfer!.effectAllowed = "move";
-        props.onDragStart();
-      }}
+      draggable={true}
+      onDragStart={handleDragStart}
       onDragEnd={props.onDragEnd}
       onClick={handleClick}
       class={`group flex items-center gap-1 px-1 py-1 rounded text-[12px] cursor-grab active:cursor-grabbing select-none transition-all ${
         props.isDragging ? "opacity-30" : "hover:bg-surface"
       }`}
     >
-      <span class="size-3 inline-flex items-center justify-center text-fg-subtle opacity-30 group-hover:opacity-100 transition-opacity shrink-0">
+      <span class="size-3 inline-flex items-center justify-center text-fg-subtle opacity-30 group-hover:opacity-100 transition-opacity shrink-0 pointer-events-none">
         <DotsSixVertical size={10} weight="bold" />
       </span>
       {props.tab.favIconUrl ? (
         <img
           src={props.tab.favIconUrl}
           alt=""
-          class="size-3.5 shrink-0 rounded-sm"
+          draggable={false}
+          class="size-3.5 shrink-0 rounded-sm pointer-events-none"
           onError={(e) => {
             (e.currentTarget as HTMLImageElement).style.display = "none";
           }}
         />
       ) : (
-        <Globe size={12} class="text-fg-subtle shrink-0" />
+        <Globe size={12} class="text-fg-subtle shrink-0 pointer-events-none" />
       )}
-      <span class="flex-1 truncate text-fg">
+      <span class="flex-1 truncate text-fg pointer-events-none">
         {props.tab.title || props.tab.url}
       </span>
       {props.tab.pinned && (
-        <PushPin size={10} weight="fill" class="text-warning shrink-0" />
+        <PushPin
+          size={10}
+          weight="fill"
+          class="text-warning shrink-0 pointer-events-none"
+        />
       )}
     </div>
   );

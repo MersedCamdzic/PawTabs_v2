@@ -65,6 +65,9 @@ export function Sidebar({ view, onChange, counts }: Props) {
           active={view === "tabs"}
           onClick={() => onChange("tabs")}
         />
+
+        <SectionLabel>Collections</SectionLabel>
+
         <NavItem
           icon={<Browsers size={14} />}
           label="Windows"
@@ -72,9 +75,6 @@ export function Sidebar({ view, onChange, counts }: Props) {
           active={view === "windows"}
           onClick={() => onChange("windows")}
         />
-
-        <SectionLabel>Collections</SectionLabel>
-
         <NavItem
           icon={<PawPrint size={14} />}
           label="Pawed"
