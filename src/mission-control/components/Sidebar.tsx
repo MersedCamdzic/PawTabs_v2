@@ -4,7 +4,7 @@ import {
   Browsers,
   PushPin,
   Tag,
-  Stack,
+  BookmarkSimple,
   ClockCounterClockwise,
   ArrowCounterClockwise,
   Gear,
@@ -90,7 +90,7 @@ export function Sidebar({ view, onChange, counts }: Props) {
         <SectionLabel>History</SectionLabel>
 
         <NavItem
-          icon={<Stack size={14} />}
+          icon={<BookmarkSimple size={14} />}
           label="Sessions"
           count={counts.sessions}
           active={view === "sessions"}

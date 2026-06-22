@@ -3,7 +3,7 @@ import {
   FloppyDisk,
   ArrowCounterClockwise,
   Trash,
-  Stack,
+  BookmarkSimple,
   Browsers,
 } from "@phosphor-icons/react";
 import {
@@ -105,7 +105,7 @@ export function SessionsView({ query }: Props) {
 
       {filtered.length === 0 ? (
         <div class="py-16 text-center">
-          <Stack
+          <BookmarkSimple
             size={32}
             weight="thin"
             class="mx-auto mb-3 text-fg-subtle"

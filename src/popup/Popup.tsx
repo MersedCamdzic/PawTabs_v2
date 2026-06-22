@@ -33,6 +33,11 @@ const TabDetailsModal = lazy(() =>
     default: m.TabDetailsModal,
   })),
 );
+const CommandPalette = lazy(() =>
+  import("./components/CommandPalette").then((m) => ({
+    default: m.CommandPalette,
+  })),
+);
 import { groupTabs } from "@/lib/grouping";
 import { getPreferences, setPreference } from "@/lib/preferences";
 import type {
@@ -51,6 +56,7 @@ export function Popup() {
   const [wizardOpen, setWizardOpen] = useState(false);
   const [sessionsOpen, setSessionsOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [paletteOpen, setPaletteOpen] = useState(false);
   const [detailsTab, setDetailsTab] = useState<PawTab | null>(null);
 
   const refreshWindowTitles = async () => {
@@ -69,6 +75,18 @@ export function Popup() {
       setCollapsed(new Set(prefs.collapsedGroups));
     });
     refreshWindowTitles();
+  }, []);
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const meta = e.metaKey || e.ctrlKey;
+      if (meta && e.key === "k") {
+        e.preventDefault();
+        setPaletteOpen((o) => !o);
+      }
+    };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
   }, []);
 
   const updateGrouping = (next: GroupByType) => {
@@ -221,8 +239,17 @@ export function Popup() {
       </div>
 
       <footer class="border-t border-border px-4 py-2 flex items-center justify-between text-[11px] text-fg-subtle">
-        <span>PawTabs v2</span>
-        <span class="font-mono">⌘⇧Y</span>
+        <button
+          type="button"
+          onClick={() => setPaletteOpen(true)}
+          class="hover:text-fg transition-colors inline-flex items-center gap-1.5"
+        >
+          <span class="font-mono bg-surface border border-border px-1 rounded text-[10px]">
+            ⌘K
+          </span>
+          <span>command palette</span>
+        </button>
+        <span class="font-mono">⌘⇧Y to open</span>
       </footer>
 
       <Suspense fallback={null}>
@@ -260,6 +287,17 @@ export function Popup() {
             open={detailsTab !== null}
             onClose={() => setDetailsTab(null)}
             onAction={reload}
+          />
+        )}
+        {paletteOpen && (
+          <CommandPalette
+            open={paletteOpen}
+            onClose={() => setPaletteOpen(false)}
+            snapshot={snapshot}
+            onOpenMissionControl={openMissionControl}
+            onOpenWizard={() => setWizardOpen(true)}
+            onOpenSessions={() => setSessionsOpen(true)}
+            onOpenSettings={() => setSettingsOpen(true)}
           />
         )}
       </Suspense>
