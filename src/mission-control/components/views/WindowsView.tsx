@@ -406,7 +406,10 @@ export function WindowsView({ query, onAction, onOpenDetails }: Props) {
             onSplit={handleSplit}
             onCloseNonPinned={handleCloseNonPinned}
             onCloseWindow={handleCloseWindow}
-            onAction={onAction}
+            onAction={async () => {
+              onAction();
+              await refresh();
+            }}
             onOpenDetails={onOpenDetails}
             onReload={refresh}
           />
