@@ -1,10 +1,12 @@
 import type { PawTab, TabSnapshot } from "@/types";
 import { storage } from "./storage";
+import { getPawedUrlSet, pawTab, unpawTab } from "./pawed";
 
 export async function fetchAllTabs(): Promise<TabSnapshot> {
-  const [windows, savedPages] = await Promise.all([
+  const [windows, savedPages, pawedSet] = await Promise.all([
     chrome.windows.getAll({ populate: true }),
     storage.get("savedPages"),
+    getPawedUrlSet(),
   ]);
 
   const saved = savedPages ?? {};
@@ -24,7 +26,7 @@ export async function fetchAllTabs(): Promise<TabSnapshot> {
       pinned: t.pinned ?? false,
       lastAccessed: t.lastAccessed,
       saved: Boolean(saved[t.id]?.saved),
-      starred: Boolean(saved[t.id]?.starred),
+      starred: pawedSet.has(t.url ?? ""),
       tags: saved[t.id]?.tags ?? [],
       notes: saved[t.id]?.notes ?? [],
     }));
@@ -65,10 +67,18 @@ export async function toggleMuted(
 }
 
 export async function toggleStarred(tabId: number): Promise<boolean> {
-  const savedPages = (await storage.get("savedPages")) ?? {};
-  const entry = savedPages[tabId] ?? {};
-  const next = !entry.starred;
-  savedPages[tabId] = { ...entry, starred: next, saved: next };
-  await storage.set("savedPages", savedPages);
-  return next;
+  const tab = await chrome.tabs.get(tabId);
+  const url = tab.url ?? "";
+  if (!url) return false;
+  const pawedSet = await getPawedUrlSet();
+  if (pawedSet.has(url)) {
+    await unpawTab(url);
+    return false;
+  }
+  await pawTab({
+    url,
+    title: tab.title ?? "",
+    favIconUrl: tab.favIconUrl ?? "",
+  });
+  return true;
 }

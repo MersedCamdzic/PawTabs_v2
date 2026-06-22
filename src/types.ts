@@ -93,8 +93,17 @@ export interface Preferences {
   wizardThresholds: WizardThresholds;
 }
 
+export interface PawedEntry {
+  url: string;
+  title: string;
+  favIconUrl: string;
+  pawedAt: number;
+  note?: string;
+}
+
 export interface StorageSchema {
   savedPages: Record<number, SavedPage>;
+  pawedUrls: Record<string, PawedEntry>;
   savedSessions: SavedSession[];
   savedGroups: SavedGroup[];
   windows: Record<number, WindowMeta>;

@@ -5,6 +5,7 @@ import type { View } from "./components/Sidebar";
 import { Toolbar } from "./components/Toolbar";
 import { OverviewView } from "./components/views/OverviewView";
 import { TabsListView } from "./components/views/TabsListView";
+import { PawedView } from "./components/views/PawedView";
 import { ColumnsPicker } from "./components/ColumnsPicker";
 import { GroupByDropdown } from "./components/GroupByDropdown";
 import { OrderByDropdown } from "./components/OrderByDropdown";
