@@ -189,7 +189,7 @@ export function Popup() {
           >
             <BookmarkSimple size={16} weight="regular" />
           </IconButton>
-          <IconButton label="Wizard" onClick={() => setWizardOpen(true)}>
+          <IconButton label="Cleanup" onClick={() => setWizardOpen(true)}>
             <Broom size={16} weight="regular" />
           </IconButton>
           <IconButton label="Mission Control" onClick={openMissionControl}>
