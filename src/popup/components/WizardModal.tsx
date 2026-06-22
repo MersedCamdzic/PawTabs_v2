@@ -1,5 +1,10 @@
 import { useState, useEffect } from "preact/hooks";
-import { Broom, CheckCircle, FloppyDisk } from "@phosphor-icons/react";
+import {
+  Broom,
+  CheckCircle,
+  FloppyDisk,
+  BookmarkSimple,
+} from "@phosphor-icons/react";
 import { Modal } from "./Modal";
 import { Toggle } from "./Toggle";
 import { runWizard, WIZARD_DEFAULTS } from "@/lib/wizard";
