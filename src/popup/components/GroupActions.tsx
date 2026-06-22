@@ -285,8 +285,7 @@ function IconBtn(props: {
       type="button"
       onClick={props.onClick}
       aria-label={props.tooltip}
-      data-tooltip={props.tooltip}
-      data-tooltip-pos="above"
+      title={props.tooltip}
       class={`size-7 inline-flex items-center justify-center rounded transition-all opacity-0 group-hover:opacity-100 ${
         props.active
           ? "opacity-100 bg-accent-subtle text-accent"
