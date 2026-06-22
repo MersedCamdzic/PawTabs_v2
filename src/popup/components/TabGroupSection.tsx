@@ -4,7 +4,7 @@ import type { TabGroup } from "@/lib/grouping";
 import type { PawTab, GroupBy, WindowColor } from "@/types";
 import { setWindowTitle } from "@/lib/windows";
 import { WINDOW_COLOR_STYLES } from "@/lib/window-colors";
-import { BulkActionsMenu } from "@/mission-control/components/BulkActionsMenu";
+import { GroupActions } from "./GroupActions";
 import { TabRow } from "./TabRow";
 
 interface Props {
@@ -201,9 +201,7 @@ function GroupHeader({
           <PencilSimple size={10} />
         </button>
       )}
-      <div onClick={(e) => e.stopPropagation()} class="shrink-0">
-        <BulkActionsMenu tabs={group.tabs} onAction={onAction} compact />
-      </div>
+      <GroupActions tabs={group.tabs} onAction={onAction} />
     </div>
   );
 }
