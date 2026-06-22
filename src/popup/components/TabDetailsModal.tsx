@@ -31,6 +31,7 @@ import {
 } from "@/lib/tabs";
 import {
   focusTab,
+  closeTab,
   togglePinned,
   toggleMuted,
   toggleStarred,
@@ -177,6 +178,12 @@ export function TabDetailsModal({ tab, open, onClose, onAction }: Props) {
     onAction();
   };
 
+  const handleCloseTab = async () => {
+    await closeTab(tab.id);
+    onAction();
+    onClose();
+  };
+
   const handleCopyUrl = async () => {
     try {
       await navigator.clipboard.writeText(tab.url);
@@ -252,6 +259,13 @@ export function TabDetailsModal({ tab, open, onClose, onAction }: Props) {
             onClick={handleJump}
           >
             <ArrowSquareOut size={13} />
+          </HeaderAction>
+          <HeaderAction
+            title="Close this tab"
+            tone="danger"
+            onClick={handleCloseTab}
+          >
+            <X size={13} />
           </HeaderAction>
         </div>
       }
