@@ -6,6 +6,8 @@ import { Toolbar } from "./components/Toolbar";
 import { OverviewView } from "./components/views/OverviewView";
 import { TabsListView } from "./components/views/TabsListView";
 import { ColumnsPicker } from "./components/ColumnsPicker";
+import { GroupByDropdown } from "./components/GroupByDropdown";
+import { OrderByDropdown } from "./components/OrderByDropdown";
 import { TagsView } from "./components/views/TagsView";
 import { SessionsView } from "./components/views/SessionsView";
 import { BackupsView } from "./components/views/BackupsView";
@@ -16,7 +18,7 @@ import { computeInsights } from "@/lib/stats";
 import { listBackups } from "@/lib/backups";
 import { listSessions } from "@/lib/sessions";
 import { getAllWindowTitles } from "@/lib/windows";
-import type { PawTab } from "@/types";
+import type { PawTab, GroupBy, OrderBy } from "@/types";
 
 const TabDetailsModal = lazy(() =>
   import("@/popup/components/TabDetailsModal").then((m) => ({
@@ -69,15 +71,25 @@ export function MissionControl() {
   const [detailsTab, setDetailsTab] = useState<PawTab | null>(null);
   const [columnsByView, setColumnsByView] = useState<
     Record<string, 1 | 2 | 3 | 4>
-  >({
-    tabs: 1,
-    pawed: 1,
-    pinned: 1,
-  });
+  >({});
+  const [groupingByView, setGroupingByView] = useState<
+    Record<string, GroupBy>
+  >({});
+  const [orderingByView, setOrderingByView] = useState<
+    Record<string, OrderBy>
+  >({});
 
   const currentColumns = columnsByView[view] ?? 1;
   const setCurrentColumns = (n: 1 | 2 | 3 | 4) => {
     setColumnsByView((prev) => ({ ...prev, [view]: n }));
+  };
+  const currentGrouping = groupingByView[view] ?? "none";
+  const setCurrentGrouping = (g: GroupBy) => {
+    setGroupingByView((prev) => ({ ...prev, [view]: g }));
+  };
+  const currentOrdering = orderingByView[view] ?? "none";
+  const setCurrentOrdering = (o: OrderBy) => {
+    setOrderingByView((prev) => ({ ...prev, [view]: o }));
   };
 
   const refreshWindowTitles = async () => {
@@ -167,10 +179,20 @@ export function MissionControl() {
             onQueryChange={setQuery}
             searchActions={
               ["tabs", "pawed", "pinned"].includes(view) ? (
-                <ColumnsPicker
-                  value={currentColumns}
-                  onChange={setCurrentColumns}
-                />
+                <>
+                  <GroupByDropdown
+                    value={currentGrouping}
+                    onChange={setCurrentGrouping}
+                  />
+                  <OrderByDropdown
+                    value={currentOrdering}
+                    onChange={setCurrentOrdering}
+                  />
+                  <ColumnsPicker
+                    value={currentColumns}
+                    onChange={setCurrentColumns}
+                  />
+                </>
               ) : undefined
             }
           />
@@ -207,6 +229,8 @@ export function MissionControl() {
             }
             windowTitles={windowTitles}
             columns={currentColumns}
+            grouping={currentGrouping}
+            ordering={currentOrdering}
             onAction={reload}
             onOpenDetails={setDetailsTab}
           />
@@ -229,6 +253,8 @@ export function MissionControl() {
             emptyText="No pawed tabs. Paw a tab from the popup to add it here."
             windowTitles={windowTitles}
             columns={currentColumns}
+            grouping={currentGrouping}
+            ordering={currentOrdering}
             onAction={reload}
             onOpenDetails={setDetailsTab}
           />
@@ -240,6 +266,8 @@ export function MissionControl() {
             emptyText="No pinned tabs."
             windowTitles={windowTitles}
             columns={currentColumns}
+            grouping={currentGrouping}
+            ordering={currentOrdering}
             onAction={reload}
             onOpenDetails={setDetailsTab}
           />
