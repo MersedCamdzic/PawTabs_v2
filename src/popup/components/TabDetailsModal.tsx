@@ -21,6 +21,7 @@ import {
   moveTabToNewWindow,
   listWindowsForMove,
 } from "@/lib/tabs";
+import { focusTab } from "@/lib/chrome";
 import { getRootDomain } from "@/lib/utils";
 import { formatRelativeTime } from "@/lib/sessions";
 import type { PawTab } from "@/types";
@@ -95,6 +96,11 @@ export function TabDetailsModal({ tab, open, onClose, onAction }: Props) {
     onClose();
   };
 
+  const handleJump = async () => {
+    await focusTab(tab.id, tab.windowId);
+    onClose();
+  };
+
   const domain = getRootDomain(tab.url);
   const currentWindow = windows.find((w) => w.id === tab.windowId);
   const currentWindowDisplay = currentWindow
@@ -119,6 +125,16 @@ export function TabDetailsModal({ tab, open, onClose, onAction }: Props) {
               </span>
             </div>
           </div>
+          <button
+            type="button"
+            onClick={handleJump}
+            aria-label="Jump to tab"
+            data-tooltip="Jump to this tab"
+            data-tooltip-pos="left"
+            class="size-8 inline-flex items-center justify-center rounded-md text-fg-muted bg-bg border border-border hover:border-accent hover:bg-accent-subtle hover:text-accent transition-colors shrink-0"
+          >
+            <ArrowSquareOut size={14} />
+          </button>
         </div>
 
         <Section icon={<Tag size={11} />} title="Tags">
