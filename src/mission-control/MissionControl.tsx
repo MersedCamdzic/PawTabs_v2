@@ -172,10 +172,6 @@ export function MissionControl() {
     });
   }, [snapshot, query, windowTitles]);
 
-  const pawedTabs = useMemo(
-    () => filteredTabs.filter((t) => t.starred),
-    [filteredTabs],
-  );
   const pinnedTabs = useMemo(
     () => filteredTabs.filter((t) => t.pinned),
     [filteredTabs],
