@@ -13,11 +13,22 @@ import type { RecentlyClosedItem } from "@/lib/recently-closed";
 import { formatRelativeTime } from "@/lib/sessions";
 import { getRootDomain } from "@/lib/utils";
 
+import type { SnapshotSortKey } from "../SnapshotSortDropdown";
+
 interface Props {
   query: string;
+  sortBy: SnapshotSortKey;
+  columns: 1 | 2 | 3 | 4;
 }
 
-export function RecentlyClosedView({ query }: Props) {
+const COLUMN_GRID: Record<1 | 2 | 3 | 4, string> = {
+  1: "space-y-0.5",
+  2: "grid grid-cols-1 md:grid-cols-2 gap-1",
+  3: "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-1",
+  4: "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-1",
+};
+
+export function RecentlyClosedView({ query, sortBy, columns }: Props) {
   const [items, setItems] = useState<RecentlyClosedItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -55,12 +66,26 @@ export function RecentlyClosedView({ query }: Props) {
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return items;
-    return items.filter(
-      (i) =>
-        i.title.toLowerCase().includes(q) || i.url.toLowerCase().includes(q),
-    );
-  }, [items, query]);
+    const list = q
+      ? items.filter(
+          (i) =>
+            i.title.toLowerCase().includes(q) ||
+            i.url.toLowerCase().includes(q),
+        )
+      : items;
+    const sorted = [...list].sort((a, b) => {
+      switch (sortBy) {
+        case "date-asc":
+          return a.lastModified - b.lastModified;
+        case "name":
+          return (a.title || a.url).localeCompare(b.title || b.url);
+        case "date-desc":
+        default:
+          return b.lastModified - a.lastModified;
+      }
+    });
+    return sorted;
+  }, [items, query, sortBy]);
 
   return (
     <div class="px-6 py-3">
@@ -130,7 +155,7 @@ export function RecentlyClosedView({ query }: Props) {
           No matches for "{query}"
         </div>
       ) : (
-        <div class="space-y-0.5">
+        <div class={COLUMN_GRID[columns]}>
           {filtered.map((item, i) => (
             <div
               key={`${item.sessionId}-${i}`}

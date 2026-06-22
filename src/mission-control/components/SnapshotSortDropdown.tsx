@@ -20,9 +20,11 @@ export const SNAPSHOT_SORT_OPTIONS: {
 interface Props {
   value: SnapshotSortKey;
   onChange: (value: SnapshotSortKey) => void;
+  options?: { value: SnapshotSortKey; label: string }[];
 }
 
-export function SnapshotSortDropdown({ value, onChange }: Props) {
+export function SnapshotSortDropdown({ value, onChange, options }: Props) {
+  const opts = options ?? SNAPSHOT_SORT_OPTIONS;
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -37,7 +39,7 @@ export function SnapshotSortDropdown({ value, onChange }: Props) {
     return () => document.removeEventListener("mousedown", handler);
   }, [open]);
 
-  const current = SNAPSHOT_SORT_OPTIONS.find((o) => o.value === value);
+  const current = opts.find((o) => o.value === value);
 
   return (
     <div ref={ref} class="relative">
@@ -52,7 +54,7 @@ export function SnapshotSortDropdown({ value, onChange }: Props) {
       </button>
       {open && (
         <div class="absolute right-0 top-full mt-1 z-20 w-40 bg-bg-elevated border border-border rounded-md shadow-md py-1">
-          {SNAPSHOT_SORT_OPTIONS.map((opt) => {
+          {opts.map((opt) => {
             const selected = opt.value === value;
             return (
               <button

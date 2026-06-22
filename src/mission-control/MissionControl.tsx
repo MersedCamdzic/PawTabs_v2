@@ -238,6 +238,22 @@ export function MissionControl() {
                     onChange={setCurrentSnapshotColumns}
                   />
                 </>
+              ) : view === "recently-closed" ? (
+                <>
+                  <SnapshotSortDropdown
+                    value={currentSnapshotSort}
+                    onChange={setCurrentSnapshotSort}
+                    options={[
+                      { value: "date-desc", label: "Newest first" },
+                      { value: "date-asc", label: "Oldest first" },
+                      { value: "name", label: "Title (A→Z)" },
+                    ]}
+                  />
+                  <ColumnsPicker
+                    value={currentSnapshotColumns}
+                    onChange={setCurrentSnapshotColumns}
+                  />
+                </>
               ) : undefined
             }
           />
@@ -346,7 +362,13 @@ export function MissionControl() {
           />
         )}
 
-        {view === "recently-closed" && <RecentlyClosedView query={query} />}
+        {view === "recently-closed" && (
+          <RecentlyClosedView
+            query={query}
+            sortBy={currentSnapshotSort}
+            columns={currentSnapshotColumns}
+          />
+        )}
 
         {view === "settings" && (
           <div class="px-8 py-8 max-w-md">
