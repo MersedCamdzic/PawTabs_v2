@@ -10,6 +10,7 @@ import {
 } from "@phosphor-icons/react";
 import { useTabSnapshot } from "./hooks";
 import { TabGroupSection } from "./components/TabGroupSection";
+import { TabRow } from "./components/TabRow";
 import { GroupBy } from "./components/GroupBy";
 import { OrderBy } from "./components/OrderBy";
 import { SelectionBar } from "./components/SelectionBar";
@@ -65,6 +66,7 @@ export function Popup() {
   const [detailsTab, setDetailsTab] = useState<PawTab | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [lastSelectedId, setLastSelectedId] = useState<number | null>(null);
+  const [currentTabId, setCurrentTabId] = useState<number | null>(null);
 
   const clearSelection = () => {
     setSelectedIds(new Set());
@@ -120,7 +122,17 @@ export function Popup() {
       setCollapsed(new Set(prefs.collapsedGroups));
     });
     refreshWindowTitles();
+    chrome.tabs
+      .query({ active: true, lastFocusedWindow: true })
+      .then(([t]) => {
+        if (t?.id !== undefined) setCurrentTabId(t.id);
+      });
   }, []);
+
+  const currentTab = useMemo<PawTab | null>(() => {
+    if (!snapshot || currentTabId === null) return null;
+    return snapshot.tabs.find((t) => t.id === currentTabId) ?? null;
+  }, [snapshot, currentTabId]);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -254,6 +266,27 @@ export function Popup() {
       </section>
 
       <div class="border-t border-border" />
+
+      {currentTab && (
+        <div class="px-3 pt-2.5 pb-1.5">
+          <div class="text-[9px] uppercase tracking-wider text-fg-subtle font-semibold mb-1 px-1 flex items-center gap-1.5">
+            <span class="inline-block size-1.5 rounded-full bg-accent animate-pulse-soft" />
+            Current tab
+          </div>
+          <div class="border border-accent/30 bg-accent-subtle/30 rounded-md p-0.5">
+            <TabRow
+              tab={currentTab}
+              onAction={handleAction}
+              onOpenDetails={setDetailsTab}
+              selected={selectedIds.has(currentTab.id)}
+              selectionMode={selectedIds.size > 0}
+              onToggleSelect={toggleSelect}
+            />
+          </div>
+        </div>
+      )}
+
+      {currentTab && <div class="border-t border-border" />}
 
       <div class="flex-1 px-2 py-2 overflow-y-auto">
         {error && (

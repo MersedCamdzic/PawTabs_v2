@@ -22,6 +22,20 @@ export default defineManifest({
       suggested_key: { default: "Alt+Shift+P" },
       description: "Open the PawTabs popup",
     },
+    paw_current: {
+      suggested_key: { default: "Alt+Shift+S" },
+      description: "Paw / unpaw the current tab",
+    },
+    toggle_pin_current: {
+      suggested_key: { default: "Alt+Shift+I" },
+      description: "Pin / unpin the current tab",
+    },
+    toggle_mute_current: {
+      description: "Mute / unmute the current tab",
+    },
+    move_current_to_new_window: {
+      description: "Move the current tab to a new window",
+    },
   },
   action: {
     default_popup: "src/popup/index.html",
