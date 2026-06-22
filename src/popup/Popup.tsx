@@ -12,6 +12,7 @@ import { useTabSnapshot } from "./hooks";
 import { TabGroupSection } from "./components/TabGroupSection";
 import { GroupBy } from "./components/GroupBy";
 import { OrderBy } from "./components/OrderBy";
+import { SelectionBar } from "./components/SelectionBar";
 import { getAllWindowTitles } from "@/lib/windows";
 import { orderTabsInGroups } from "@/lib/grouping";
 
@@ -58,6 +59,38 @@ export function Popup() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [detailsTab, setDetailsTab] = useState<PawTab | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const [lastSelectedId, setLastSelectedId] = useState<number | null>(null);
+
+  const clearSelection = () => {
+    setSelectedIds(new Set());
+    setLastSelectedId(null);
+  };
+
+  const toggleSelect = (tabId: number, event: MouseEvent) => {
+    const tabs = snapshot?.tabs ?? [];
+    if (event.shiftKey && lastSelectedId !== null) {
+      const startIdx = tabs.findIndex((t) => t.id === lastSelectedId);
+      const endIdx = tabs.findIndex((t) => t.id === tabId);
+      if (startIdx >= 0 && endIdx >= 0) {
+        const [from, to] =
+          startIdx < endIdx ? [startIdx, endIdx] : [endIdx, startIdx];
+        const next = new Set(selectedIds);
+        for (let i = from; i <= to; i++) {
+          const id = tabs[i]?.id;
+          if (id !== undefined) next.add(id);
+        }
+        setSelectedIds(next);
+        setLastSelectedId(tabId);
+        return;
+      }
+    }
+    const next = new Set(selectedIds);
+    if (next.has(tabId)) next.delete(tabId);
+    else next.add(tabId);
+    setSelectedIds(next);
+    setLastSelectedId(tabId);
+  };
 
   const refreshWindowTitles = async () => {
     setWindowTitles(await getAllWindowTitles());
@@ -83,11 +116,15 @@ export function Popup() {
       if (meta && e.key === "k") {
         e.preventDefault();
         setPaletteOpen((o) => !o);
+        return;
+      }
+      if (e.key === "Escape" && selectedIds.size > 0) {
+        clearSelection();
       }
     };
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
-  }, []);
+  }, [selectedIds.size]);
 
   const updateGrouping = (next: GroupByType) => {
     setGrouping(next);
@@ -231,12 +268,23 @@ export function Popup() {
               grouping={grouping}
               showHeader={grouping !== "none"}
               collapsed={collapsed.has(group.key)}
+              selectedIds={selectedIds}
+              selectionMode={selectedIds.size > 0}
               onToggle={() => toggleCollapsed(group.key)}
               onAction={handleAction}
               onOpenDetails={setDetailsTab}
+              onToggleSelect={toggleSelect}
             />
           ))}
       </div>
+
+      {selectedIds.size > 0 && (
+        <SelectionBar
+          selectedIds={Array.from(selectedIds)}
+          onClear={clearSelection}
+          onAction={handleAction}
+        />
+      )}
 
       <footer class="border-t border-border px-4 py-2 flex items-center justify-between text-[11px] text-fg-subtle">
         <button

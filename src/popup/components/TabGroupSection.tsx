@@ -10,9 +10,12 @@ interface Props {
   grouping: GroupBy;
   showHeader: boolean;
   collapsed: boolean;
+  selectedIds: Set<number>;
+  selectionMode: boolean;
   onToggle: () => void;
   onAction: () => void;
   onOpenDetails: (tab: PawTab) => void;
+  onToggleSelect: (tabId: number, event: MouseEvent) => void;
 }
 
 export function TabGroupSection({
@@ -20,23 +23,27 @@ export function TabGroupSection({
   grouping,
   showHeader,
   collapsed,
+  selectedIds,
+  selectionMode,
   onToggle,
   onAction,
   onOpenDetails,
+  onToggleSelect,
 }: Props) {
+  const rows = group.tabs.map((tab) => (
+    <TabRow
+      key={tab.id}
+      tab={tab}
+      onAction={onAction}
+      onOpenDetails={onOpenDetails}
+      selected={selectedIds.has(tab.id)}
+      selectionMode={selectionMode}
+      onToggleSelect={onToggleSelect}
+    />
+  ));
+
   if (!showHeader) {
-    return (
-      <div class="space-y-0.5">
-        {group.tabs.map((tab) => (
-          <TabRow
-            key={tab.id}
-            tab={tab}
-            onAction={onAction}
-            onOpenDetails={onOpenDetails}
-          />
-        ))}
-      </div>
-    );
+    return <div class="space-y-0.5">{rows}</div>;
   }
 
   return (
@@ -49,18 +56,7 @@ export function TabGroupSection({
         onAction={onAction}
       />
 
-      {!collapsed && (
-        <div class="space-y-0.5 mt-0.5">
-          {group.tabs.map((tab) => (
-            <TabRow
-              key={tab.id}
-              tab={tab}
-              onAction={onAction}
-              onOpenDetails={onOpenDetails}
-            />
-          ))}
-        </div>
-      )}
+      {!collapsed && <div class="space-y-0.5 mt-0.5">{rows}</div>}
     </div>
   );
 }

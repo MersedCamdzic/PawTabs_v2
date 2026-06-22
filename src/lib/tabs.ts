@@ -60,6 +60,66 @@ export async function moveTabToNewWindow(tabId: number): Promise<void> {
   await chrome.windows.create({ tabId });
 }
 
+export async function closeMany(tabIds: number[]): Promise<void> {
+  if (tabIds.length === 0) return;
+  await chrome.tabs.remove(tabIds);
+}
+
+export async function setStarredMany(
+  tabIds: number[],
+  starred: boolean,
+): Promise<void> {
+  const { storage } = await import("./storage");
+  const savedPages = (await storage.get("savedPages")) ?? {};
+  for (const id of tabIds) {
+    const entry = savedPages[id] ?? {};
+    savedPages[id] = { ...entry, starred, saved: starred };
+  }
+  await storage.set("savedPages", savedPages);
+}
+
+export async function setPinnedMany(
+  tabIds: number[],
+  pinned: boolean,
+): Promise<void> {
+  await Promise.all(tabIds.map((id) => chrome.tabs.update(id, { pinned })));
+}
+
+export async function addTagToMany(
+  tabIds: number[],
+  tag: string,
+): Promise<void> {
+  const clean = tag.trim();
+  if (!clean || tabIds.length === 0) return;
+  const { storage } = await import("./storage");
+  const savedPages = (await storage.get("savedPages")) ?? {};
+  for (const id of tabIds) {
+    const entry = savedPages[id] ?? {};
+    const tags = entry.tags ?? [];
+    if (!tags.includes(clean)) {
+      savedPages[id] = { ...entry, tags: [...tags, clean] };
+    }
+  }
+  await storage.set("savedPages", savedPages);
+}
+
+export async function moveManyToWindow(
+  tabIds: number[],
+  windowId: number,
+): Promise<void> {
+  if (tabIds.length === 0) return;
+  await chrome.tabs.move(tabIds, { windowId, index: -1 });
+}
+
+export async function moveManyToNewWindow(tabIds: number[]): Promise<void> {
+  if (tabIds.length === 0) return;
+  const [firstId, ...rest] = tabIds;
+  if (firstId === undefined) return;
+  const win = await chrome.windows.create({ tabId: firstId });
+  if (!win || win.id === undefined || rest.length === 0) return;
+  await chrome.tabs.move(rest, { windowId: win.id, index: -1 });
+}
+
 export interface WindowInfo {
   id: number;
   tabCount: number;

@@ -24,12 +24,26 @@ interface Props {
   tab: PawTab;
   onAction: () => void;
   onOpenDetails: (tab: PawTab) => void;
+  selected: boolean;
+  selectionMode: boolean;
+  onToggleSelect: (tabId: number, event: MouseEvent) => void;
 }
 
-export function TabRow({ tab, onAction, onOpenDetails }: Props) {
+export function TabRow({
+  tab,
+  onAction,
+  onOpenDetails,
+  selected,
+  selectionMode,
+  onToggleSelect,
+}: Props) {
   const domain = getRootDomain(tab.url);
 
-  const handleFocus = async () => {
+  const handleFocus = async (e: MouseEvent) => {
+    if (e.shiftKey || e.metaKey || e.ctrlKey || selectionMode) {
+      onToggleSelect(tab.id, e);
+      return;
+    }
     await focusTab(tab.id, tab.windowId);
     window.close();
   };
@@ -62,19 +76,48 @@ export function TabRow({ tab, onAction, onOpenDetails }: Props) {
     onAction();
   };
 
+  const handleCheckboxClick = (e: MouseEvent) => {
+    e.stopPropagation();
+    onToggleSelect(tab.id, e);
+  };
+
+  const rowClass = selected
+    ? "bg-accent-subtle/60 hover:bg-accent-subtle"
+    : "hover:bg-surface focus:bg-surface";
+
   return (
     <div
       role="button"
       tabIndex={0}
       onClick={handleFocus}
       onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
+        if (e.key === "Enter") {
           e.preventDefault();
-          handleFocus();
+          handleFocus(e as unknown as MouseEvent);
         }
       }}
-      class="group flex items-center gap-2.5 pl-2 pr-1.5 py-1.5 rounded-md hover:bg-surface focus:bg-surface focus:outline-none cursor-pointer transition-colors"
+      class={`group flex items-center gap-2.5 pl-2 pr-1.5 py-1.5 rounded-md focus:outline-none cursor-pointer transition-colors ${rowClass}`}
     >
+      <button
+        type="button"
+        onClick={handleCheckboxClick}
+        aria-label={selected ? "Deselect tab" : "Select tab"}
+        title="Select"
+        class={`size-4 rounded border shrink-0 inline-flex items-center justify-center transition-all ${
+          selected
+            ? "bg-accent border-accent text-white opacity-100"
+            : selectionMode
+              ? "border-border-strong opacity-100 hover:border-accent"
+              : "border-border opacity-0 group-hover:opacity-100 hover:border-accent"
+        }`}
+      >
+        {selected && (
+          <svg viewBox="0 0 16 16" class="size-3" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M3 8.5L6.5 12L13 4" />
+          </svg>
+        )}
+      </button>
+
       <Favicon url={tab.favIconUrl} />
 
       <div class="flex-1 min-w-0">
