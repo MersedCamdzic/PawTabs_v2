@@ -5,11 +5,13 @@ import {
   GridFour,
   Sparkle,
   PawPrint,
+  Stack,
 } from "@phosphor-icons/react";
 import { useTabSnapshot } from "./hooks";
 import { TabGroupSection } from "./components/TabGroupSection";
 import { GroupBy } from "./components/GroupBy";
 import { WizardModal } from "./components/WizardModal";
+import { SessionsModal } from "./components/SessionsModal";
 import { groupTabs } from "@/lib/grouping";
 import { storage } from "@/lib/storage";
 import type { GroupBy as GroupByType, PawTab } from "@/types";
@@ -20,6 +22,7 @@ export function Popup() {
   const [grouping, setGrouping] = useState<GroupByType>("window");
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
   const [wizardOpen, setWizardOpen] = useState(false);
+  const [sessionsOpen, setSessionsOpen] = useState(false);
 
   useEffect(() => {
     storage.get("preferences").then((prefs) => {
@@ -78,6 +81,9 @@ export function Popup() {
           <h1 class="text-[15px] font-semibold tracking-tight">PawTabs</h1>
         </div>
         <div class="flex items-center gap-1">
+          <IconButton label="Sessions" onClick={() => setSessionsOpen(true)}>
+            <Stack size={16} weight="regular" />
+          </IconButton>
           <IconButton label="Wizard" onClick={() => setWizardOpen(true)}>
             <Sparkle size={16} weight="regular" />
           </IconButton>
@@ -170,6 +176,11 @@ export function Popup() {
         open={wizardOpen}
         onClose={() => setWizardOpen(false)}
         onComplete={reload}
+      />
+
+      <SessionsModal
+        open={sessionsOpen}
+        onClose={() => setSessionsOpen(false)}
       />
     </div>
   );
