@@ -21,13 +21,13 @@ export function Toggle({ checked, onChange, label, description }: Props) {
         role="switch"
         aria-checked={checked}
         onClick={() => onChange(!checked)}
-        class={`shrink-0 w-9 h-5 rounded-full transition-colors relative ${
+        class={`relative shrink-0 w-9 h-5 rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:ring-offset-2 focus-visible:ring-offset-bg ${
           checked ? "bg-accent" : "bg-border-strong"
         }`}
       >
         <span
-          class={`absolute top-0.5 size-4 bg-white rounded-full shadow-sm transition-transform ${
-            checked ? "translate-x-[18px]" : "translate-x-0.5"
+          class={`absolute top-0.5 left-0.5 size-4 bg-white rounded-full shadow-sm transition-transform ${
+            checked ? "translate-x-4" : "translate-x-0"
           }`}
         />
       </button>

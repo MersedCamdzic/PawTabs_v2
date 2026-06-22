@@ -8,9 +8,15 @@ interface Props {
   onAction: () => void;
 }
 
+interface MoveState {
+  type: "tab" | "merge";
+  tabIds: number[];
+  sourceWindowId: number;
+}
+
 export function WindowsView({ query, onAction }: Props) {
   const [windows, setWindows] = useState<WindowWithMeta[]>([]);
-  const [movingTabId, setMovingTabId] = useState<number | null>(null);
+  const [move, setMove] = useState<MoveState | null>(null);
 
   const refresh = useCallback(async () => {
     setWindows(await getWindowsWithMeta());
@@ -43,13 +49,13 @@ export function WindowsView({ query, onAction }: Props) {
   }, [refresh]);
 
   useEffect(() => {
-    if (movingTabId === null) return;
+    if (move === null) return;
     const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setMovingTabId(null);
+      if (e.key === "Escape") setMove(null);
     };
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
-  }, [movingTabId]);
+  }, [move]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -69,44 +75,95 @@ export function WindowsView({ query, onAction }: Props) {
       );
   }, [windows, query]);
 
-  const sourceWindowId = useMemo(() => {
-    if (movingTabId === null) return null;
-    return (
-      windows.find((w) => w.tabs.some((t) => t.id === movingTabId))?.id ?? null
+  const handleStartMoveTab = (tabId: number) => {
+    const sourceWindow = windows.find((w) =>
+      w.tabs.some((t) => t.id === tabId),
     );
-  }, [windows, movingTabId]);
+    if (!sourceWindow) return;
+    setMove({ type: "tab", tabIds: [tabId], sourceWindowId: sourceWindow.id });
+  };
+
+  const handleStartMergeWindow = (tabIds: number[], sourceWindowId: number) => {
+    setMove({ type: "merge", tabIds, sourceWindowId });
+  };
 
   const handlePickTarget = async (targetWindowId: number) => {
-    if (movingTabId === null) return;
+    if (!move) return;
     try {
-      await chrome.tabs.move(movingTabId, {
+      await chrome.tabs.move(move.tabIds, {
         windowId: targetWindowId,
         index: -1,
       });
       onAction();
       await refresh();
     } finally {
-      setMovingTabId(null);
+      setMove(null);
     }
   };
 
   const handlePickNewWindow = async () => {
-    if (movingTabId === null) return;
+    if (!move) return;
     try {
-      await chrome.windows.create({ tabId: movingTabId });
+      const [first, ...rest] = move.tabIds;
+      if (first === undefined) return;
+      const win = await chrome.windows.create({ tabId: first });
+      if (rest.length > 0 && win?.id !== undefined) {
+        await chrome.tabs.move(rest, { windowId: win.id, index: -1 });
+      }
       onAction();
       await refresh();
     } finally {
-      setMovingTabId(null);
+      setMove(null);
     }
   };
 
+  const handleSplit = async (windowId: number, chunkSize: number) => {
+    const tabs = await chrome.tabs.query({ windowId });
+    const sorted = tabs.filter((t) => t.id !== undefined);
+    if (sorted.length <= chunkSize) return;
+
+    for (let i = chunkSize; i < sorted.length; i += chunkSize) {
+      const chunk = sorted.slice(i, i + chunkSize);
+      const firstId = chunk[0]?.id;
+      if (firstId === undefined) continue;
+      const newWindow = await chrome.windows.create({ tabId: firstId });
+      const targetId = newWindow?.id;
+      if (targetId === undefined) continue;
+      const restIds = chunk
+        .slice(1)
+        .map((t) => t.id)
+        .filter((id): id is number => id !== undefined);
+      if (restIds.length > 0) {
+        await chrome.tabs.move(restIds, { windowId: targetId, index: -1 });
+      }
+    }
+    onAction();
+    await refresh();
+  };
+
+  const handleCloseNonPinned = async (windowId: number) => {
+    const tabs = await chrome.tabs.query({ windowId });
+    const ids = tabs
+      .filter((t) => !t.pinned && t.id !== undefined)
+      .map((t) => t.id!);
+    if (ids.length === 0) return;
+    await chrome.tabs.remove(ids);
+    onAction();
+    await refresh();
+  };
+
+  const moveLabel =
+    move?.type === "merge"
+      ? `Merging ${move.tabIds.length} tab${move.tabIds.length === 1 ? "" : "s"} into another window`
+      : "Moving 1 tab";
+
   return (
     <div class="px-6 py-4">
-      {movingTabId !== null && (
+      {move !== null && (
         <div class="mb-3 flex items-center justify-between gap-3 text-[11px] text-accent bg-accent-subtle border border-accent/30 rounded-md px-3 py-2">
           <span>
-            Pick a destination window — click any highlighted card. Press{" "}
+            {moveLabel} — click any highlighted card to pick a destination.
+            Press{" "}
             <kbd class="font-mono px-1 bg-bg-elevated rounded border border-accent/30">
               Esc
             </kbd>{" "}
@@ -114,7 +171,7 @@ export function WindowsView({ query, onAction }: Props) {
           </span>
           <button
             type="button"
-            onClick={() => setMovingTabId(null)}
+            onClick={() => setMove(null)}
             class="font-medium hover:underline"
           >
             Cancel
@@ -127,15 +184,16 @@ export function WindowsView({ query, onAction }: Props) {
           <WindowCard
             key={w.id}
             window={w}
-            movingTabId={movingTabId}
+            movingTabIds={move?.tabIds ?? null}
             isMoveTarget={
-              movingTabId !== null &&
-              sourceWindowId !== null &&
-              w.id !== sourceWindowId
+              move !== null && w.id !== move.sourceWindowId
             }
-            onStartMove={setMovingTabId}
-            onCancelMove={() => setMovingTabId(null)}
+            onStartMoveTab={handleStartMoveTab}
+            onStartMergeWindow={handleStartMergeWindow}
+            onCancelMove={() => setMove(null)}
             onPickTarget={handlePickTarget}
+            onSplit={handleSplit}
+            onCloseNonPinned={handleCloseNonPinned}
             onReload={refresh}
           />
         ))}
@@ -143,9 +201,9 @@ export function WindowsView({ query, onAction }: Props) {
         <button
           type="button"
           onClick={handlePickNewWindow}
-          disabled={movingTabId === null}
+          disabled={move === null}
           class={`flex items-center justify-center min-h-[120px] rounded-lg border-2 border-dashed text-[12px] font-medium transition-all ${
-            movingTabId !== null
+            move !== null
               ? "border-accent text-accent hover:bg-accent-subtle cursor-pointer"
               : "border-border text-fg-subtle cursor-not-allowed"
           }`}
@@ -153,7 +211,7 @@ export function WindowsView({ query, onAction }: Props) {
           <div class="text-center">
             <Plus size={20} weight="regular" class="mx-auto mb-1" />
             <div>
-              {movingTabId !== null
+              {move !== null
                 ? "Click to move to new window"
                 : "Move tabs here to create a new window"}
             </div>
