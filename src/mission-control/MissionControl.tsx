@@ -67,7 +67,18 @@ export function MissionControl() {
   const [backupCount, setBackupCount] = useState(0);
   const [windowTitles, setWindowTitles] = useState<Record<number, string>>({});
   const [detailsTab, setDetailsTab] = useState<PawTab | null>(null);
-  const [tabsColumns, setTabsColumns] = useState<1 | 2 | 3 | 4>(1);
+  const [columnsByView, setColumnsByView] = useState<
+    Record<string, 1 | 2 | 3 | 4>
+  >({
+    tabs: 1,
+    pawed: 1,
+    pinned: 1,
+  });
+
+  const currentColumns = columnsByView[view] ?? 1;
+  const setCurrentColumns = (n: 1 | 2 | 3 | 4) => {
+    setColumnsByView((prev) => ({ ...prev, [view]: n }));
+  };
 
   const refreshWindowTitles = async () => {
     setWindowTitles(await getAllWindowTitles());
@@ -154,11 +165,11 @@ export function MissionControl() {
             subtitle={meta.subtitle}
             query={query}
             onQueryChange={setQuery}
-            actions={
+            searchActions={
               ["tabs", "pawed", "pinned"].includes(view) ? (
                 <ColumnsPicker
-                  value={tabsColumns}
-                  onChange={setTabsColumns}
+                  value={currentColumns}
+                  onChange={setCurrentColumns}
                 />
               ) : undefined
             }
@@ -195,7 +206,7 @@ export function MissionControl() {
               query ? `No tabs match "${query}"` : "No tabs open"
             }
             windowTitles={windowTitles}
-            columns={tabsColumns}
+            columns={currentColumns}
             onAction={reload}
             onOpenDetails={setDetailsTab}
           />
@@ -217,7 +228,7 @@ export function MissionControl() {
             tabs={pawedTabs}
             emptyText="No pawed tabs. Paw a tab from the popup to add it here."
             windowTitles={windowTitles}
-            columns={tabsColumns}
+            columns={currentColumns}
             onAction={reload}
             onOpenDetails={setDetailsTab}
           />
@@ -228,7 +239,7 @@ export function MissionControl() {
             tabs={pinnedTabs}
             emptyText="No pinned tabs."
             windowTitles={windowTitles}
-            columns={tabsColumns}
+            columns={currentColumns}
             onAction={reload}
             onOpenDetails={setDetailsTab}
           />

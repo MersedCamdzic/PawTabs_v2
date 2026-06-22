@@ -6,6 +6,7 @@ interface Props {
   query: string;
   onQueryChange: (q: string) => void;
   actions?: preact.ComponentChildren;
+  searchActions?: preact.ComponentChildren;
   showSearch?: boolean;
 }
 
@@ -15,6 +16,7 @@ export function Toolbar({
   query,
   onQueryChange,
   actions,
+  searchActions,
   showSearch = true,
 }: Props) {
   return (
@@ -30,20 +32,23 @@ export function Toolbar({
       </div>
 
       {showSearch && (
-        <div class="relative max-w-md">
-          <MagnifyingGlass
-            size={14}
-            class="absolute left-3 top-1/2 -translate-y-1/2 text-fg-subtle pointer-events-none"
-          />
-          <input
-            type="text"
-            value={query}
-            onInput={(e) =>
-              onQueryChange((e.currentTarget as HTMLInputElement).value)
-            }
-            placeholder="Search"
-            class="w-full h-9 pl-9 pr-3 bg-surface border border-border rounded-md text-[13px] placeholder:text-fg-subtle focus:outline-none focus:bg-bg-elevated focus:border-accent focus:ring-4 focus:ring-accent/10 transition-colors"
-          />
+        <div class="flex items-center gap-2">
+          <div class="relative max-w-md flex-1">
+            <MagnifyingGlass
+              size={14}
+              class="absolute left-3 top-1/2 -translate-y-1/2 text-fg-subtle pointer-events-none"
+            />
+            <input
+              type="text"
+              value={query}
+              onInput={(e) =>
+                onQueryChange((e.currentTarget as HTMLInputElement).value)
+              }
+              placeholder="Search"
+              class="w-full h-9 pl-9 pr-3 bg-surface border border-border rounded-md text-[13px] placeholder:text-fg-subtle focus:outline-none focus:bg-bg-elevated focus:border-accent focus:ring-4 focus:ring-accent/10 transition-colors"
+            />
+          </div>
+          {searchActions}
         </div>
       )}
     </div>
