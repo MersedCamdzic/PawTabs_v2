@@ -104,9 +104,11 @@ export function MissionControl() {
       if (t.url.toLowerCase().includes(q)) return true;
       if (t.tags.some((tag) => tag.toLowerCase().includes(q))) return true;
       if (t.notes.some((n) => n.text.toLowerCase().includes(q))) return true;
+      const winTitle = windowTitles[t.windowId];
+      if (winTitle && winTitle.toLowerCase().includes(q)) return true;
       return false;
     });
-  }, [snapshot, query]);
+  }, [snapshot, query, windowTitles]);
 
   const pawedTabs = useMemo(
     () => filteredTabs.filter((t) => t.starred),
