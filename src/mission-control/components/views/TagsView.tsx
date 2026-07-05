@@ -5,12 +5,14 @@ import {
   ArrowSquareOut,
   ArrowUUpLeft,
   X,
+  Trash,
 } from "@phosphor-icons/react";
 import {
   listTags,
   removeTagFromUrl,
   type TagAggregate,
 } from "@/lib/tagged-urls";
+import { removeTagFromManyUrls } from "@/lib/tabs";
 import { focusTab } from "@/lib/chrome";
 import { getRootDomain } from "@/lib/utils";
 import { formatRelativeTime } from "@/lib/sessions";
@@ -114,6 +116,22 @@ export function TagsView({
     onAction();
   };
 
+  const handleDeleteTag = async (tag: TagAggregate) => {
+    if (
+      !confirm(
+        `Delete tag "${tag.tag}" from ${tag.count} URL${tag.count === 1 ? "" : "s"}? This removes the tag everywhere it's used.`,
+      )
+    )
+      return;
+    await removeTagFromManyUrls(
+      tag.entries.map((e) => e.url),
+      tag.tag,
+    );
+    if (selected === tag.tag) setSelected(null);
+    await refresh();
+    onAction();
+  };
+
   if (tagList.length === 0) {
     return (
       <div class="px-8 py-16 text-center">
@@ -137,20 +155,29 @@ export function TagsView({
         {filtered.map((t) => {
           const active = selected === t.tag;
           return (
-            <button
+            <div
               key={t.tag}
-              type="button"
               onClick={() => setSelected(active ? null : t.tag)}
-              class={`w-full h-8 px-2.5 flex items-center justify-between rounded-md text-[12px] transition-colors ${
+              class={`group w-full h-8 px-2.5 flex items-center gap-1.5 rounded-md text-[12px] transition-colors cursor-pointer ${
                 active
                   ? "bg-accent-subtle text-accent"
                   : "text-fg-muted hover:bg-surface hover:text-fg"
               }`}
             >
-              <span class="truncate flex items-center gap-1.5">
-                <Tag size={11} weight={active ? "fill" : "regular"} />
-                {t.tag}
-              </span>
+              <Tag size={11} weight={active ? "fill" : "regular"} />
+              <span class="truncate flex-1">{t.tag}</span>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDeleteTag(t);
+                }}
+                aria-label={`Delete tag ${t.tag}`}
+                title={`Delete tag "${t.tag}" from all URLs`}
+                class="size-5 inline-flex items-center justify-center rounded text-fg-subtle opacity-0 group-hover:opacity-100 hover:bg-danger-subtle hover:text-danger transition-all"
+              >
+                <Trash size={10} />
+              </button>
               <span
                 class={`text-[10px] px-1.5 py-0.5 rounded font-medium ${
                   active ? "bg-accent text-white" : "bg-surface text-fg-subtle"
@@ -158,7 +185,7 @@ export function TagsView({
               >
                 {t.count}
               </span>
-            </button>
+            </div>
           );
         })}
       </div>
