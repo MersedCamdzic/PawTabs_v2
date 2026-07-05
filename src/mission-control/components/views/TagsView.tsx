@@ -527,32 +527,29 @@ function TaggedRow(props: {
       <div class="flex items-center gap-0.5 shrink-0">
         <button
           type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            props.onJump();
-          }}
-          aria-label={
+          onClick={
             isOpen
-              ? "Jump to this tab"
-              : restoreTargetName
-                ? `Restore in ${restoreTargetName}`
-                : "Restore in a new tab"
+              ? (e) => {
+                  e.stopPropagation();
+                  props.onJump();
+                }
+              : undefined
+          }
+          disabled={!isOpen}
+          aria-label={
+            isOpen ? "Jump to this tab" : "Jump unavailable — tab is closed"
           }
           data-tooltip={
-            isOpen
-              ? "Jump to this tab"
-              : restoreTargetName
-                ? `Restore in ${restoreTargetName}`
-                : "Restore in a new tab"
+            isOpen ? "Jump to this tab" : "Jump unavailable — tab is closed"
           }
           data-tooltip-pos="above"
-          class="size-8 inline-flex items-center justify-center rounded text-fg-muted opacity-0 group-hover:opacity-100 hover:bg-accent-subtle hover:text-accent transition-all"
+          class={`size-8 inline-flex items-center justify-center rounded transition-all ${
+            isOpen
+              ? "text-fg-muted opacity-0 group-hover:opacity-100 hover:bg-accent-subtle hover:text-accent"
+              : "text-fg-subtle/40 opacity-0 group-hover:opacity-100 cursor-not-allowed"
+          }`}
         >
-          {isOpen ? (
-            <ArrowSquareOut size={13} />
-          ) : (
-            <ArrowUUpLeft size={14} weight="bold" />
-          )}
+          <ArrowSquareOut size={13} />
         </button>
         <button
           type="button"
@@ -567,26 +564,46 @@ function TaggedRow(props: {
         >
           <Trash size={13} />
         </button>
-        {isOpen && (
-          <>
-            <span
-              class="w-px h-4 mx-1 bg-border opacity-0 group-hover:opacity-100 transition-opacity"
-              aria-hidden="true"
-            />
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                props.onCloseTab();
-              }}
-              aria-label="Close this tab"
-              data-tooltip="Close this tab"
-              data-tooltip-pos="above"
-              class="size-8 inline-flex items-center justify-center rounded text-fg-muted opacity-0 group-hover:opacity-100 hover:bg-danger-subtle hover:text-danger transition-all"
-            >
-              <X size={13} />
-            </button>
-          </>
+        <span
+          class="w-px h-4 mx-1 bg-border opacity-0 group-hover:opacity-100 transition-opacity"
+          aria-hidden="true"
+        />
+        {isOpen ? (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              props.onCloseTab();
+            }}
+            aria-label="Close this tab"
+            data-tooltip="Close this tab"
+            data-tooltip-pos="above"
+            class="size-8 inline-flex items-center justify-center rounded text-fg-muted opacity-0 group-hover:opacity-100 hover:bg-danger-subtle hover:text-danger transition-all"
+          >
+            <X size={13} />
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              props.onJump();
+            }}
+            aria-label={
+              restoreTargetName
+                ? `Restore in ${restoreTargetName}`
+                : "Restore in a new tab"
+            }
+            data-tooltip={
+              restoreTargetName
+                ? `Restore in ${restoreTargetName}`
+                : "Restore in a new tab"
+            }
+            data-tooltip-pos="above"
+            class="size-8 inline-flex items-center justify-center rounded text-fg-muted opacity-0 group-hover:opacity-100 hover:bg-accent-subtle hover:text-accent transition-all"
+          >
+            <ArrowUUpLeft size={14} weight="bold" />
+          </button>
         )}
       </div>
     </div>
