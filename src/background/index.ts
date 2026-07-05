@@ -6,6 +6,15 @@ const AUTO_SESSION_ALARM = "pawtabs_auto_session";
 
 console.info("[PawTabs] background service worker ready");
 
+// Register the alarm every time the service worker wakes up. Idempotent —
+// chrome.alarms.create with same name replaces prior config, so we don't
+// end up with duplicates. This is more reliable than relying only on
+// onInstalled / onStartup for users who upgraded / granted alarms perm
+// after first install.
+scheduleAutoSessionAlarm().catch((e) =>
+  console.error("[PawTabs] alarm schedule failed", e),
+);
+
 chrome.runtime.onInstalled.addListener(() => {
   console.info("[PawTabs] installed");
   scheduleAutoSessionAlarm().catch(() => undefined);
@@ -13,6 +22,17 @@ chrome.runtime.onInstalled.addListener(() => {
 
 chrome.runtime.onStartup.addListener(() => {
   scheduleAutoSessionAlarm().catch(() => undefined);
+});
+
+// Allow popup / MC to trigger a snapshot immediately via message.
+chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
+  if (msg?.type === "pawtabs:run_auto_session") {
+    runAutoSessionIfDue({ force: true })
+      .then(() => sendResponse({ ok: true }))
+      .catch((e) => sendResponse({ ok: false, error: String(e) }));
+    return true; // async response
+  }
+  return undefined;
 });
 
 const UNIT_MS = {
@@ -32,20 +52,26 @@ async function scheduleAutoSessionAlarm(): Promise<void> {
   });
 }
 
-async function runAutoSessionIfDue(): Promise<void> {
+async function runAutoSessionIfDue(
+  opts: { force?: boolean } = {},
+): Promise<void> {
   try {
     const prefs = await getPreferences();
     const cfg = prefs.autoSession;
-    if (!cfg?.enabled) return;
+    if (!opts.force && !cfg?.enabled) return;
     const now = Date.now();
-    const intervalMs =
-      (cfg.intervalValue || 1) * (UNIT_MS[cfg.intervalUnit] ?? UNIT_MS.days);
-    const dueAt = (cfg.lastRunAt || 0) + intervalMs;
-    if (now < dueAt) return;
+    if (!opts.force) {
+      const intervalMs =
+        (cfg.intervalValue || 1) *
+        (UNIT_MS[cfg.intervalUnit] ?? UNIT_MS.days);
+      const dueAt = (cfg.lastRunAt || 0) + intervalMs;
+      if (now < dueAt) return;
+    }
     const stamp = new Date(now).toLocaleString();
     await saveSession(`Auto: ${stamp}`, true, "Automatic session backup");
     await pruneAutoSessions(cfg.maxCount);
     await setPreference("autoSession", { ...cfg, lastRunAt: now });
+    console.info("[PawTabs] auto-session saved at", stamp);
   } catch (err) {
     console.error("[PawTabs] auto-session failed", err);
   }

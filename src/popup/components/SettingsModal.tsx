@@ -186,6 +186,21 @@ export function SettingsModal({ open, onClose }: Props) {
                 Next in {nextRunLabel(autoSession)}
               </span>
             )}
+            <button
+              type="button"
+              onClick={async () => {
+                const stamp = new Date().toLocaleString();
+                await saveSession(
+                  `Auto: ${stamp}`,
+                  true,
+                  "Manual snapshot from Settings",
+                );
+                await updateAutoSession({ lastRunAt: Date.now() });
+              }}
+              class="inline-flex items-center gap-1 h-6 px-2 rounded-full text-[11px] font-medium bg-accent text-white hover:bg-accent-hover transition-colors ml-auto"
+            >
+              Save snapshot now
+            </button>
           </div>
         </Section>
 
