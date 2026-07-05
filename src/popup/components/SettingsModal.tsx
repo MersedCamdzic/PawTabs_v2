@@ -1,6 +1,7 @@
 import { useState, useEffect } from "preact/hooks";
 import { Sun, Moon, Monitor } from "@phosphor-icons/react";
 import { Modal } from "./Modal";
+import { ConfirmModal } from "./ConfirmModal";
 import {
   getPreferences,
   setPreference,
@@ -23,6 +24,8 @@ export function SettingsModal({ open, onClose }: Props) {
   const [autoSession, setAutoSession] = useState<AutoSessionConfig>(
     DEFAULT_PREFERENCES.autoSession,
   );
+  const [confirmFirstSnapshotOpen, setConfirmFirstSnapshotOpen] =
+    useState(false);
 
   useEffect(() => {
     if (!open) return;
@@ -99,23 +102,9 @@ export function SettingsModal({ open, onClose }: Props) {
               checked={autoSession.enabled}
               onChange={async (e) => {
                 const checked = (e.currentTarget as HTMLInputElement).checked;
-                if (
-                  checked &&
-                  !autoSession.enabled &&
-                  confirm(
-                    "Auto-save enabled. Take a snapshot right now so you have a baseline to restore from?",
-                  )
-                ) {
-                  const stamp = new Date().toLocaleString();
-                  await saveSession(
-                    `Auto: ${stamp}`,
-                    true,
-                    "First automatic snapshot",
-                  );
-                  await updateAutoSession({
-                    enabled: true,
-                    lastRunAt: Date.now(),
-                  });
+                if (checked && !autoSession.enabled) {
+                  await updateAutoSession({ enabled: true });
+                  setConfirmFirstSnapshotOpen(true);
                   return;
                 }
                 await updateAutoSession({ enabled: checked });
@@ -224,6 +213,29 @@ export function SettingsModal({ open, onClose }: Props) {
         </Section>
 
       </div>
+
+      <ConfirmModal
+        open={confirmFirstSnapshotOpen}
+        title="Take a snapshot now?"
+        message={
+          <>
+            Auto-save is on. Would you like to save a snapshot of your
+            current tabs{" "}
+            <span class="font-semibold text-fg">right now</span> so you have
+            a baseline to restore from later?
+          </>
+        }
+        confirmLabel="Save snapshot"
+        cancelLabel="Not now"
+        tone="accent"
+        onConfirm={async () => {
+          setConfirmFirstSnapshotOpen(false);
+          const stamp = new Date().toLocaleString();
+          await saveSession(`Auto: ${stamp}`, true, "First automatic snapshot");
+          await updateAutoSession({ lastRunAt: Date.now() });
+        }}
+        onCancel={() => setConfirmFirstSnapshotOpen(false)}
+      />
     </Modal>
   );
 }
@@ -247,11 +259,11 @@ function nextRunLabel(cfg: AutoSessionConfig): string {
   const intervalMs = (cfg.intervalValue || 1) * UNIT_MS_UI[cfg.intervalUnit];
   const nextAt = (cfg.lastRunAt || 0) + intervalMs;
   const diff = nextAt - Date.now();
-  if (diff <= 0) return "next tick (~30s)";
-  if (diff < 60_000) return `in ${Math.max(1, Math.round(diff / 1000))}s`;
-  if (diff < 3_600_000) return `in ${Math.round(diff / 60_000)}m`;
-  if (diff < 86_400_000) return `in ${Math.round(diff / 3_600_000)}h`;
-  return `in ${Math.round(diff / 86_400_000)}d`;
+  if (diff <= 0) return "any moment";
+  if (diff < 60_000) return `${Math.max(1, Math.round(diff / 1000))}s`;
+  if (diff < 3_600_000) return `${Math.round(diff / 60_000)}m`;
+  if (diff < 86_400_000) return `${Math.round(diff / 3_600_000)}h`;
+  return `${Math.round(diff / 86_400_000)}d`;
 }
 
 function Section(props: {
