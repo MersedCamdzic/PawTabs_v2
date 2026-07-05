@@ -11,6 +11,7 @@ import {
   Moon,
   Prohibit,
   Browsers,
+  X,
 } from "@phosphor-icons/react";
 import {
   listTags,
@@ -219,6 +220,13 @@ export function TagsView({
     onAction();
   };
 
+  const handleCloseTab = async (entry: TaggedUrlEntry) => {
+    const tab = openByUrl.get(entry.url);
+    if (!tab) return;
+    await chrome.tabs.remove(tab.id);
+    onAction();
+  };
+
   const confirmDeleteTag = async () => {
     if (!pendingDelete) return;
     const tag = pendingDelete;
@@ -324,6 +332,7 @@ export function TagsView({
                     onOpen={() => handleRowClick(entry)}
                     onJump={() => handleJump(entry)}
                     onRemoveTag={() => handleRemoveTag(entry, selected)}
+                    onCloseTab={() => handleCloseTab(entry)}
                   />
                 );
               })}
@@ -373,6 +382,7 @@ function TaggedRow(props: {
   onOpen: () => void;
   onJump: () => void;
   onRemoveTag: () => void;
+  onCloseTab: () => void;
 }) {
   const { entry, openTab, pawed, windowName, windowColor, restoreTargetName } =
     props;
@@ -557,6 +567,27 @@ function TaggedRow(props: {
         >
           <Trash size={13} />
         </button>
+        {isOpen && (
+          <>
+            <span
+              class="w-px h-4 mx-1 bg-border opacity-0 group-hover:opacity-100 transition-opacity"
+              aria-hidden="true"
+            />
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                props.onCloseTab();
+              }}
+              aria-label="Close this tab"
+              data-tooltip="Close this tab"
+              data-tooltip-pos="above"
+              class="size-8 inline-flex items-center justify-center rounded text-fg-muted opacity-0 group-hover:opacity-100 hover:bg-danger-subtle hover:text-danger transition-all"
+            >
+              <X size={13} />
+            </button>
+          </>
+        )}
       </div>
     </div>
   );
