@@ -467,6 +467,7 @@ export function MissionControl() {
             columns={currentColumns}
             onAction={bumpAll}
             onOpenDetails={setDetailsTab}
+            refreshSignal={urlDataSignal}
           />
         )}
 

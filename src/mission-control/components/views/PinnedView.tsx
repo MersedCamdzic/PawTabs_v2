@@ -26,6 +26,7 @@ interface Props {
   columns: 1 | 2 | 3 | 4;
   onAction: () => void;
   onOpenDetails: (tab: PawTab) => void;
+  refreshSignal?: number;
 }
 
 const COLUMN_LAYOUT: Record<1 | 2 | 3 | 4, string> = {
@@ -42,6 +43,7 @@ export function PinnedView({
   columns,
   onAction,
   onOpenDetails,
+  refreshSignal,
 }: Props) {
   const rows = useMemo(() => tabs, [tabs]);
   const [tagsByUrl, setTagsByUrl] = useState<Record<string, string[]>>({});
@@ -63,6 +65,10 @@ export function PinnedView({
   useEffect(() => {
     loadMeta();
   }, [loadMeta, tabs]);
+
+  useEffect(() => {
+    if (refreshSignal !== undefined && refreshSignal > 0) loadMeta();
+  }, [refreshSignal, loadMeta]);
 
   if (rows.length === 0) {
     return (
