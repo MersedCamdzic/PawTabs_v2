@@ -159,32 +159,34 @@ export function SettingsModal({ open, onClose }: Props) {
             value={autoSession.maxCount}
             onChange={(v) => updateAutoSession({ maxCount: v })}
           />
-          <div class="mt-3 flex items-center gap-2 flex-wrap">
-            <span
-              class={`inline-flex items-center gap-1.5 h-6 px-2 rounded-full text-[11px] font-medium ${
-                autoSession.lastRunAt > 0
-                  ? "bg-success-subtle text-success"
-                  : "bg-surface text-fg-subtle"
-              }`}
-              title={
-                autoSession.lastRunAt > 0
-                  ? new Date(autoSession.lastRunAt).toLocaleString()
-                  : "No auto snapshot yet"
-              }
-            >
+          {autoSession.enabled && (
+            <div class="mt-3 flex items-center gap-2 flex-wrap">
               <span
-                class={`size-1.5 rounded-full ${
+                class={`inline-flex items-center gap-1.5 h-6 px-2 rounded-full text-[11px] font-medium ${
                   autoSession.lastRunAt > 0
-                    ? "bg-success animate-pulse-soft"
-                    : "bg-fg-subtle"
+                    ? "bg-success-subtle text-success"
+                    : "bg-surface text-fg-subtle"
                 }`}
-              />
-              Last saved:{" "}
-              {autoSession.lastRunAt > 0
-                ? formatRelative(autoSession.lastRunAt)
-                : "never"}
-            </span>
-          </div>
+                title={
+                  autoSession.lastRunAt > 0
+                    ? new Date(autoSession.lastRunAt).toLocaleString()
+                    : "No auto snapshot yet"
+                }
+              >
+                <span
+                  class={`size-1.5 rounded-full ${
+                    autoSession.lastRunAt > 0
+                      ? "bg-success animate-pulse-soft"
+                      : "bg-fg-subtle"
+                  }`}
+                />
+                Last saved:{" "}
+                {autoSession.lastRunAt > 0
+                  ? formatRelative(autoSession.lastRunAt)
+                  : "never"}
+              </span>
+            </div>
+          )}
         </Section>
 
         <Section title="Wizard defaults">
