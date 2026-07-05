@@ -10,6 +10,7 @@ import {
   Broadcast,
   Moon,
   Prohibit,
+  Browsers,
 } from "@phosphor-icons/react";
 import {
   listTags,
@@ -406,16 +407,21 @@ function TaggedRow(props: {
                   : "text-fg-muted"
               }
             >
-              {windowColorStyle && (
-                <span
-                  class={`size-1.5 rounded-full ${windowColorStyle.dot}`}
-                />
-              )}
+              <Browsers
+                size={9}
+                weight="fill"
+                class={
+                  windowColorStyle
+                    ? windowColorStyle.iconText
+                    : "text-fg-subtle"
+                }
+              />
               {windowName}
             </Chip>
           )}
           {isOpen && !windowName && openTab && (
             <Chip bg="bg-surface" text="text-fg-muted">
+              <Browsers size={9} weight="fill" class="text-fg-subtle" />
               Window {openTab.windowId}
             </Chip>
           )}
