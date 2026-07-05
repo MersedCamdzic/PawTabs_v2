@@ -26,6 +26,28 @@ export function SettingsModal({ open, onClose }: Props) {
   );
   const [confirmFirstSnapshotOpen, setConfirmFirstSnapshotOpen] =
     useState(false);
+  const [saveStatus, setSaveStatus] = useState<{
+    ok: boolean;
+    text: string;
+  } | null>(null);
+  const [alarmInfo, setAlarmInfo] = useState<string>("");
+
+  useEffect(() => {
+    if (!open) return;
+    if (!chrome?.alarms?.get) {
+      setAlarmInfo("no alarms API");
+      return;
+    }
+    chrome.alarms.get("pawtabs_auto_session").then((a) => {
+      if (!a) {
+        setAlarmInfo("alarm NOT registered — reload extension");
+      } else {
+        setAlarmInfo(
+          `alarm ticks every ${a.periodInMinutes ?? "?"} min, next at ${new Date(a.scheduledTime).toLocaleTimeString()}`,
+        );
+      }
+    });
+  }, [open, saveStatus]);
 
   useEffect(() => {
     if (!open) return;
@@ -189,19 +211,43 @@ export function SettingsModal({ open, onClose }: Props) {
             <button
               type="button"
               onClick={async () => {
-                const stamp = new Date().toLocaleString();
-                await saveSession(
-                  `Auto: ${stamp}`,
-                  true,
-                  "Manual snapshot from Settings",
-                );
-                await updateAutoSession({ lastRunAt: Date.now() });
+                setSaveStatus(null);
+                try {
+                  const stamp = new Date().toLocaleString();
+                  const s = await saveSession(
+                    `Auto: ${stamp}`,
+                    true,
+                    "Manual snapshot from Settings",
+                  );
+                  await updateAutoSession({ lastRunAt: Date.now() });
+                  setSaveStatus({
+                    ok: true,
+                    text: `Saved: ${s.tabs.length} tabs`,
+                  });
+                } catch (e) {
+                  setSaveStatus({
+                    ok: false,
+                    text: `Failed: ${(e as Error).message}`,
+                  });
+                }
               }}
               class="inline-flex items-center gap-1 h-6 px-2 rounded-full text-[11px] font-medium bg-accent text-white hover:bg-accent-hover transition-colors ml-auto"
             >
               Save snapshot now
             </button>
           </div>
+          {saveStatus && (
+            <div
+              class={`mt-2 text-[10px] ${saveStatus.ok ? "text-success" : "text-danger"}`}
+            >
+              {saveStatus.text}
+            </div>
+          )}
+          {alarmInfo && (
+            <div class="mt-1 text-[10px] text-fg-subtle font-mono">
+              {alarmInfo}
+            </div>
+          )}
         </Section>
 
         <Section title="Wizard defaults">
