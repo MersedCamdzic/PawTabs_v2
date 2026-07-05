@@ -7,8 +7,6 @@ import {
   Trash,
   PawPrint,
   PushPin,
-  Moon,
-  Circle,
 } from "@phosphor-icons/react";
 import {
   listTags,
@@ -17,10 +15,12 @@ import {
 } from "@/lib/tagged-urls";
 import { removeTagFromManyUrls } from "@/lib/tabs";
 import { getPawedUrlSet } from "@/lib/pawed";
+import { getAllWindowMeta } from "@/lib/windows";
+import { WINDOW_COLOR_STYLES } from "@/lib/window-colors";
 import { focusTab } from "@/lib/chrome";
 import { getRootDomain } from "@/lib/utils";
 import { formatRelativeTime } from "@/lib/sessions";
-import type { PawTab, TaggedUrlEntry } from "@/types";
+import type { PawTab, TaggedUrlEntry, WindowColor } from "@/types";
 import type { SnapshotSortKey } from "../SnapshotSortDropdown";
 import { ConfirmModal } from "@/popup/components/ConfirmModal";
 
@@ -59,11 +59,19 @@ export function TagsView({
   const [selected, setSelected] = useState<string | null>(null);
   const [pendingDelete, setPendingDelete] = useState<TagAggregate | null>(null);
   const [pawedUrls, setPawedUrls] = useState<Set<string>>(new Set());
+  const [windowMeta, setWindowMeta] = useState<
+    Record<number, { title?: string; color?: WindowColor }>
+  >({});
 
   const refresh = useCallback(async () => {
-    const [tags, paws] = await Promise.all([listTags(), getPawedUrlSet()]);
+    const [tags, paws, meta] = await Promise.all([
+      listTags(),
+      getPawedUrlSet(),
+      getAllWindowMeta(),
+    ]);
     setTagList(tags);
     setPawedUrls(paws);
+    setWindowMeta(meta);
   }, []);
 
   useEffect(() => {
@@ -220,17 +228,23 @@ export function TagsView({
               {selectedEntries.length === 1 ? "" : "s"}
             </div>
             <div class={COLUMN_LAYOUT[columns]}>
-              {selectedEntries.map((entry) => (
-                <TaggedRow
-                  key={entry.url}
-                  entry={entry}
-                  openTab={openByUrl.get(entry.url) ?? null}
-                  pawed={pawedUrls.has(entry.url)}
-                  onOpen={() => handleRowClick(entry)}
-                  onJump={() => handleJump(entry)}
-                  onRemoveTag={() => handleRemoveTag(entry, selected)}
-                />
-              ))}
+              {selectedEntries.map((entry) => {
+                const tab = openByUrl.get(entry.url) ?? null;
+                const wm = tab ? windowMeta[tab.windowId] : undefined;
+                return (
+                  <TaggedRow
+                    key={entry.url}
+                    entry={entry}
+                    openTab={tab}
+                    pawed={pawedUrls.has(entry.url)}
+                    windowName={wm?.title ?? null}
+                    windowColor={wm?.color ?? null}
+                    onOpen={() => handleRowClick(entry)}
+                    onJump={() => handleJump(entry)}
+                    onRemoveTag={() => handleRemoveTag(entry, selected)}
+                  />
+                );
+              })}
             </div>
           </>
         ) : (
@@ -271,39 +285,59 @@ function TaggedRow(props: {
   entry: TaggedUrlEntry;
   openTab: PawTab | null;
   pawed: boolean;
+  windowName: string | null;
+  windowColor: WindowColor | null;
   onOpen: () => void;
   onJump: () => void;
   onRemoveTag: () => void;
 }) {
-  const { entry, openTab, pawed } = props;
+  const { entry, openTab, pawed, windowName, windowColor } = props;
   const domain = getRootDomain(entry.url);
   const isOpen = openTab !== null;
   const isInactive = isOpen && openTab.discarded;
   const isPinned = isOpen && openTab.pinned;
 
-  let statusDotClass: string;
-  let statusTooltip: string;
+  let stateChip: {
+    label: string;
+    dot: string;
+    text: string;
+    bg: string;
+  };
   if (!isOpen) {
-    statusDotClass = "text-danger";
-    statusTooltip = "Closed — click to reopen";
+    stateChip = {
+      label: "Closed",
+      dot: "bg-danger",
+      text: "text-danger",
+      bg: "bg-danger-subtle",
+    };
   } else if (isInactive) {
-    statusDotClass = "text-fg-subtle";
-    statusTooltip = "Open but inactive (discarded)";
+    stateChip = {
+      label: "Inactive",
+      dot: "bg-fg-subtle",
+      text: "text-fg-muted",
+      bg: "bg-surface",
+    };
   } else {
-    statusDotClass = "text-success";
-    statusTooltip = "Open and active";
+    stateChip = {
+      label: "Active",
+      dot: "bg-success",
+      text: "text-success",
+      bg: "bg-success-subtle",
+    };
   }
+
+  const windowColorStyle = windowColor ? WINDOW_COLOR_STYLES[windowColor] : null;
 
   return (
     <div
       onClick={props.onOpen}
-      class="group flex items-center gap-3 px-3 py-2.5 rounded-md hover:bg-surface cursor-pointer transition-colors"
+      class="group flex items-start gap-3 px-3 py-2.5 rounded-md hover:bg-surface cursor-pointer transition-colors"
     >
       {entry.favIconUrl ? (
         <img
           src={entry.favIconUrl}
           alt=""
-          class={`size-5 shrink-0 rounded ${isOpen && !isInactive ? "" : "grayscale opacity-70"}`}
+          class={`size-5 shrink-0 rounded mt-0.5 ${isOpen && !isInactive ? "" : "grayscale opacity-70"}`}
           onError={(e) => {
             (e.currentTarget as HTMLImageElement).style.display = "none";
           }}
@@ -311,12 +345,12 @@ function TaggedRow(props: {
       ) : (
         <Globe
           size={16}
-          class={`text-fg-subtle shrink-0 ${isOpen && !isInactive ? "" : "opacity-70"}`}
+          class={`text-fg-subtle shrink-0 mt-0.5 ${isOpen && !isInactive ? "" : "opacity-70"}`}
         />
       )}
       <div class="flex-1 min-w-0">
         <div
-          class={`flex items-center gap-1.5 text-[13px] leading-snug line-clamp-2 ${
+          class={`text-[13px] leading-snug line-clamp-2 ${
             isOpen && !isInactive
               ? "text-fg"
               : isInactive
@@ -324,43 +358,53 @@ function TaggedRow(props: {
                 : "text-fg-muted"
           }`}
         >
-          <span
-            title={statusTooltip}
-            class={`shrink-0 inline-flex ${statusDotClass}`}
-          >
-            <Circle size={8} weight="fill" />
-          </span>
-          <span class="truncate">{entry.title || domain}</span>
-          {pawed && (
-            <span
-              title="Pawed"
-              class="shrink-0 inline-flex text-accent"
-            >
-              <PawPrint size={11} weight="fill" />
-            </span>
-          )}
-          {isPinned && (
-            <span
-              title="Pinned"
-              class="shrink-0 inline-flex text-warning"
-            >
-              <PushPin size={11} weight="fill" />
-            </span>
-          )}
-          {isInactive && (
-            <span
-              title="Inactive (discarded)"
-              class="shrink-0 inline-flex text-fg-subtle"
-            >
-              <Moon size={11} weight="fill" />
-            </span>
-          )}
+          {entry.title || domain}
         </div>
         <div class="text-[11px] text-fg-subtle leading-tight mt-1 break-all line-clamp-2">
           {entry.url}
         </div>
-        <div class="text-[10px] text-fg-subtle/70 mt-0.5">
-          Tagged {formatRelativeTime(new Date(entry.updatedAt).toISOString())}
+        <div class="flex flex-wrap items-center gap-1 mt-2">
+          <Chip bg={stateChip.bg} text={stateChip.text}>
+            <span class={`size-1.5 rounded-full ${stateChip.dot}`} />
+            {stateChip.label}
+          </Chip>
+          {pawed && (
+            <Chip bg="bg-accent-subtle" text="text-accent">
+              <PawPrint size={9} weight="fill" />
+              Pawed
+            </Chip>
+          )}
+          {isPinned && (
+            <Chip bg="bg-warning-subtle" text="text-warning">
+              <PushPin size={9} weight="fill" />
+              Pinned
+            </Chip>
+          )}
+          {isOpen && windowName && (
+            <Chip
+              bg={windowColorStyle ? windowColorStyle.headerBg : "bg-surface"}
+              text={
+                windowColorStyle
+                  ? windowColorStyle.titleText
+                  : "text-fg-muted"
+              }
+            >
+              {windowColorStyle && (
+                <span
+                  class={`size-1.5 rounded-full ${windowColorStyle.dot}`}
+                />
+              )}
+              {windowName}
+            </Chip>
+          )}
+          {isOpen && !windowName && openTab && (
+            <Chip bg="bg-surface" text="text-fg-muted">
+              Window {openTab.windowId}
+            </Chip>
+          )}
+          <span class="text-[10px] text-fg-subtle/70 ml-auto">
+            Tagged {formatRelativeTime(new Date(entry.updatedAt).toISOString())}
+          </span>
         </div>
       </div>
       <div class="flex items-center gap-0.5 shrink-0">
@@ -396,5 +440,19 @@ function TaggedRow(props: {
         </button>
       </div>
     </div>
+  );
+}
+
+function Chip(props: {
+  bg: string;
+  text: string;
+  children: preact.ComponentChildren;
+}) {
+  return (
+    <span
+      class={`inline-flex items-center gap-1 h-5 px-1.5 rounded text-[10px] font-medium ${props.bg} ${props.text}`}
+    >
+      {props.children}
+    </span>
   );
 }
