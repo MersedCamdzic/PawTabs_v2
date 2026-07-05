@@ -1,5 +1,5 @@
 import { useState, useEffect } from "preact/hooks";
-import { Sun, Moon, Monitor } from "@phosphor-icons/react";
+import { Sun, Moon, Monitor, Info } from "@phosphor-icons/react";
 import { Modal } from "./Modal";
 import { ConfirmModal } from "./ConfirmModal";
 import {
@@ -26,6 +26,7 @@ export function SettingsModal({ open, onClose }: Props) {
   );
   const [confirmFirstSnapshotOpen, setConfirmFirstSnapshotOpen] =
     useState(false);
+  const [autoSaveInfoOpen, setAutoSaveInfoOpen] = useState(false);
 
   useEffect(() => {
     if (!open) return;
@@ -91,17 +92,36 @@ export function SettingsModal({ open, onClose }: Props) {
           </div>
         </Section>
 
-        <Section title="Auto-save sessions">
-          <div class="text-[11px] text-fg-subtle mb-3 leading-relaxed">
-            PawTabs quietly takes snapshots of your open tabs on the
-            schedule you set. If a laptop crashes or you close the wrong
-            window, you can restore an earlier snapshot from the
-            Snapshots view.
-            <br />
-            <br />
-            When you hit the max, the oldest auto-snapshot is deleted to
-            make room. Manual snapshots are never touched.
-          </div>
+        <Section
+          title="Auto-save sessions"
+          action={
+            <button
+              type="button"
+              onClick={() => setAutoSaveInfoOpen((v) => !v)}
+              aria-label="How does auto-save work?"
+              title="How does auto-save work?"
+              class={`size-5 inline-flex items-center justify-center rounded-full transition-colors ${
+                autoSaveInfoOpen
+                  ? "bg-accent-subtle text-accent"
+                  : "text-fg-subtle hover:bg-surface hover:text-fg"
+              }`}
+            >
+              <Info size={12} weight={autoSaveInfoOpen ? "fill" : "regular"} />
+            </button>
+          }
+        >
+          {autoSaveInfoOpen && (
+            <div class="text-[11px] text-fg-subtle mb-3 leading-relaxed bg-surface/40 border border-border rounded-md px-3 py-2">
+              PawTabs quietly takes snapshots of your open tabs on the
+              schedule you set. If a laptop crashes or you close the wrong
+              window, you can restore an earlier snapshot from the
+              Snapshots view.
+              <br />
+              <br />
+              When you hit the max, the oldest auto-snapshot is deleted to
+              make room. Manual snapshots are never touched.
+            </div>
+          )}
           <label class="flex items-center justify-between py-1.5 cursor-pointer">
             <span class="text-[12px] text-fg">Enable auto snapshots</span>
             <input
@@ -262,12 +282,16 @@ function formatRelative(ts: number): string {
 
 function Section(props: {
   title: string;
+  action?: preact.ComponentChildren;
   children: preact.ComponentChildren;
 }) {
   return (
     <div>
-      <div class="text-[11px] uppercase tracking-wide text-fg-subtle mb-2 font-medium">
-        {props.title}
+      <div class="flex items-center justify-between mb-2">
+        <div class="text-[11px] uppercase tracking-wide text-fg-subtle font-medium">
+          {props.title}
+        </div>
+        {props.action}
       </div>
       {props.children}
     </div>
