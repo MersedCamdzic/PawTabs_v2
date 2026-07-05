@@ -85,12 +85,21 @@ export interface WizardThresholds {
   regroupThreshold: number;
 }
 
+export interface AutoSessionConfig {
+  enabled: boolean;
+  intervalHours: number;
+  maxCount: number;
+  lastRunAt: number;
+}
+
 export interface Preferences {
   grouping: GroupBy;
   ordering: OrderBy;
   collapsedGroups: string[];
   theme: Theme;
   wizardThresholds: WizardThresholds;
+  autoSession: AutoSessionConfig;
+  demoBackupSessionId?: string | null;
 }
 
 export interface PawedEntry {

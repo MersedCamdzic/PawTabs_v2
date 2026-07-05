@@ -15,6 +15,7 @@ export default defineManifest({
     "sessions",
     "topSites",
     "windows",
+    "alarms",
   ],
   host_permissions: ["<all_urls>"],
   commands: {

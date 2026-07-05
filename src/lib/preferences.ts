@@ -5,6 +5,7 @@ import type {
   OrderBy,
   Theme,
   WizardThresholds,
+  AutoSessionConfig,
 } from "@/types";
 
 export const DEFAULT_PREFERENCES: Preferences = {
@@ -17,6 +18,13 @@ export const DEFAULT_PREFERENCES: Preferences = {
     splitInto: 5,
     regroupThreshold: 3,
   },
+  autoSession: {
+    enabled: false,
+    intervalHours: 24,
+    maxCount: 10,
+    lastRunAt: 0,
+  },
+  demoBackupSessionId: null,
 };
 
 export async function getPreferences(): Promise<Preferences> {
@@ -42,7 +50,18 @@ function mergePreferences(stored: Partial<Preferences> | undefined): Preferences
       ...DEFAULT_PREFERENCES.wizardThresholds,
       ...(stored?.wizardThresholds ?? {}),
     },
+    autoSession: {
+      ...DEFAULT_PREFERENCES.autoSession,
+      ...(stored?.autoSession ?? {}),
+    },
   };
 }
 
-export type { Preferences, GroupBy, OrderBy, Theme, WizardThresholds };
+export type {
+  Preferences,
+  GroupBy,
+  OrderBy,
+  Theme,
+  WizardThresholds,
+  AutoSessionConfig,
+};

@@ -74,6 +74,21 @@ export async function restoreSession(session: SavedSession): Promise<void> {
   }
 }
 
+export async function pruneAutoSessions(maxCount: number): Promise<void> {
+  if (maxCount < 0) return;
+  await storage.update("savedSessions", (current) => {
+    const list = current ?? [];
+    const autos = list
+      .filter((s) => s.auto)
+      .sort((a, b) => a.dateTime.localeCompare(b.dateTime));
+    if (autos.length <= maxCount) return list;
+    const toDelete = new Set(
+      autos.slice(0, autos.length - maxCount).map((s) => s.id),
+    );
+    return list.filter((s) => !toDelete.has(s.id));
+  });
+}
+
 export async function deleteSession(id: string): Promise<void> {
   await storage.update("savedSessions", (current) =>
     (current ?? []).filter((s) => s.id !== id),
