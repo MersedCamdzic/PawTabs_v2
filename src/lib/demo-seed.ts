@@ -205,6 +205,9 @@ export async function seedDemoData(): Promise<void> {
   ["spotify", "spotifyLikes", "spotifyPlaying", "youtubeMusic", "soundcloud", "bandcamp", "applemusic"].forEach(
     (k, i) => addTag(k as keyof typeof U, ["Music"], i),
   );
+  // Ensure every pawed URL carries at least one tag for demo coverage
+  addTag("bloomberg", ["Finance", "Reading"], 0);
+  addTag("youtube", ["Watch later"], 0);
   // Social
   ["twitter", "linkedin", "instagram", "pinterest", "reddit", "redditFront"].forEach(
     (k, i) => addTag(k as keyof typeof U, ["Social"], i),
@@ -225,22 +228,63 @@ export async function seedDemoData(): Promise<void> {
     text,
     createdAt: now - ageHours * HOUR,
   });
-  notesMap[U.github.url] = [mkNote("Waiting on review from Anna — pinged in Slack")];
-  notesMap[U.linear.url] = [mkNote("Blocked by PAW-127; check migration next Monday")];
+  notesMap[U.github.url] = [
+    mkNote("Waiting on review from Anna — pinged in Slack"),
+    mkNote("Also need to update CHANGELOG before merging"),
+  ];
+  notesMap[U.linear.url] = [
+    mkNote("Blocked by PAW-127; check migration next Monday"),
+  ];
   notesMap[U.notion.url] = [
     mkNote("Legal signoff needed for Q3 launch (RFC-2026-14)"),
     mkNote("Add engineering estimate to the roadmap doc"),
   ];
-  notesMap[U.figma.url] = [mkNote("Prefer purple palette for the empty state")];
+  notesMap[U.notionMeeting.url] = [
+    mkNote("Bring up the OKR misalignment — action item from last time"),
+  ];
+  notesMap[U.figma.url] = [
+    mkNote("Prefer purple palette for the empty state"),
+  ];
+  notesMap[U.vercel.url] = [
+    mkNote("Preview deployment failing on Node 22 — check runtime target"),
+  ];
+  notesMap[U.calendar.url] = [
+    mkNote("Move Friday sync to 3pm — Alex is out until noon"),
+  ];
+  notesMap[U.gmail.url] = [
+    mkNote("Reply to Q3 budget email by EOW"),
+  ];
+  notesMap[U.slack.url] = [
+    mkNote("Design review scheduled Thursday 11am"),
+  ];
+  notesMap[U.trello.url] = [
+    mkNote("Move Marketing Launch card to In Review"),
+  ];
   notesMap[U.arxiv.url] = [
     mkNote("Skim intro + sec 4.2, cite in Q3 roadmap doc"),
   ];
-  notesMap[U.amazonCart.url] = [
-    mkNote("Wait for Prime Day discount, don't check out"),
+  notesMap[U.chatgpt.url] = [
+    mkNote("Refactor conversation — save code snippets before archiving"),
   ];
-  notesMap[U.spotify.url] = [mkNote("Playlist for deep-focus mornings")];
+  notesMap[U.claude.url] = [
+    mkNote("Follow up on the state management proposal"),
+  ];
+  notesMap[U.amazonCart.url] = [
+    mkNote("Wait for Prime Day discount, don't check out yet"),
+    mkNote("Compare Kindle Paperwhite vs Oasis before deciding"),
+  ];
+  notesMap[U.spotify.url] = [
+    mkNote("Playlist for deep-focus mornings"),
+  ];
+  notesMap[U.bloomberg.url] = [
+    mkNote("Check the mid-year outlook piece from June"),
+  ];
+  notesMap[U.youtube.url] = [
+    mkNote("Watch the deep-dive later this week"),
+  ];
   notesMap[U.coursera.url] = [
     mkNote("Assignment 3 due next Friday — start by Wed"),
+    mkNote("Review Prof. Lin's optional readings before quiz"),
   ];
 
   // ---------- savedSessions (snapshots) ----------

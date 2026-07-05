@@ -446,6 +446,7 @@ export function MissionControl() {
               refreshWindowTitles();
             }}
             onOpenDetails={setDetailsTab}
+            refreshSignal={urlDataSignal}
           />
         )}
 

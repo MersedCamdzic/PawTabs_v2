@@ -17,6 +17,7 @@ interface Props {
   columns: 1 | 2 | 3 | 4;
   onAction: () => void;
   onOpenDetails: (tab: PawTab) => void;
+  refreshSignal?: number;
 }
 
 interface SelectionState {
@@ -37,6 +38,7 @@ export function WindowsView({
   columns,
   onAction,
   onOpenDetails,
+  refreshSignal,
 }: Props) {
   const [windows, setWindows] = useState<WindowWithPawTabs[]>([]);
   const [selection, setSelection] = useState<SelectionState | null>(null);
@@ -48,6 +50,10 @@ export function WindowsView({
   useEffect(() => {
     refresh();
   }, [refresh]);
+
+  useEffect(() => {
+    if (refreshSignal !== undefined && refreshSignal > 0) refresh();
+  }, [refreshSignal, refresh]);
 
   useEffect(() => {
     let pending = false;
