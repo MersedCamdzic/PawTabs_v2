@@ -23,7 +23,6 @@ import { getAllWindowMeta } from "@/lib/windows";
 import { WINDOW_COLOR_STYLES } from "@/lib/window-colors";
 import { focusTab } from "@/lib/chrome";
 import { getRootDomain } from "@/lib/utils";
-import { formatRelativeTime } from "@/lib/sessions";
 import type { PawTab, TaggedUrlEntry, WindowColor } from "@/types";
 import type { SnapshotSortKey } from "../SnapshotSortDropdown";
 import { ConfirmModal } from "@/popup/components/ConfirmModal";
@@ -382,56 +381,59 @@ function TaggedRow(props: {
           >
             {stateChip.icon}
           </span>
+          {pawed && (
+            <span
+              title="Pawed"
+              class="shrink-0 inline-flex mt-1 text-accent"
+            >
+              <PawPrint size={12} weight="fill" />
+            </span>
+          )}
+          {isPinned && (
+            <span
+              title="Pinned"
+              class="shrink-0 inline-flex mt-1 text-warning"
+            >
+              <PushPin size={12} weight="fill" />
+            </span>
+          )}
           <span class="min-w-0">{entry.title || domain}</span>
         </div>
         <div class="text-[11px] text-fg-subtle leading-tight mt-1 break-all line-clamp-2">
           {entry.url}
         </div>
-        <div class="flex flex-wrap items-center gap-1 mt-2">
-          {pawed && (
-            <Chip bg="bg-accent-subtle" text="text-accent">
-              <PawPrint size={9} weight="fill" />
-              Pawed
-            </Chip>
-          )}
-
-          {isPinned && (
-            <Chip bg="bg-warning-subtle" text="text-warning">
-              <PushPin size={9} weight="fill" />
-              Pinned
-            </Chip>
-          )}
-          {isOpen && windowName && (
-            <Chip
-              bg={windowColorStyle ? windowColorStyle.headerBg : "bg-surface"}
-              text={
-                windowColorStyle
-                  ? windowColorStyle.titleText
-                  : "text-fg-muted"
-              }
-            >
-              <Browsers
-                size={9}
-                weight="fill"
-                class={
+        {(isOpen && (windowName || openTab)) && (
+          <div class="flex flex-wrap items-center gap-1 mt-2">
+            {windowName ? (
+              <Chip
+                bg={windowColorStyle ? windowColorStyle.headerBg : "bg-surface"}
+                text={
                   windowColorStyle
-                    ? windowColorStyle.iconText
-                    : "text-fg-subtle"
+                    ? windowColorStyle.titleText
+                    : "text-fg-muted"
                 }
-              />
-              {windowName}
-            </Chip>
-          )}
-          {isOpen && !windowName && openTab && (
-            <Chip bg="bg-surface" text="text-fg-muted">
-              <Browsers size={9} weight="fill" class="text-fg-subtle" />
-              Window {openTab.windowId}
-            </Chip>
-          )}
-          <span class="text-[10px] text-fg-subtle/70 ml-auto">
-            Tagged {formatRelativeTime(new Date(entry.updatedAt).toISOString())}
-          </span>
-        </div>
+              >
+                <Browsers
+                  size={9}
+                  weight="fill"
+                  class={
+                    windowColorStyle
+                      ? windowColorStyle.iconText
+                      : "text-fg-subtle"
+                  }
+                />
+                {windowName}
+              </Chip>
+            ) : (
+              openTab && (
+                <Chip bg="bg-surface" text="text-fg-muted">
+                  <Browsers size={9} weight="fill" class="text-fg-subtle" />
+                  Window {openTab.windowId}
+                </Chip>
+              )
+            )}
+          </div>
+        )}
       </div>
       <div class="flex items-center gap-0.5 shrink-0">
         <button
