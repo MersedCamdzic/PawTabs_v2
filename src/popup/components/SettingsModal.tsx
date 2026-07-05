@@ -8,7 +8,7 @@ import {
   DEFAULT_PREFERENCES,
 } from "@/lib/preferences";
 import { applyTheme } from "@/lib/theme";
-import { saveSession } from "@/lib/sessions";
+import { saveSession, listSessions } from "@/lib/sessions";
 import type { Theme, WizardThresholds, AutoSessionConfig } from "@/types";
 
 interface Props {
@@ -40,6 +40,13 @@ export function SettingsModal({ open, onClose }: Props) {
     const next = { ...autoSession, ...patch };
     setAutoSession(next);
     await setPreference("autoSession", next);
+  };
+
+  const latestAutoSessionTime = async (): Promise<number> => {
+    const sessions = await listSessions();
+    const autos = sessions.filter((s) => s.auto);
+    if (autos.length === 0) return 0;
+    return new Date(autos[0]!.dateTime).getTime();
   };
 
   const updateTheme = async (next: Theme) => {
@@ -103,7 +110,11 @@ export function SettingsModal({ open, onClose }: Props) {
               onChange={async (e) => {
                 const checked = (e.currentTarget as HTMLInputElement).checked;
                 if (checked && !autoSession.enabled) {
-                  await updateAutoSession({ enabled: true });
+                  const existing = await latestAutoSessionTime();
+                  await updateAutoSession({
+                    enabled: true,
+                    ...(existing > 0 ? { lastRunAt: existing } : {}),
+                  });
                   setConfirmFirstSnapshotOpen(true);
                   return;
                 }
