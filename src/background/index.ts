@@ -6,22 +6,37 @@ const AUTO_SESSION_ALARM = "pawtabs_auto_session";
 
 console.info("[PawTabs] background service worker ready");
 
-// Register the alarm every time the service worker wakes up. Idempotent —
-// chrome.alarms.create with same name replaces prior config, so we don't
-// end up with duplicates. This is more reliable than relying only on
-// onInstalled / onStartup for users who upgraded / granted alarms perm
-// after first install.
-scheduleAutoSessionAlarm().catch((e) =>
-  console.error("[PawTabs] alarm schedule failed", e),
-);
+// Only register the alarm if auto-save is currently enabled. On every SW
+// wake-up we re-check the pref so the alarm state stays in sync with the
+// user's setting (previously alarm was always registered and just no-op'd
+// on tick when disabled — this caused users to see the background job
+// "still running" in DevTools).
+(async () => {
+  try {
+    const prefs = await getPreferences();
+    if (prefs.autoSession?.enabled) {
+      await scheduleAutoSessionAlarm();
+    } else {
+      await chrome.alarms.clear(AUTO_SESSION_ALARM);
+    }
+  } catch (e) {
+    console.error("[PawTabs] initial alarm sync failed", e);
+  }
+})();
 
-chrome.runtime.onInstalled.addListener(() => {
+chrome.runtime.onInstalled.addListener(async () => {
   console.info("[PawTabs] installed");
-  scheduleAutoSessionAlarm().catch(() => undefined);
+  const prefs = await getPreferences();
+  if (prefs.autoSession?.enabled) {
+    await scheduleAutoSessionAlarm();
+  }
 });
 
-chrome.runtime.onStartup.addListener(() => {
-  scheduleAutoSessionAlarm().catch(() => undefined);
+chrome.runtime.onStartup.addListener(async () => {
+  const prefs = await getPreferences();
+  if (prefs.autoSession?.enabled) {
+    await scheduleAutoSessionAlarm();
+  }
 });
 
 // Allow popup / MC to trigger a snapshot immediately via message.
@@ -30,7 +45,24 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     runAutoSessionIfDue({ force: true })
       .then(() => sendResponse({ ok: true }))
       .catch((e) => sendResponse({ ok: false, error: String(e) }));
-    return true; // async response
+    return true;
+  }
+  if (msg?.type === "pawtabs:auto_session_toggle") {
+    (async () => {
+      try {
+        if (msg.enabled) {
+          await scheduleAutoSessionAlarm();
+          console.info("[PawTabs] auto-session alarm rescheduled (enabled)");
+        } else {
+          await chrome.alarms.clear(AUTO_SESSION_ALARM);
+          console.info("[PawTabs] auto-session alarm cleared (disabled)");
+        }
+        sendResponse({ ok: true });
+      } catch (e) {
+        sendResponse({ ok: false, error: String(e) });
+      }
+    })();
+    return true;
   }
   return undefined;
 });
@@ -58,7 +90,13 @@ async function runAutoSessionIfDue(
   try {
     const prefs = await getPreferences();
     const cfg = prefs.autoSession;
-    if (!opts.force && !cfg?.enabled) return;
+    if (!opts.force && !cfg?.enabled) {
+      // Belt & braces: if the toggle is off but the alarm is somehow still
+      // registered (e.g. from a previous session where toggle was on),
+      // clear it now so we stop ticking entirely.
+      await chrome.alarms.clear(AUTO_SESSION_ALARM);
+      return;
+    }
     const now = Date.now();
     if (!opts.force) {
       const intervalMs =

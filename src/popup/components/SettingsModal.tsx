@@ -41,6 +41,16 @@ export function SettingsModal({ open, onClose }: Props) {
     const next = { ...autoSession, ...patch };
     setAutoSession(next);
     await setPreference("autoSession", next);
+    if (patch.enabled !== undefined) {
+      try {
+        await chrome.runtime.sendMessage({
+          type: "pawtabs:auto_session_toggle",
+          enabled: next.enabled,
+        });
+      } catch {
+        // background may not be ready; alarm will sync on its own next tick
+      }
+    }
   };
 
   const latestAutoSessionTime = async (): Promise<number> => {
