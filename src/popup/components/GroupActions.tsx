@@ -19,6 +19,7 @@ import {
   type WindowInfo,
 } from "@/lib/tabs";
 import { saveSession } from "@/lib/sessions";
+import { ConfirmModal } from "./ConfirmModal";
 import { getAllWindowMeta } from "@/lib/windows";
 import { WINDOW_COLOR_STYLES } from "@/lib/window-colors";
 import type { PawTab, WindowColor } from "@/types";
@@ -46,6 +47,7 @@ export function GroupActions({
     Record<number, WindowColor>
   >({});
   const [busy, setBusy] = useState(false);
+  const [confirmCloseOpen, setConfirmCloseOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const ids = tabs.map((t) => t.id);
 
@@ -111,12 +113,12 @@ export function GroupActions({
   const handleMoveNew = () => run(() => moveManyToNewWindow(ids));
 
   const handleCloseAll = () => {
-    if (
-      !confirm(
-        `Close ${ids.length} tab${ids.length === 1 ? "" : "s"} in this group?`,
-      )
-    )
-      return;
+    if (ids.length === 0) return;
+    setConfirmCloseOpen(true);
+  };
+
+  const confirmClose = () => {
+    setConfirmCloseOpen(false);
     run(() => closeMany(ids));
   };
 
@@ -315,6 +317,31 @@ export function GroupActions({
           </div>
         </Popover>
       )}
+
+      <ConfirmModal
+        open={confirmCloseOpen}
+        title="Close tabs in group"
+        message={
+          <>
+            Close{" "}
+            <span class="font-semibold text-fg">
+              {ids.length} tab{ids.length === 1 ? "" : "s"}
+            </span>
+            {contextLabel ? (
+              <>
+                {" "}in{" "}
+                <span class="font-semibold text-fg">{contextLabel}</span>
+              </>
+            ) : null}
+            ? They'll be gone from Chrome; you can reopen them from the
+            Recently closed list.
+          </>
+        }
+        confirmLabel="Close tabs"
+        tone="danger"
+        onConfirm={confirmClose}
+        onCancel={() => setConfirmCloseOpen(false)}
+      />
     </div>
   );
 }
