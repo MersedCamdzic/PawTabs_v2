@@ -18,6 +18,7 @@ import { getRootDomain } from "@/lib/utils";
 import { formatRelativeTime } from "@/lib/sessions";
 import type { PawTab, TaggedUrlEntry } from "@/types";
 import type { SnapshotSortKey } from "../SnapshotSortDropdown";
+import { ConfirmModal } from "@/popup/components/ConfirmModal";
 
 interface Props {
   query: string;
@@ -50,6 +51,7 @@ export function TagsView({
 }: Props) {
   const [tagList, setTagList] = useState<TagAggregate[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<TagAggregate | null>(null);
 
   const refresh = useCallback(async () => {
     setTagList(await listTags());
@@ -116,13 +118,10 @@ export function TagsView({
     onAction();
   };
 
-  const handleDeleteTag = async (tag: TagAggregate) => {
-    if (
-      !confirm(
-        `Delete tag "${tag.tag}" from ${tag.count} URL${tag.count === 1 ? "" : "s"}? This removes the tag everywhere it's used.`,
-      )
-    )
-      return;
+  const confirmDeleteTag = async () => {
+    if (!pendingDelete) return;
+    const tag = pendingDelete;
+    setPendingDelete(null);
     await removeTagFromManyUrls(
       tag.entries.map((e) => e.url),
       tag.tag,
@@ -170,7 +169,7 @@ export function TagsView({
                 type="button"
                 onClick={(e) => {
                   e.stopPropagation();
-                  handleDeleteTag(t);
+                  setPendingDelete(t);
                 }}
                 aria-label={`Delete tag ${t.tag}`}
                 title={`Delete tag "${t.tag}" from all URLs`}
@@ -216,6 +215,30 @@ export function TagsView({
           </div>
         )}
       </div>
+
+      <ConfirmModal
+        open={pendingDelete !== null}
+        title="Delete tag"
+        message={
+          pendingDelete ? (
+            <>
+              Remove the tag{" "}
+              <span class="font-semibold text-fg">"{pendingDelete.tag}"</span>{" "}
+              from{" "}
+              <span class="font-semibold text-fg">
+                {pendingDelete.count} URL
+                {pendingDelete.count === 1 ? "" : "s"}
+              </span>
+              ? This clears it everywhere it's used. Tabs and paw status
+              stay untouched.
+            </>
+          ) : null
+        }
+        confirmLabel="Delete tag"
+        tone="danger"
+        onConfirm={confirmDeleteTag}
+        onCancel={() => setPendingDelete(null)}
+      />
     </div>
   );
 }
