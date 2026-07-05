@@ -16,6 +16,7 @@ import {
   formatAbsoluteDateTime,
 } from "@/lib/sessions";
 import { listBackups, deleteBackup, restoreBackup } from "@/lib/backups";
+import { RestorePromptModal } from "@/popup/components/RestorePromptModal";
 import { getRootDomain } from "@/lib/utils";
 import type { SavedSession, Backup } from "@/types";
 import type { SnapshotSortKey } from "../SnapshotSortDropdown";
@@ -105,11 +106,16 @@ export function SessionsView({
     return all;
   }, [sessions, backups, query, sortBy]);
 
+  const [restorePrompt, setRestorePrompt] = useState<UnifiedItem | null>(null);
+
   const handleRestore = async (item: UnifiedItem) => {
+    if (item.kind === "session") {
+      setRestorePrompt(item);
+      return;
+    }
     setBusyId(itemId(item));
     try {
-      if (item.kind === "session") await restoreSession(item.data);
-      else await restoreBackup(item.data);
+      await restoreBackup(item.data);
     } finally {
       setBusyId(null);
     }
@@ -184,6 +190,20 @@ export function SessionsView({
           ))}
         </div>
       )}
+      <RestorePromptModal
+        open={restorePrompt !== null}
+        session={restorePrompt?.kind === "session" ? restorePrompt.data : null}
+        onClose={() => setRestorePrompt(null)}
+        onConfirm={async (mode) => {
+          if (restorePrompt?.kind !== "session") return;
+          setBusyId(itemId(restorePrompt));
+          try {
+            await restoreSession(restorePrompt.data, { mode });
+          } finally {
+            setBusyId(null);
+          }
+        }}
+      />
     </div>
   );
 }

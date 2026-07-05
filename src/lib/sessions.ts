@@ -47,18 +47,68 @@ export async function saveSession(
   return session;
 }
 
-export async function restoreSession(session: SavedSession): Promise<void> {
+export type RestoreMode = "per-window" | "single-window" | "reuse-if-exists";
+
+export interface RestoreOptions {
+  mode?: RestoreMode;
+}
+
+export async function restoreSession(
+  session: SavedSession,
+  options: RestoreOptions = {},
+): Promise<void> {
+  const mode: RestoreMode = options.mode ?? "per-window";
+  const restorable = session.tabs.filter((t) => isRestorable(t.url));
+  if (restorable.length === 0) return;
+
+  if (mode === "single-window") {
+    const urls = restorable.map((t) => t.url);
+    const win = await chrome.windows.create({ url: urls, focused: false });
+    if (!win?.id) return;
+    const created = await chrome.tabs.query({ windowId: win.id });
+    for (let i = 0; i < restorable.length; i += 1) {
+      const tab = restorable[i]!;
+      const actual = created[i];
+      if (tab.pinned && actual?.id !== undefined) {
+        await chrome.tabs.update(actual.id, { pinned: true });
+      }
+    }
+    return;
+  }
+
   const byWindow = new Map<number, SessionTab[]>();
-  for (const tab of session.tabs) {
-    if (!isRestorable(tab.url)) continue;
+  for (const tab of restorable) {
     const wid = tab.windowId ?? 0;
     const arr = byWindow.get(wid) ?? [];
     arr.push(tab);
     byWindow.set(wid, arr);
   }
 
-  for (const tabs of byWindow.values()) {
+  const openWindows =
+    mode === "reuse-if-exists" ? await chrome.windows.getAll() : [];
+  const openIds = new Set(
+    openWindows.map((w) => w.id).filter((id): id is number => id !== undefined),
+  );
+
+  for (const [sourceWid, tabs] of byWindow.entries()) {
     if (tabs.length === 0) continue;
+
+    if (mode === "reuse-if-exists" && openIds.has(sourceWid)) {
+      for (const tab of tabs) {
+        const created = await chrome.tabs.create({
+          windowId: sourceWid,
+          url: tab.url,
+          active: false,
+          pinned: Boolean(tab.pinned),
+        });
+        // Chrome ignores `pinned` in some versions on create; ensure it.
+        if (tab.pinned && created?.id !== undefined) {
+          await chrome.tabs.update(created.id, { pinned: true });
+        }
+      }
+      continue;
+    }
+
     const urls = tabs.map((t) => t.url);
     const win = await chrome.windows.create({ url: urls, focused: false });
     if (!win || win.id === undefined) continue;

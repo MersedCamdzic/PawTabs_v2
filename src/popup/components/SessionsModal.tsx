@@ -10,6 +10,7 @@ import {
   X,
 } from "@phosphor-icons/react";
 import { Modal } from "./Modal";
+import { RestorePromptModal } from "./RestorePromptModal";
 import {
   listSessions,
   saveSession,
@@ -89,11 +90,16 @@ export function SessionsModal({ open, onClose, currentStats }: Props) {
     }
   };
 
+  const [restorePrompt, setRestorePrompt] = useState<UnifiedItem | null>(null);
+
   const handleRestore = async (item: UnifiedItem) => {
+    if (item.kind === "session") {
+      setRestorePrompt(item);
+      return;
+    }
     setBusyId(itemId(item));
     try {
-      if (item.kind === "session") await restoreSession(item.data);
-      else await restoreBackup(item.data);
+      await restoreBackup(item.data);
     } finally {
       setBusyId(null);
     }
@@ -228,6 +234,20 @@ export function SessionsModal({ open, onClose, currentStats }: Props) {
           )}
         </div>
       </div>
+      <RestorePromptModal
+        open={restorePrompt !== null}
+        session={restorePrompt?.kind === "session" ? restorePrompt.data : null}
+        onClose={() => setRestorePrompt(null)}
+        onConfirm={async (mode) => {
+          if (restorePrompt?.kind !== "session") return;
+          setBusyId(itemId(restorePrompt));
+          try {
+            await restoreSession(restorePrompt.data, { mode });
+          } finally {
+            setBusyId(null);
+          }
+        }}
+      />
     </Modal>
   );
 }
