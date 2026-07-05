@@ -8,7 +8,6 @@ import {
   Moon,
   Broadcast,
   ArrowSquareOut,
-  ArrowsLeftRight,
   Browsers,
 } from "@phosphor-icons/react";
 import { focusTab, closeTab } from "@/lib/chrome";
@@ -54,11 +53,6 @@ export function MCTabRow({
   const handleJump = async (e: MouseEvent) => {
     stop(e);
     await focusTab(tab.id, tab.windowId);
-  };
-
-  const handleMove = (e: MouseEvent) => {
-    stop(e);
-    onOpenDetails(tab);
   };
 
   const rowClass = tab.discarded
@@ -165,14 +159,6 @@ export function MCTabRow({
           onClick={handleJump}
         >
           <ArrowSquareOut size={13} />
-        </ActionBtn>
-        <ActionBtn
-          title="Move to another window"
-          active={false}
-          tone="accent"
-          onClick={handleMove}
-        >
-          <ArrowsLeftRight size={13} weight="bold" />
         </ActionBtn>
         <span
           class="w-px h-4 mx-1 bg-border opacity-0 group-hover:opacity-100 transition-opacity"
