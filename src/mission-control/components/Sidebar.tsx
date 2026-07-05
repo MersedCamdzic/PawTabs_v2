@@ -62,7 +62,7 @@ export function Sidebar({ view, onChange, onOpenCleanup, counts }: Props) {
         />
         <NavItem
           icon={<ListBullets size={14} />}
-          label="All tabs"
+          label="Open tabs"
           count={counts.tabs}
           active={view === "tabs"}
           onClick={() => onChange("tabs")}

@@ -54,7 +54,7 @@ const VIEW_META: Record<View, { title: string; subtitle: string }> = {
     title: "Overview",
     subtitle: "A glance at your tabs, windows, and saved data.",
   },
-  tabs: { title: "All tabs", subtitle: "Every tab open across all windows." },
+  tabs: { title: "Open tabs", subtitle: "Every tab currently open across all windows." },
   windows: {
     title: "Windows",
     subtitle:
