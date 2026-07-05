@@ -8,7 +8,7 @@ import {
   Globe,
   Tag,
   NotePencil,
-  Info,
+  ListBullets,
   Broadcast,
 } from "@phosphor-icons/react";
 import {
@@ -227,7 +227,7 @@ export function TabRow({
           data-tooltip-pos="above"
           class="size-6 inline-flex items-center justify-center rounded text-fg-subtle opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 hover:bg-accent-subtle hover:text-accent transition-all"
         >
-          <Info size={13} />
+          <ListBullets size={13} />
         </button>
 
         <span
