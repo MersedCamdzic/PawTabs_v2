@@ -8,7 +8,7 @@ import {
   Globe,
   Tag,
   NotePencil,
-  ArrowSquareOut,
+  Info,
   Broadcast,
 } from "@phosphor-icons/react";
 import {
@@ -23,6 +23,7 @@ import type { PawTab } from "@/types";
 
 interface Props {
   tab: PawTab;
+  isCurrent?: boolean;
   onAction: () => void;
   onOpenDetails: (tab: PawTab) => void;
   selected: boolean;
@@ -32,6 +33,7 @@ interface Props {
 
 export function TabRow({
   tab,
+  isCurrent = false,
   onAction,
   onOpenDetails,
   selected,
@@ -45,13 +47,17 @@ export function TabRow({
       onToggleSelect(tab.id, e);
       return;
     }
-    onOpenDetails(tab);
+    if (isCurrent) {
+      onOpenDetails(tab);
+    } else {
+      await focusTab(tab.id, tab.windowId);
+      window.close();
+    }
   };
 
-  const handleJump = async (e: MouseEvent) => {
+  const handleOpenDetails = (e: MouseEvent) => {
     stop(e);
-    await focusTab(tab.id, tab.windowId);
-    window.close();
+    onOpenDetails(tab);
   };
 
   const stop = (e: Event) => {
@@ -215,13 +221,13 @@ export function TabRow({
 
         <button
           type="button"
-          onClick={handleJump}
-          aria-label="Jump to this tab"
-          data-tooltip="Jump to this tab"
+          onClick={handleOpenDetails}
+          aria-label="Open tab details"
+          data-tooltip="Open tab details"
           data-tooltip-pos="above"
           class="size-6 inline-flex items-center justify-center rounded text-fg-subtle opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 hover:bg-accent-subtle hover:text-accent transition-all"
         >
-          <ArrowSquareOut size={13} />
+          <Info size={13} />
         </button>
 
         <span

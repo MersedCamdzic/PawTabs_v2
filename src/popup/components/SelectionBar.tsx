@@ -3,15 +3,17 @@ import {
   PawPrint,
   PushPin,
   Tag,
-  ArrowSquareOut,
+  ArrowsLeftRight,
   Plus,
   Browser,
   CaretDown,
+  NotePencil,
 } from "@phosphor-icons/react";
 import {
   setStarredMany,
   setPinnedMany,
   addTagToMany,
+  addNoteToMany,
   moveManyToWindow,
   moveManyToNewWindow,
   listWindowsForMove,
@@ -23,11 +25,12 @@ interface Props {
   onAction: () => void;
 }
 
-type Mode = "default" | "tag" | "move";
+type Mode = "default" | "tag" | "note" | "move";
 
 export function SelectionBar({ selectedIds, onClear, onAction }: Props) {
   const [mode, setMode] = useState<Mode>("default");
   const [tagInput, setTagInput] = useState("");
+  const [noteInput, setNoteInput] = useState("");
   const [windows, setWindows] = useState<
     { id: number; tabCount: number; firstTabTitle: string }[]
   >([]);
@@ -80,6 +83,20 @@ export function SelectionBar({ selectedIds, onClear, onAction }: Props) {
     }
   };
 
+  const handleAddNote = async () => {
+    if (!noteInput.trim()) return;
+    setBusy(true);
+    try {
+      await addNoteToMany(selectedIds, noteInput);
+      setNoteInput("");
+      setMode("default");
+      onAction();
+      onClear();
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const handleMoveTo = (windowId: number) =>
     wrap(() => moveManyToWindow(selectedIds, windowId))();
 
@@ -113,13 +130,22 @@ export function SelectionBar({ selectedIds, onClear, onAction }: Props) {
             <Tag size={13} />
           </ActionBtn>
           <ActionBtn
-            title="Move all"
+            title="Add note to all"
+            onClick={() => setMode(mode === "note" ? "default" : "note")}
+            disabled={busy}
+            tone="accent"
+            active={mode === "note"}
+          >
+            <NotePencil size={13} />
+          </ActionBtn>
+          <ActionBtn
+            title="Move all to another window"
             onClick={() => setMode(mode === "move" ? "default" : "move")}
             disabled={busy}
             tone="accent"
             active={mode === "move"}
           >
-            <ArrowSquareOut size={13} />
+            <ArrowsLeftRight size={13} />
           </ActionBtn>
           <span class="w-px h-4 mx-1 bg-border" />
           <button
@@ -164,6 +190,41 @@ export function SelectionBar({ selectedIds, onClear, onAction }: Props) {
         </form>
       )}
 
+      {mode === "note" && (
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleAddNote();
+          }}
+          class="flex gap-1.5"
+        >
+          <textarea
+            autoFocus
+            value={noteInput}
+            onInput={(e) =>
+              setNoteInput((e.currentTarget as HTMLTextAreaElement).value)
+            }
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+                e.preventDefault();
+                handleAddNote();
+              }
+            }}
+            placeholder={`Note for ${selectedIds.length} tabs…`}
+            rows={2}
+            class="flex-1 px-2.5 py-1.5 bg-surface border border-accent rounded text-[12px] placeholder:text-fg-subtle focus:outline-none focus:ring-4 focus:ring-accent/10 resize-none"
+          />
+          <button
+            type="submit"
+            disabled={!noteInput.trim() || busy}
+            class="h-7 px-2.5 text-[11px] font-medium rounded bg-accent text-white hover:bg-accent-hover disabled:opacity-40 transition-colors inline-flex items-center gap-1 shrink-0 self-start"
+          >
+            <Plus size={11} weight="bold" />
+            Add
+          </button>
+        </form>
+      )}
+
       {mode === "move" && (
         <div class="flex flex-col gap-1 max-h-[140px] overflow-y-auto">
           {windows.map((w) => (
@@ -194,7 +255,7 @@ export function SelectionBar({ selectedIds, onClear, onAction }: Props) {
             disabled={busy}
             class="flex items-center gap-2 px-2 py-1.5 rounded text-[11px] border border-dashed border-border hover:border-accent hover:bg-accent-subtle text-fg-muted hover:text-accent transition-colors disabled:opacity-40"
           >
-            <ArrowSquareOut size={11} />
+            <Plus size={11} weight="bold" />
             <span class="flex-1 text-left">Move to new window</span>
           </button>
         </div>

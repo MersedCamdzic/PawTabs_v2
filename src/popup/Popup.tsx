@@ -279,6 +279,7 @@ export function Popup() {
           <div class="border border-accent/30 bg-accent-subtle/30 rounded-md p-0.5">
             <TabRow
               tab={currentTab}
+              isCurrent
               onAction={handleAction}
               onOpenDetails={setDetailsTab}
               selected={selectedIds.has(currentTab.id)}
@@ -321,6 +322,7 @@ export function Popup() {
               selectedIds={selectedIds}
               selectionMode={selectedIds.size > 0}
               windowColors={windowColors}
+              currentTabId={currentTabId}
               onToggle={() => toggleCollapsed(group.key)}
               onAction={handleAction}
               onOpenDetails={setDetailsTab}

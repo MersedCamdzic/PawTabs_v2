@@ -15,6 +15,7 @@ interface Props {
   selectedIds: Set<number>;
   selectionMode: boolean;
   windowColors?: Record<number, WindowColor>;
+  currentTabId?: number | null;
   onToggle: () => void;
   onAction: () => void;
   onOpenDetails: (tab: PawTab) => void;
@@ -29,6 +30,7 @@ export function TabGroupSection({
   selectedIds,
   selectionMode,
   windowColors,
+  currentTabId,
   onToggle,
   onAction,
   onOpenDetails,
@@ -38,6 +40,7 @@ export function TabGroupSection({
     <TabRow
       key={tab.id}
       tab={tab}
+      isCurrent={tab.id === currentTabId}
       onAction={onAction}
       onOpenDetails={onOpenDetails}
       selected={selectedIds.has(tab.id)}
