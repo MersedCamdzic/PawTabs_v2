@@ -134,7 +134,11 @@ export function SettingsModal({ open, onClose }: Props) {
                 class="w-14 h-7 px-1 text-center bg-surface border border-border rounded text-[12px] focus:outline-none focus:bg-bg-elevated focus:border-accent"
               />
               <select
-                value={autoSession.intervalUnit}
+                value={
+                  autoSession.intervalUnit === "seconds"
+                    ? "minutes"
+                    : autoSession.intervalUnit
+                }
                 onChange={(e) =>
                   updateAutoSession({
                     intervalUnit: (e.currentTarget as HTMLSelectElement)
@@ -143,7 +147,6 @@ export function SettingsModal({ open, onClose }: Props) {
                 }
                 class="h-7 px-1.5 bg-surface border border-border rounded text-[12px] focus:outline-none focus:bg-bg-elevated focus:border-accent"
               >
-                <option value="seconds">seconds (test)</option>
                 <option value="minutes">minutes</option>
                 <option value="hours">hours</option>
                 <option value="days">days</option>
