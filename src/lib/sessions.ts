@@ -62,6 +62,7 @@ export interface RestoreOptions {
   onProgress?: (p: RestoreProgress) => void;
   signal?: AbortSignal;
   discardAfterCreate?: boolean;
+  closeExistingWindows?: boolean;
 }
 
 async function pause(ms: number, signal?: AbortSignal): Promise<void> {
@@ -144,6 +145,12 @@ export async function restoreSession(
   const progressBase = { done: 0, total: restorable.length };
   options.onProgress?.({ done: 0, total: restorable.length });
 
+  const existingWindowIdsToClose: number[] = options.closeExistingWindows
+    ? (await chrome.windows.getAll())
+        .map((w) => w.id)
+        .filter((id): id is number => id !== undefined)
+    : [];
+
   if (mode === "single-window") {
     // Create a shell window with a placeholder tab first, then batch
     // the rest into it. Prevents Chrome from trying to load 90 URLs at
@@ -207,6 +214,16 @@ export async function restoreSession(
         } catch {
           // ignore
         }
+      }
+    }
+  }
+
+  if (existingWindowIdsToClose.length > 0) {
+    for (const id of existingWindowIdsToClose) {
+      try {
+        await chrome.windows.remove(id);
+      } catch {
+        // ignore
       }
     }
   }

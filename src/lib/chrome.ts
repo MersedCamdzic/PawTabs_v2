@@ -40,9 +40,9 @@ export async function fetchAllTabs(): Promise<TabSnapshot> {
         pinned: t.pinned ?? false,
         lastAccessed: t.lastAccessed,
         saved: Boolean(saved[t.id]?.saved),
-        starred: pawedSet.has(url),
-        tags: taggedMap[url]?.tags ?? [],
-        notes: notes[url] ?? saved[t.id]?.notes ?? [],
+        starred: pawedSet.has(rawUrl),
+        tags: taggedMap[rawUrl]?.tags ?? [],
+        notes: notes[rawUrl] ?? saved[t.id]?.notes ?? [],
       };
     });
 

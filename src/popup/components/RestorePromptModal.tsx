@@ -21,6 +21,7 @@ export function RestorePromptModal({ open, session, onClose, onDone }: Props) {
   });
   const [progress, setProgress] = useState<RestoreProgress | null>(null);
   const [running, setRunning] = useState(false);
+  const [closeExisting, setCloseExisting] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
@@ -51,6 +52,7 @@ export function RestorePromptModal({ open, session, onClose, onDone }: Props) {
         discardAfterCreate: true,
         batchSize: 5,
         delayMs: 350,
+        closeExistingWindows: closeExisting,
       });
       onDone?.();
       onClose();
@@ -141,6 +143,36 @@ export function RestorePromptModal({ open, session, onClose, onDone }: Props) {
           </div>
         </div>
       )}
+
+      <label
+        class={`flex items-start gap-2.5 p-3 mb-3 border rounded-md cursor-pointer transition-colors ${
+          closeExisting
+            ? "border-warning/40 bg-warning-subtle/40"
+            : "border-border bg-bg hover:border-border-strong"
+        }`}
+      >
+        <input
+          type="checkbox"
+          checked={closeExisting}
+          onChange={(e) =>
+            setCloseExisting((e.currentTarget as HTMLInputElement).checked)
+          }
+          class="mt-0.5 size-4 accent-warning cursor-pointer shrink-0"
+        />
+        <div class="flex-1 min-w-0">
+          <div
+            class={`text-[12px] font-semibold ${
+              closeExisting ? "text-warning" : "text-fg"
+            }`}
+          >
+            Close all current windows first
+          </div>
+          <div class="text-[11px] text-fg-muted mt-0.5 leading-snug">
+            Wipes your current tabs, then restores the snapshot. Unchecked =
+            keep your current windows and add the snapshot alongside them.
+          </div>
+        </div>
+      </label>
 
       <div class="space-y-2">
         <RestoreOption
