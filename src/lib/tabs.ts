@@ -22,6 +22,7 @@ export async function addTag(tabId: number, tag: string): Promise<void> {
     title: tab.title ?? "",
     favIconUrl: tab.favIconUrl ?? "",
     tag: clean,
+    windowId: tab.windowId,
   });
 }
 
@@ -106,6 +107,7 @@ export async function addTagToMany(
       title: t.title ?? "",
       favIconUrl: t.favIconUrl ?? "",
       tag: clean,
+      windowId: t.windowId,
     });
   }
 }

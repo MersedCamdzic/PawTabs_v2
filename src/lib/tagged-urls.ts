@@ -16,6 +16,7 @@ export async function addTagToUrl(input: {
   title: string;
   favIconUrl: string;
   tag: string;
+  windowId?: number;
 }): Promise<void> {
   const clean = input.tag.trim();
   if (!clean || !input.url) return;
@@ -29,6 +30,7 @@ export async function addTagToUrl(input: {
     favIconUrl: input.favIconUrl || existing?.favIconUrl || "",
     tags: [...nextTags, clean],
     updatedAt: Date.now(),
+    lastWindowId: input.windowId ?? existing?.lastWindowId,
   };
   await storage.set("taggedUrls", map);
 }

@@ -107,6 +107,7 @@ export interface TaggedUrlEntry {
   favIconUrl: string;
   tags: string[];
   updatedAt: number;
+  lastWindowId?: number;
 }
 
 export interface StorageSchema {

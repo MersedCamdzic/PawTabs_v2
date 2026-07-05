@@ -123,6 +123,22 @@ export function TagsView({
     return map;
   }, [openTabs]);
 
+  const restoreUrl = async (entry: TaggedUrlEntry) => {
+    let targetWindowId: number | undefined;
+    if (entry.lastWindowId !== undefined) {
+      try {
+        const w = await chrome.windows.get(entry.lastWindowId);
+        if (w?.id !== undefined) targetWindowId = w.id;
+      } catch {
+        targetWindowId = undefined;
+      }
+    }
+    await chrome.tabs.create({
+      url: entry.url,
+      windowId: targetWindowId,
+    });
+  };
+
   const handleRowClick = async (entry: TaggedUrlEntry) => {
     const tab = openByUrl.get(entry.url);
     if (tab && onOpenDetails) {
@@ -132,7 +148,7 @@ export function TagsView({
     if (tab) {
       await focusTab(tab.id, tab.windowId);
     } else {
-      await chrome.tabs.create({ url: entry.url });
+      await restoreUrl(entry);
     }
   };
 
@@ -141,7 +157,7 @@ export function TagsView({
     if (tab) {
       await focusTab(tab.id, tab.windowId);
     } else {
-      await chrome.tabs.create({ url: entry.url });
+      await restoreUrl(entry);
     }
   };
 
@@ -442,8 +458,8 @@ function TaggedRow(props: {
             e.stopPropagation();
             props.onJump();
           }}
-          aria-label={isOpen ? "Jump" : "Open"}
-          data-tooltip={isOpen ? "Jump to tab" : "Open URL in new tab"}
+          aria-label={isOpen ? "Jump to this tab" : "Restore"}
+          data-tooltip={isOpen ? "Jump to this tab" : "Restore"}
           data-tooltip-pos="above"
           class="size-8 inline-flex items-center justify-center rounded text-fg-muted opacity-0 group-hover:opacity-100 hover:bg-accent-subtle hover:text-accent transition-all"
         >
