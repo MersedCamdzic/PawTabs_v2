@@ -5,6 +5,8 @@ import {
   Globe,
   ArrowsClockwise,
   Trash,
+  Tag,
+  PawPrint,
 } from "@phosphor-icons/react";
 import {
   listRecentlyClosedDetailed,
@@ -14,6 +16,8 @@ import type { RecentlyClosedItem } from "@/lib/recently-closed";
 import { formatRelativeTime } from "@/lib/sessions";
 import { getRootDomain } from "@/lib/utils";
 import { storage } from "@/lib/storage";
+import { getTaggedMap } from "@/lib/tagged-urls";
+import { getPawedUrlSet } from "@/lib/pawed";
 
 import type { SnapshotSortKey } from "../SnapshotSortDropdown";
 
@@ -50,6 +54,8 @@ export function RecentlyClosedView({
   const [error, setError] = useState<string | null>(null);
   const [apiAvailable, setApiAvailable] = useState(true);
   const [hidden, setHidden] = useState<Set<string>>(new Set());
+  const [tagsByUrl, setTagsByUrl] = useState<Record<string, string[]>>({});
+  const [pawedUrls, setPawedUrls] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     storage.get("hiddenRecentlyClosed").then((arr) => {
@@ -77,10 +83,20 @@ export function RecentlyClosedView({
   const refresh = useCallback(async () => {
     setLoading(true);
     try {
-      const r = await listRecentlyClosedDetailed(25);
+      const [r, taggedMap, paws] = await Promise.all([
+        listRecentlyClosedDetailed(25),
+        getTaggedMap(),
+        getPawedUrlSet(),
+      ]);
       setItems(r.items);
       setApiAvailable(r.apiAvailable);
       setError(r.error ?? null);
+      const tagLookup: Record<string, string[]> = {};
+      for (const [url, entry] of Object.entries(taggedMap)) {
+        if (entry.tags.length > 0) tagLookup[url] = entry.tags;
+      }
+      setTagsByUrl(tagLookup);
+      setPawedUrls(paws);
     } finally {
       setLoading(false);
     }
@@ -224,57 +240,99 @@ export function RecentlyClosedView({
         </div>
       ) : (
         <div class={COLUMN_GRID[columns]}>
-          {filtered.map((item, i) => (
-            <div
-              key={`${item.sessionId}-${i}`}
-              class="group flex items-center gap-3 px-3 py-2.5 rounded-md hover:bg-surface transition-colors"
-            >
-              {item.favIconUrl ? (
-                <img
-                  src={item.favIconUrl}
-                  alt=""
-                  class="size-5 shrink-0 rounded"
-                  onError={(e) => {
-                    (e.currentTarget as HTMLImageElement).style.display =
-                      "none";
-                  }}
-                />
-              ) : (
-                <Globe size={16} class="text-fg-subtle shrink-0" />
-              )}
-              <div class="flex-1 min-w-0">
-                <div class="text-[13px] truncate">
-                  {item.title || getRootDomain(item.url) || "Untitled"}
-                </div>
-                <div class="text-[11px] text-fg-subtle truncate mt-0.5">
-                  {getRootDomain(item.url)} ·{" "}
-                  {formatRelativeTime(
-                    new Date(item.lastModified).toISOString(),
-                  )}
-                </div>
-              </div>
-              <button
-                type="button"
+          {filtered.map((item, i) => {
+            const itemTags = tagsByUrl[item.url] ?? [];
+            const isPawed = pawedUrls.has(item.url);
+            return (
+              <div
+                key={`${item.sessionId}-${i}`}
                 onClick={() => handleReopen(item)}
-                disabled={!item.sessionId}
-                aria-label="Reopen"
-                data-tooltip="Reopen tab"
-                data-tooltip-pos="left"
-                class="size-8 inline-flex items-center justify-center rounded text-fg-muted opacity-0 group-hover:opacity-100 hover:bg-accent-subtle hover:text-accent disabled:opacity-20 transition-all"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    handleReopen(item);
+                  }
+                }}
+                role="button"
+                tabIndex={0}
+                title="Reopen"
+                class="group flex items-center gap-3 px-3 py-2.5 rounded-md hover:bg-surface cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-accent/20"
               >
-                <ArrowUUpLeft size={14} weight="bold" />
-              </button>
-              <button
-                type="button"
-                onClick={() => hideOne(item)}
-                aria-label="Remove from list"
-                title="Remove from list (Chrome still remembers it)"
-                class="size-8 inline-flex items-center justify-center rounded text-fg-muted opacity-0 group-hover:opacity-100 hover:bg-danger-subtle hover:text-danger transition-all"
-              >
-                <Trash size={13} />
-              </button>
-            </div>
-          ))}
+                {item.favIconUrl ? (
+                  <img
+                    src={item.favIconUrl}
+                    alt=""
+                    class="size-5 shrink-0 rounded"
+                    onError={(e) => {
+                      (e.currentTarget as HTMLImageElement).style.display =
+                        "none";
+                    }}
+                  />
+                ) : (
+                  <Globe size={16} class="text-fg-subtle shrink-0" />
+                )}
+                <div class="flex-1 min-w-0">
+                  <div class="text-[13px] truncate flex items-center gap-1.5">
+                    {isPawed && (
+                      <span
+                        title="Pawed"
+                        class="shrink-0 inline-flex text-accent"
+                      >
+                        <PawPrint size={11} weight="fill" />
+                      </span>
+                    )}
+                    <span class="truncate">
+                      {item.title || getRootDomain(item.url) || "Untitled"}
+                    </span>
+                  </div>
+                  <div class="text-[11px] text-fg-subtle truncate mt-0.5 flex items-center gap-1.5">
+                    <span class="truncate">{getRootDomain(item.url)}</span>
+                    <span>·</span>
+                    <span class="shrink-0">
+                      {formatRelativeTime(
+                        new Date(item.lastModified).toISOString(),
+                      )}
+                    </span>
+                    {itemTags.length > 0 && (
+                      <span
+                        title={itemTags.join(", ")}
+                        class="inline-flex items-center gap-0.5 text-purple-600 shrink-0"
+                      >
+                        <Tag size={10} weight="fill" />
+                        {itemTags.length}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleReopen(item);
+                  }}
+                  disabled={!item.sessionId}
+                  aria-label="Reopen"
+                  data-tooltip="Reopen tab"
+                  data-tooltip-pos="left"
+                  class="size-8 inline-flex items-center justify-center rounded text-fg-muted opacity-0 group-hover:opacity-100 hover:bg-accent-subtle hover:text-accent disabled:opacity-20 transition-all"
+                >
+                  <ArrowUUpLeft size={14} weight="bold" />
+                </button>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    hideOne(item);
+                  }}
+                  aria-label="Remove from list"
+                  title="Remove from list (Chrome still remembers it)"
+                  class="size-8 inline-flex items-center justify-center rounded text-fg-muted opacity-0 group-hover:opacity-100 hover:bg-danger-subtle hover:text-danger transition-all"
+                >
+                  <Trash size={13} />
+                </button>
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
