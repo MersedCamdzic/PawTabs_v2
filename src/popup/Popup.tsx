@@ -5,7 +5,6 @@ import {
   Gear,
   GridFour,
   Broom,
-  PawPrint,
   BookmarkSimple,
 } from "@phosphor-icons/react";
 import { useTabSnapshot } from "./hooks";
