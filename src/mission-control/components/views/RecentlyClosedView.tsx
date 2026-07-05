@@ -4,7 +4,7 @@ import {
   ArrowUUpLeft,
   Globe,
   ArrowsClockwise,
-  X,
+  Trash,
 } from "@phosphor-icons/react";
 import {
   listRecentlyClosedDetailed,
@@ -271,7 +271,7 @@ export function RecentlyClosedView({
                 title="Remove from list (Chrome still remembers it)"
                 class="size-8 inline-flex items-center justify-center rounded text-fg-muted opacity-0 group-hover:opacity-100 hover:bg-danger-subtle hover:text-danger transition-all"
               >
-                <X size={13} />
+                <Trash size={13} />
               </button>
             </div>
           ))}
