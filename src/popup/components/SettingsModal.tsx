@@ -7,6 +7,7 @@ import {
   DEFAULT_PREFERENCES,
 } from "@/lib/preferences";
 import { applyTheme } from "@/lib/theme";
+import { saveSession } from "@/lib/sessions";
 import type { Theme, WizardThresholds, AutoSessionConfig } from "@/types";
 
 interface Props {
@@ -96,11 +97,29 @@ export function SettingsModal({ open, onClose }: Props) {
             <input
               type="checkbox"
               checked={autoSession.enabled}
-              onChange={(e) =>
-                updateAutoSession({
-                  enabled: (e.currentTarget as HTMLInputElement).checked,
-                })
-              }
+              onChange={async (e) => {
+                const checked = (e.currentTarget as HTMLInputElement).checked;
+                if (
+                  checked &&
+                  !autoSession.enabled &&
+                  confirm(
+                    "Auto-save enabled. Take a snapshot right now so you have a baseline to restore from?",
+                  )
+                ) {
+                  const stamp = new Date().toLocaleString();
+                  await saveSession(
+                    `Auto: ${stamp}`,
+                    true,
+                    "First automatic snapshot",
+                  );
+                  await updateAutoSession({
+                    enabled: true,
+                    lastRunAt: Date.now(),
+                  });
+                  return;
+                }
+                await updateAutoSession({ enabled: checked });
+              }}
               class="size-4 accent-accent cursor-pointer"
             />
           </label>
