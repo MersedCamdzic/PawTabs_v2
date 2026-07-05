@@ -393,25 +393,35 @@ export function TabDetailsModal({
               weight={!closedMode && tab.pinned ? "fill" : "regular"}
             />
           </HeaderAction>
-          <HeaderAction
-            title={
-              closedMode
-                ? "Mute unavailable — tab is closed"
-                : tab.muted
-                  ? "Unmute this tab"
-                  : "Mute this tab"
+          {(() => {
+            const hasAudio = !closedMode && (tab.audible || tab.muted);
+            const audioDisabled = closedMode || !hasAudio;
+            let audioTitle: string;
+            if (closedMode) {
+              audioTitle = "Mute unavailable — tab is closed";
+            } else if (!hasAudio) {
+              audioTitle = "No audio playing";
+            } else if (tab.muted) {
+              audioTitle = "Unmute this tab";
+            } else {
+              audioTitle = "Mute this tab";
             }
-            active={!closedMode && (tab.muted || tab.audible)}
-            disabled={closedMode}
-            tone={tab.muted ? "danger" : "success"}
-            onClick={handleMute}
-          >
-            {!closedMode && tab.muted ? (
-              <SpeakerSlash size={13} />
-            ) : (
-              <SpeakerHigh size={13} />
-            )}
-          </HeaderAction>
+            return (
+              <HeaderAction
+                title={audioTitle}
+                active={!closedMode && (tab.muted || tab.audible)}
+                disabled={audioDisabled}
+                tone={tab.muted ? "danger" : "success"}
+                onClick={handleMute}
+              >
+                {!closedMode && tab.muted ? (
+                  <SpeakerSlash size={13} />
+                ) : (
+                  <SpeakerHigh size={13} />
+                )}
+              </HeaderAction>
+            );
+          })()}
           {!closedMode && (
             <HeaderAction
               title="Jump to this tab"
