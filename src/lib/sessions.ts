@@ -78,10 +78,10 @@ async function pause(ms: number, signal?: AbortSignal): Promise<void> {
 }
 
 function lazyPlaceholderUrl(tab: SessionTab): string {
-  // Renders a tiny page with a real <title> and the target URL as a
-  // clickable link. Chrome shows the title in the tab, and the tab
-  // stays fully quiet until the user clicks it (or the extension
-  // redirects on activation).
+  // Renders a tiny page with the real <title>. When the user
+  // activates the tab, the background listener immediately navigates
+  // to the target URL. The body just shows a subtle loading indicator
+  // for the split second before the redirect kicks in.
   const title = (tab.title || tab.url).replace(/[<>&"]/g, (c) =>
     c === "<"
       ? "&lt;"
@@ -91,8 +91,7 @@ function lazyPlaceholderUrl(tab: SessionTab): string {
           ? "&amp;"
           : "&quot;",
   );
-  const escapedUrl = tab.url.replace(/"/g, "%22");
-  const html = `<!doctype html><meta charset="utf-8"><title>${title}</title><style>body{font:14px system-ui;padding:2rem;color:#555}a{color:#2563eb}</style><body>Snapshot placeholder for <a href="${escapedUrl}">${escapedUrl}</a>. This tab hasn't loaded yet — click to open.</body>`;
+  const html = `<!doctype html><meta charset="utf-8"><title>${title}</title><style>html,body{height:100%;margin:0;font:14px system-ui;color:#666;display:flex;align-items:center;justify-content:center;background:#fafaf7}@keyframes s{to{transform:rotate(360deg)}}.d{width:22px;height:22px;border-radius:50%;border:2px solid #e5e5e5;border-top-color:#2563eb;animation:s .8s linear infinite}p{margin:1rem 0 0;font-size:12px}</style><body><div style="text-align:center"><div class="d"></div><p>Loading…</p></div></body>`;
   return `data:text/html;charset=utf-8,${encodeURIComponent(html)}`;
 }
 
