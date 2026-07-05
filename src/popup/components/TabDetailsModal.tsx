@@ -243,7 +243,7 @@ export function TabDetailsModal({ tab, open, onClose, onAction }: Props) {
       headerActions={
         <div class="flex items-center gap-0.5">
           <HeaderAction
-            title={tab.starred ? "Unpaw" : "Paw this tab"}
+            title={tab.starred ? "Unpaw this tab" : "Paw this tab"}
             active={tab.starred}
             tone="accent"
             onClick={handlePaw}
@@ -251,7 +251,7 @@ export function TabDetailsModal({ tab, open, onClose, onAction }: Props) {
             <PawPrint size={13} weight={tab.starred ? "fill" : "regular"} />
           </HeaderAction>
           <HeaderAction
-            title={tab.pinned ? "Unpin" : "Pin"}
+            title={tab.pinned ? "Unpin this tab" : "Pin this tab"}
             active={tab.pinned}
             tone="warning"
             onClick={handlePin}
@@ -260,7 +260,7 @@ export function TabDetailsModal({ tab, open, onClose, onAction }: Props) {
           </HeaderAction>
           {(tab.audible || tab.muted) && (
             <HeaderAction
-              title={tab.muted ? "Unmute" : "Mute"}
+              title={tab.muted ? "Unmute this tab" : "Mute this tab"}
               active={tab.muted ? true : tab.audible}
               tone={tab.muted ? "danger" : "success"}
               onClick={handleMute}

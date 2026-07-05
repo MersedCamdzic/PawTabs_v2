@@ -170,7 +170,7 @@ export function TabRow({
 
       <div class="flex items-center gap-0.5 shrink-0">
         <ActionButton
-          title={tab.starred ? "Unpaw" : "Paw this tab"}
+          title={tab.starred ? "Unpaw this tab" : "Paw this tab"}
           active={tab.starred}
           tone="accent"
           onClick={handlePaw}
@@ -179,7 +179,7 @@ export function TabRow({
         </ActionButton>
 
         <ActionButton
-          title={tab.pinned ? "Unpin" : "Pin tab"}
+          title={tab.pinned ? "Unpin this tab" : "Pin this tab"}
           active={tab.pinned}
           tone="warning"
           onClick={handlePin}
@@ -189,7 +189,7 @@ export function TabRow({
 
         {(tab.audible || tab.muted) && (
           <ActionButton
-            title={tab.muted ? "Unmute" : "Mute"}
+            title={tab.muted ? "Unmute this tab" : "Mute this tab"}
             active={tab.muted ? true : tab.audible}
             tone={tab.muted ? "danger" : "success"}
             forceVisible
@@ -206,8 +206,8 @@ export function TabRow({
         <button
           type="button"
           onClick={handleJump}
-          aria-label="Jump to tab"
-          data-tooltip="Jump to tab"
+          aria-label="Jump to this tab"
+          data-tooltip="Jump to this tab"
           data-tooltip-pos="above"
           class="size-6 inline-flex items-center justify-center rounded text-fg-subtle opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 hover:bg-accent-subtle hover:text-accent transition-all"
         >
@@ -222,8 +222,8 @@ export function TabRow({
         <button
           type="button"
           onClick={handleClose}
-          aria-label="Close tab"
-          data-tooltip="Close tab"
+          aria-label="Close this tab"
+          data-tooltip="Close this tab"
           data-tooltip-pos="left"
           class="size-6 inline-flex items-center justify-center rounded text-fg-subtle opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 hover:bg-danger-subtle hover:text-danger transition-all"
         >
