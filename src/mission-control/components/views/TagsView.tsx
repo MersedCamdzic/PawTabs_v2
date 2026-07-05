@@ -193,7 +193,7 @@ export function TagsView({
               onClick={() => setSelected(active ? null : t.tag)}
               class={`group w-full h-8 px-2.5 flex items-center gap-1.5 rounded-md text-[12px] transition-colors cursor-pointer ${
                 active
-                  ? "bg-accent-subtle text-accent"
+                  ? "bg-purple-500/15 text-purple-700"
                   : "text-fg-muted hover:bg-surface hover:text-fg"
               }`}
             >
@@ -213,7 +213,9 @@ export function TagsView({
               </button>
               <span
                 class={`text-[10px] px-1.5 py-0.5 rounded font-medium ${
-                  active ? "bg-accent text-white" : "bg-surface text-fg-subtle"
+                  active
+                    ? "bg-purple-600 text-white"
+                    : "bg-surface text-fg-subtle"
                 }`}
               >
                 {t.count}
@@ -227,7 +229,7 @@ export function TagsView({
         {selected ? (
           <>
             <div class="text-[11px] uppercase tracking-wide text-fg-subtle font-medium mb-2 flex items-center gap-1.5">
-              <Tag size={11} weight="fill" class="text-accent" />
+              <Tag size={11} weight="fill" class="text-purple-600" />
               {selected} — {selectedEntries.length} tab
               {selectedEntries.length === 1 ? "" : "s"}
             </div>
@@ -392,6 +394,7 @@ function TaggedRow(props: {
               Pawed
             </Chip>
           )}
+
           {isPinned && (
             <Chip bg="bg-warning-subtle" text="text-warning">
               <PushPin size={9} weight="fill" />

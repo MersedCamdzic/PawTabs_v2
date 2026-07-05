@@ -150,7 +150,7 @@ export function TabRow({
           {tab.tags.length > 0 && (
             <span
               title={tab.tags.join(", ")}
-              class="inline-flex items-center gap-0.5 text-accent shrink-0"
+              class="inline-flex items-center gap-0.5 text-purple-600 shrink-0"
             >
               <Tag size={10} weight="fill" />
               {tab.tags.length}
@@ -159,7 +159,7 @@ export function TabRow({
           {tab.notes.length > 0 && (
             <span
               title={`${tab.notes.length} note${tab.notes.length === 1 ? "" : "s"}`}
-              class="inline-flex items-center gap-0.5 text-accent shrink-0"
+              class="inline-flex items-center gap-0.5 text-cyan-600 shrink-0"
             >
               <NotePencil size={10} weight="fill" />
               {tab.notes.length}

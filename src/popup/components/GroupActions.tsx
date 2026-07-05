@@ -120,6 +120,7 @@ export function GroupActions({ tabs, onAction }: Props) {
       <IconBtn
         tooltip="Add tag to all"
         active={panel === "tag"}
+        tone="purple"
         onClick={() => setPanel(panel === "tag" ? null : "tag")}
       >
         <Tag size={13} weight={panel === "tag" ? "fill" : "regular"} />
@@ -127,6 +128,7 @@ export function GroupActions({ tabs, onAction }: Props) {
       <IconBtn
         tooltip="Add note to all"
         active={panel === "note"}
+        tone="cyan"
         onClick={() => setPanel(panel === "note" ? null : "note")}
       >
         <NotePencil size={13} weight={panel === "note" ? "fill" : "regular"} />
@@ -278,12 +280,28 @@ function IconBtn(props: {
   tooltip: string;
   active?: boolean;
   danger?: boolean;
+  tone?: "accent" | "purple" | "cyan";
   onClick: () => void;
   children: preact.ComponentChildren;
 }) {
+  const tone = props.tone ?? "accent";
+  const toneMap = {
+    accent: {
+      hover: "hover:bg-accent-subtle hover:text-accent",
+      active: "opacity-100 bg-accent-subtle text-accent",
+    },
+    purple: {
+      hover: "hover:bg-purple-500/15 hover:text-purple-600",
+      active: "opacity-100 bg-purple-500/15 text-purple-600",
+    },
+    cyan: {
+      hover: "hover:bg-cyan-500/15 hover:text-cyan-600",
+      active: "opacity-100 bg-cyan-500/15 text-cyan-600",
+    },
+  } as const;
   const hover = props.danger
     ? "hover:bg-danger-subtle hover:text-danger"
-    : "hover:bg-surface hover:text-accent";
+    : toneMap[tone].hover;
   return (
     <button
       type="button"
@@ -292,7 +310,7 @@ function IconBtn(props: {
       title={props.tooltip}
       class={`size-7 inline-flex items-center justify-center rounded transition-all opacity-0 group-hover:opacity-100 ${
         props.active
-          ? "opacity-100 bg-accent-subtle text-accent"
+          ? toneMap[tone].active
           : `text-fg-subtle ${hover}`
       }`}
     >

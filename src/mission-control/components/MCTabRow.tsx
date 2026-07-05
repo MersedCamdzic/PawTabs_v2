@@ -125,7 +125,7 @@ export function MCTabRow({ tab, windowTitle, onAction, onOpenDetails }: Props) {
             <span
               data-tooltip={notesTooltip(tab.notes)}
               data-tooltip-pos="above"
-              class="inline-flex items-center gap-0.5 text-accent shrink-0 cursor-help"
+              class="inline-flex items-center gap-0.5 text-cyan-600 shrink-0 cursor-help"
             >
               <NotePencil size={10} weight="fill" />
               {tab.notes.length} note{tab.notes.length === 1 ? "" : "s"}
@@ -137,9 +137,9 @@ export function MCTabRow({ tab, windowTitle, onAction, onOpenDetails }: Props) {
             {tab.tags.map((t) => (
               <span
                 key={t}
-                class="inline-flex items-center gap-1 px-1.5 h-4 bg-accent-subtle text-accent-fg text-[10px] rounded"
+                class="inline-flex items-center gap-1 px-1.5 h-4 bg-purple-500/15 text-purple-700 text-[10px] rounded"
               >
-                <Tag size={8} weight="fill" class="text-accent" />
+                <Tag size={8} weight="fill" class="text-purple-600" />
                 {t}
               </span>
             ))}

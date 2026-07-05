@@ -339,7 +339,12 @@ export function TabDetailsModal({ tab, open, onClose, onAction }: Props) {
           </button>
         </div>
 
-        <Section icon={<Tag size={11} weight="fill" />} title="Tags" count={tab.tags.length}>
+        <Section
+          icon={<Tag size={11} weight="fill" />}
+          title="Tags"
+          count={tab.tags.length}
+          color="text-purple-600"
+        >
           {tab.tags.length === 0 && (
             <div class="text-[11px] text-fg-subtle italic mb-1.5">
               No tags yet
@@ -377,7 +382,12 @@ export function TabDetailsModal({ tab, open, onClose, onAction }: Props) {
           </form>
         </Section>
 
-        <Section icon={<NotePencil size={11} weight="fill" />} title="Notes" count={tab.notes.length}>
+        <Section
+          icon={<NotePencil size={11} weight="fill" />}
+          title="Notes"
+          count={tab.notes.length}
+          color="text-cyan-600"
+        >
           {tab.notes.length === 0 && (
             <div class="text-[11px] text-fg-subtle italic mb-1.5">
               No notes yet
@@ -388,7 +398,7 @@ export function TabDetailsModal({ tab, open, onClose, onAction }: Props) {
               {tab.notes.map((n) => (
                 <div
                   key={n.id}
-                  class="group relative flex items-start gap-2 pl-3 pr-2 py-2 bg-accent-subtle/30 rounded-r-md border-l-2 border-accent/60"
+                  class="group relative flex items-start gap-2 pl-3 pr-2 py-2 bg-cyan-500/10 rounded-r-md border-l-2 border-cyan-500/60"
                 >
                   <div class="flex-1 min-w-0">
                     <div class="text-[12px] text-fg whitespace-pre-wrap break-words">
@@ -558,12 +568,13 @@ function Section(props: {
   icon: preact.ComponentChildren;
   title: string;
   count?: number;
+  color?: string;
   children: preact.ComponentChildren;
 }) {
   return (
     <div>
       <div class="text-[10px] uppercase tracking-wider text-fg-subtle mb-2.5 font-semibold flex items-center gap-1.5">
-        <span class="text-accent">{props.icon}</span>
+        <span class={props.color ?? "text-accent"}>{props.icon}</span>
         {props.title}
         {props.count !== undefined && props.count > 0 && (
           <span class="ml-0.5 text-fg-subtle/60 font-normal normal-case tracking-normal">
@@ -578,14 +589,14 @@ function Section(props: {
 
 function TagChip(props: { label: string; onRemove: () => void }) {
   return (
-    <span class="group/chip inline-flex items-center gap-1 h-6 pl-2 pr-1 bg-accent-subtle text-accent-fg rounded-full text-[11px] font-medium border border-accent/20 hover:border-accent/40 transition-colors">
-      <Tag size={9} weight="fill" class="text-accent" />
+    <span class="group/chip inline-flex items-center gap-1 h-6 pl-2 pr-1 bg-purple-500/15 text-purple-700 rounded-full text-[11px] font-medium border border-purple-500/20 hover:border-purple-500/40 transition-colors">
+      <Tag size={9} weight="fill" class="text-purple-600" />
       {props.label}
       <button
         type="button"
         onClick={props.onRemove}
         aria-label={`Remove tag ${props.label}`}
-        class="inline-flex items-center justify-center size-4 rounded-full text-accent/60 hover:bg-accent hover:text-white transition-colors"
+        class="inline-flex items-center justify-center size-4 rounded-full text-purple-600/60 hover:bg-purple-600 hover:text-white transition-colors"
       >
         <X size={9} weight="bold" />
       </button>
