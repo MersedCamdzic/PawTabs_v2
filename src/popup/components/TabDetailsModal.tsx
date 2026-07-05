@@ -696,12 +696,13 @@ function WindowSubtitle(props: {
       data-tooltip-pos="below"
       class="group/sub inline-flex items-center gap-1.5 px-1 -mx-1 rounded hover:bg-surface transition-colors"
     >
-      {props.colorStyle && (
-        <span
-          class={`size-1.5 rounded-full ${props.colorStyle.dot}`}
-          aria-hidden="true"
-        />
-      )}
+      <Browsers
+        size={11}
+        weight="fill"
+        class={`shrink-0 ${
+          props.colorStyle ? props.colorStyle.iconText : "text-fg-subtle"
+        }`}
+      />
       <span class={`text-[11px] font-medium ${nameColor}`}>{displayName}</span>
       <PencilSimple
         size={9}
