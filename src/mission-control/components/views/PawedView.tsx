@@ -20,6 +20,7 @@ interface Props {
   onFilteredChange?: (
     items: { url: string; title: string; favIconUrl: string }[],
   ) => void;
+  refreshSignal?: number;
 }
 
 const COLUMN_LAYOUT: Record<1 | 2 | 3 | 4, string> = {
@@ -40,6 +41,7 @@ export function PawedView({
   openTabs,
   onAction,
   onFilteredChange,
+  refreshSignal,
 }: Props) {
   const [entries, setEntries] = useState<PawedEntry[]>([]);
 
@@ -50,6 +52,10 @@ export function PawedView({
   useEffect(() => {
     refresh();
   }, [refresh]);
+
+  useEffect(() => {
+    if (refreshSignal !== undefined && refreshSignal > 0) refresh();
+  }, [refreshSignal, refresh]);
 
   const rows = useMemo<Row[]>(() => {
     const openByUrl = new Map<string, PawTab>();

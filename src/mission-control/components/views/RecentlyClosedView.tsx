@@ -31,6 +31,7 @@ interface Props {
   columns: 1 | 2 | 3 | 4;
   clearSignal?: number;
   reopenAllSignal?: number;
+  refreshSignal?: number;
   onVisibleCountChange?: (n: number) => void;
   onOpenClosedDetails?: (synthetic: PawTab) => void;
 }
@@ -75,6 +76,7 @@ export function RecentlyClosedView({
   columns,
   clearSignal,
   reopenAllSignal,
+  refreshSignal,
   onVisibleCountChange,
   onOpenClosedDetails,
 }: Props) {
@@ -137,6 +139,10 @@ export function RecentlyClosedView({
   useEffect(() => {
     refresh();
   }, [refresh]);
+
+  useEffect(() => {
+    if (refreshSignal !== undefined && refreshSignal > 0) refresh();
+  }, [refreshSignal, refresh]);
 
   useEffect(() => {
     const handler = () => refresh();

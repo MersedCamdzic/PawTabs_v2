@@ -102,6 +102,11 @@ export function MissionControl() {
   const [rcReopenSignal, setRcReopenSignal] = useState(0);
   const [rcConfirmClearOpen, setRcConfirmClearOpen] = useState(false);
   const [rcConfirmReopenOpen, setRcConfirmReopenOpen] = useState(false);
+  const [urlDataSignal, setUrlDataSignal] = useState(0);
+  const bumpAll = () => {
+    reload();
+    setUrlDataSignal((n) => n + 1);
+  };
   const [columnsByView, setColumnsByView] = useState<
     Record<string, 1 | 2 | 3 | 4>
   >({});
@@ -234,7 +239,7 @@ export function MissionControl() {
                 <>
                   <BulkActionsMenu
                     tabs={view === "pinned" ? pinnedTabs : filteredTabs}
-                    onAction={reload}
+                    onAction={bumpAll}
                   />
                   <GroupByDropdown
                     value={currentGrouping}
@@ -254,7 +259,7 @@ export function MissionControl() {
                   <BulkUrlActionsMenu
                     items={pawedBulkItems}
                     mode="pawed"
-                    onAction={reload}
+                    onAction={bumpAll}
                   />
                   <ColumnsPicker
                     value={currentColumns}
@@ -303,7 +308,7 @@ export function MissionControl() {
                         ? `Bulk "${tagsBulkState.activeTag}"`
                         : "Bulk"
                     }
-                    onAction={reload}
+                    onAction={bumpAll}
                   />
                   <SnapshotSortDropdown
                     value={currentSnapshotSort}
@@ -413,7 +418,7 @@ export function MissionControl() {
             columns={currentColumns}
             grouping={currentGrouping}
             ordering={currentOrdering}
-            onAction={reload}
+            onAction={bumpAll}
             onOpenDetails={setDetailsTab}
           />
         )}
@@ -436,8 +441,9 @@ export function MissionControl() {
             query={query}
             columns={currentColumns}
             openTabs={snapshot?.tabs ?? []}
-            onAction={reload}
+            onAction={bumpAll}
             onFilteredChange={setPawedBulkItems}
+            refreshSignal={urlDataSignal}
           />
         )}
 
@@ -449,7 +455,7 @@ export function MissionControl() {
             columns={currentColumns}
             grouping={currentGrouping}
             ordering={currentOrdering}
-            onAction={reload}
+            onAction={bumpAll}
             onOpenDetails={setDetailsTab}
           />
         )}
@@ -460,10 +466,11 @@ export function MissionControl() {
             sortBy={currentSnapshotSort}
             columns={currentSnapshotColumns}
             openTabs={snapshot?.tabs ?? []}
-            onAction={reload}
+            onAction={bumpAll}
             onOpenDetails={setDetailsTab}
             onOpenClosedDetails={setClosedDetailsTab}
             onSelectionChange={setTagsBulkState}
+            refreshSignal={urlDataSignal}
           />
         )}
 
@@ -493,6 +500,7 @@ export function MissionControl() {
             reopenAllSignal={rcReopenSignal}
             onVisibleCountChange={setRcVisibleCount}
             onOpenClosedDetails={setClosedDetailsTab}
+            refreshSignal={urlDataSignal}
           />
         )}
 
@@ -511,7 +519,7 @@ export function MissionControl() {
             tab={liveDetailsTab}
             open={detailsTab !== null}
             onClose={() => setDetailsTab(null)}
-            onAction={reload}
+            onAction={bumpAll}
           />
         )}
         {closedDetailsTab !== null && (
@@ -520,7 +528,7 @@ export function MissionControl() {
             closedMode
             open={closedDetailsTab !== null}
             onClose={() => setClosedDetailsTab(null)}
-            onAction={reload}
+            onAction={bumpAll}
           />
         )}
       </Suspense>

@@ -41,6 +41,7 @@ interface Props {
       items: { url: string; title: string; favIconUrl: string }[];
     },
   ) => void;
+  refreshSignal?: number;
 }
 
 const COLUMN_LAYOUT: Record<1 | 2 | 3 | 4, string> = {
@@ -59,6 +60,7 @@ export function TagsView({
   onOpenDetails,
   onOpenClosedDetails,
   onSelectionChange,
+  refreshSignal,
 }: Props) {
   const [tagList, setTagList] = useState<TagAggregate[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
@@ -91,6 +93,10 @@ export function TagsView({
   useEffect(() => {
     refresh();
   }, [refresh]);
+
+  useEffect(() => {
+    if (refreshSignal !== undefined && refreshSignal > 0) refresh();
+  }, [refreshSignal, refresh]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
