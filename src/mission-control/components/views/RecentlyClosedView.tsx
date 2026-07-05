@@ -4,6 +4,7 @@ import {
   ArrowUUpLeft,
   Globe,
   ArrowsClockwise,
+  X,
 } from "@phosphor-icons/react";
 import {
   listRecentlyClosedDetailed,
@@ -12,6 +13,7 @@ import {
 import type { RecentlyClosedItem } from "@/lib/recently-closed";
 import { formatRelativeTime } from "@/lib/sessions";
 import { getRootDomain } from "@/lib/utils";
+import { storage } from "@/lib/storage";
 
 import type { SnapshotSortKey } from "../SnapshotSortDropdown";
 
@@ -19,6 +21,12 @@ interface Props {
   query: string;
   sortBy: SnapshotSortKey;
   columns: 1 | 2 | 3 | 4;
+  clearSignal?: number;
+  onVisibleCountChange?: (n: number) => void;
+}
+
+function itemKey(item: RecentlyClosedItem): string {
+  return `${item.url}::${item.lastModified}`;
 }
 
 const COLUMN_GRID: Record<1 | 2 | 3 | 4, string> = {
@@ -28,11 +36,41 @@ const COLUMN_GRID: Record<1 | 2 | 3 | 4, string> = {
   4: "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-1",
 };
 
-export function RecentlyClosedView({ query, sortBy, columns }: Props) {
+export function RecentlyClosedView({
+  query,
+  sortBy,
+  columns,
+  clearSignal,
+  onVisibleCountChange,
+}: Props) {
   const [items, setItems] = useState<RecentlyClosedItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [apiAvailable, setApiAvailable] = useState(true);
+  const [hidden, setHidden] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    storage.get("hiddenRecentlyClosed").then((arr) => {
+      if (arr && arr.length > 0) setHidden(new Set(arr));
+    });
+  }, []);
+
+  const persistHidden = async (next: Set<string>) => {
+    setHidden(next);
+    await storage.set("hiddenRecentlyClosed", Array.from(next));
+  };
+
+  const hideOne = async (item: RecentlyClosedItem) => {
+    const next = new Set(hidden);
+    next.add(itemKey(item));
+    await persistHidden(next);
+  };
+
+  const hideAllVisible = async (visible: RecentlyClosedItem[]) => {
+    const next = new Set(hidden);
+    for (const it of visible) next.add(itemKey(it));
+    await persistHidden(next);
+  };
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -64,15 +102,20 @@ export function RecentlyClosedView({ query, sortBy, columns }: Props) {
     await refresh();
   };
 
+  const visible = useMemo(
+    () => items.filter((i) => !hidden.has(itemKey(i))),
+    [items, hidden],
+  );
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     const list = q
-      ? items.filter(
+      ? visible.filter(
           (i) =>
             i.title.toLowerCase().includes(q) ||
             i.url.toLowerCase().includes(q),
         )
-      : items;
+      : visible;
     const sorted = [...list].sort((a, b) => {
       switch (sortBy) {
         case "date-asc":
@@ -85,7 +128,18 @@ export function RecentlyClosedView({ query, sortBy, columns }: Props) {
       }
     });
     return sorted;
-  }, [items, query, sortBy]);
+  }, [visible, query, sortBy]);
+
+  useEffect(() => {
+    onVisibleCountChange?.(visible.length);
+  }, [visible.length, onVisibleCountChange]);
+
+  const lastClearSignal = useMemo(() => clearSignal ?? 0, [clearSignal]);
+  useEffect(() => {
+    if (lastClearSignal <= 0) return;
+    hideAllVisible(visible);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lastClearSignal]);
 
   return (
     <div class="px-6 py-3">
@@ -195,6 +249,15 @@ export function RecentlyClosedView({ query, sortBy, columns }: Props) {
                 class="size-8 inline-flex items-center justify-center rounded text-fg-muted opacity-0 group-hover:opacity-100 hover:bg-accent-subtle hover:text-accent disabled:opacity-20 transition-all"
               >
                 <ArrowUUpLeft size={14} weight="bold" />
+              </button>
+              <button
+                type="button"
+                onClick={() => hideOne(item)}
+                aria-label="Remove from list"
+                title="Remove from list (Chrome still remembers it)"
+                class="size-8 inline-flex items-center justify-center rounded text-fg-muted opacity-0 group-hover:opacity-100 hover:bg-danger-subtle hover:text-danger transition-all"
+              >
+                <X size={13} />
               </button>
             </div>
           ))}

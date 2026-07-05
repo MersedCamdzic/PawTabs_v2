@@ -118,6 +118,7 @@ export interface StorageSchema {
   windows: Record<number, WindowMeta>;
   backups: Backup[];
   preferences: Preferences;
+  hiddenRecentlyClosed: string[];
 }
 
 export interface PawTab {

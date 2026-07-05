@@ -95,6 +95,8 @@ export function MissionControl() {
     activeTag: string | null;
     items: BulkUrlItem[];
   }>({ activeTag: null, items: [] });
+  const [rcVisibleCount, setRcVisibleCount] = useState(0);
+  const [rcClearSignal, setRcClearSignal] = useState(0);
   const [columnsByView, setColumnsByView] = useState<
     Record<string, 1 | 2 | 3 | 4>
   >({});
@@ -314,6 +316,27 @@ export function MissionControl() {
                 </>
               ) : view === "recently-closed" ? (
                 <>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (rcVisibleCount === 0) return;
+                      if (
+                        confirm(
+                          `Clear ${rcVisibleCount} item${rcVisibleCount === 1 ? "" : "s"} from the recently closed list? (Chrome still remembers them internally — this only hides them here.)`,
+                        )
+                      ) {
+                        setRcClearSignal((n) => n + 1);
+                      }
+                    }}
+                    disabled={rcVisibleCount === 0}
+                    class="h-9 px-3 inline-flex items-center gap-1.5 text-[12px] font-medium rounded-md border border-border text-fg-muted hover:border-danger hover:text-danger hover:bg-danger-subtle disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                    title="Hide all currently listed items"
+                  >
+                    Clear all
+                    <span class="text-[10px] font-mono px-1.5 h-4 inline-flex items-center rounded bg-surface text-fg-muted">
+                      {rcVisibleCount}
+                    </span>
+                  </button>
                   <SnapshotSortDropdown
                     value={currentSnapshotSort}
                     onChange={setCurrentSnapshotSort}
@@ -440,6 +463,8 @@ export function MissionControl() {
             query={query}
             sortBy={currentSnapshotSort}
             columns={currentSnapshotColumns}
+            clearSignal={rcClearSignal}
+            onVisibleCountChange={setRcVisibleCount}
           />
         )}
 
