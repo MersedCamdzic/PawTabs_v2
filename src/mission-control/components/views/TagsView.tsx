@@ -7,7 +7,7 @@ import {
   Trash,
   PawPrint,
   PushPin,
-  Circle,
+  Broadcast,
   Moon,
   Prohibit,
 } from "@phosphor-icons/react";
@@ -335,9 +335,9 @@ function TaggedRow(props: {
       dot: "bg-success",
       text: "text-success",
       bg: "bg-success-subtle",
-      icon: <Circle size={10} weight="fill" />,
+      icon: <Broadcast size={12} weight="bold" />,
       iconColor: "text-success",
-      tooltip: "Open and active",
+      tooltip: "Open and active — broadcasting",
     };
   }
 

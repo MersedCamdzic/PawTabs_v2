@@ -9,6 +9,7 @@ import {
   Tag,
   NotePencil,
   ArrowSquareOut,
+  Broadcast,
 } from "@phosphor-icons/react";
 import {
   focusTab,
@@ -126,8 +127,23 @@ export function TabRow({
       <Favicon url={tab.favIconUrl} />
 
       <div class="flex-1 min-w-0">
-        <div class="text-[13px] text-fg truncate leading-tight">
-          {tab.title || domain || "Untitled"}
+        <div class="text-[13px] text-fg truncate leading-tight flex items-center gap-1.5">
+          {tab.discarded ? (
+            <span
+              title="Inactive (discarded from memory)"
+              class="shrink-0 inline-flex text-fg-subtle"
+            >
+              <Moon size={11} weight="fill" />
+            </span>
+          ) : (
+            <span
+              title="Active"
+              class="shrink-0 inline-flex text-success"
+            >
+              <Broadcast size={11} weight="bold" />
+            </span>
+          )}
+          <span class="truncate">{tab.title || domain || "Untitled"}</span>
         </div>
         <div class="text-[11px] text-fg-subtle truncate leading-tight mt-0.5 flex items-center gap-1.5">
           <span class="truncate">{domain}</span>
@@ -147,12 +163,6 @@ export function TabRow({
             >
               <NotePencil size={10} weight="fill" />
               {tab.notes.length}
-            </span>
-          )}
-          {tab.discarded && (
-            <span class="inline-flex items-center gap-1 text-fg-subtle shrink-0">
-              <Moon size={10} />
-              inactive
             </span>
           )}
         </div>
