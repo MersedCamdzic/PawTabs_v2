@@ -65,16 +65,25 @@ export function TagsView({
   const [windowMeta, setWindowMeta] = useState<
     Record<number, { title?: string; color?: WindowColor }>
   >({});
+  const [openWindowIds, setOpenWindowIds] = useState<Set<number>>(new Set());
 
   const refresh = useCallback(async () => {
-    const [tags, paws, meta] = await Promise.all([
+    const [tags, paws, meta, wins] = await Promise.all([
       listTags(),
       getPawedUrlSet(),
       getAllWindowMeta(),
+      chrome.windows.getAll(),
     ]);
     setTagList(tags);
     setPawedUrls(paws);
     setWindowMeta(meta);
+    setOpenWindowIds(
+      new Set(
+        wins
+          .map((w) => w.id)
+          .filter((id): id is number => id !== undefined),
+      ),
+    );
   }, []);
 
   useEffect(() => {
@@ -252,6 +261,14 @@ export function TagsView({
               {selectedEntries.map((entry) => {
                 const tab = openByUrl.get(entry.url) ?? null;
                 const wm = tab ? windowMeta[tab.windowId] : undefined;
+                let restoreTargetName: string | null = null;
+                if (!tab && entry.lastWindowId !== undefined) {
+                  if (openWindowIds.has(entry.lastWindowId)) {
+                    const targetMeta = windowMeta[entry.lastWindowId];
+                    restoreTargetName =
+                      targetMeta?.title ?? `Window ${entry.lastWindowId}`;
+                  }
+                }
                 return (
                   <TaggedRow
                     key={entry.url}
@@ -260,6 +277,7 @@ export function TagsView({
                     pawed={pawedUrls.has(entry.url)}
                     windowName={wm?.title ?? null}
                     windowColor={wm?.color ?? null}
+                    restoreTargetName={restoreTargetName}
                     onOpen={() => handleRowClick(entry)}
                     onJump={() => handleJump(entry)}
                     onRemoveTag={() => handleRemoveTag(entry, selected)}
@@ -308,11 +326,13 @@ function TaggedRow(props: {
   pawed: boolean;
   windowName: string | null;
   windowColor: WindowColor | null;
+  restoreTargetName: string | null;
   onOpen: () => void;
   onJump: () => void;
   onRemoveTag: () => void;
 }) {
-  const { entry, openTab, pawed, windowName, windowColor } = props;
+  const { entry, openTab, pawed, windowName, windowColor, restoreTargetName } =
+    props;
   const domain = getRootDomain(entry.url);
   const isOpen = openTab !== null;
   const isInactive = isOpen && openTab.discarded;
@@ -458,8 +478,20 @@ function TaggedRow(props: {
             e.stopPropagation();
             props.onJump();
           }}
-          aria-label={isOpen ? "Jump to this tab" : "Restore"}
-          data-tooltip={isOpen ? "Jump to this tab" : "Restore"}
+          aria-label={
+            isOpen
+              ? "Jump to this tab"
+              : restoreTargetName
+                ? `Restore in ${restoreTargetName}`
+                : "Restore in a new tab"
+          }
+          data-tooltip={
+            isOpen
+              ? "Jump to this tab"
+              : restoreTargetName
+                ? `Restore in ${restoreTargetName}`
+                : "Restore in a new tab"
+          }
           data-tooltip-pos="above"
           class="size-8 inline-flex items-center justify-center rounded text-fg-muted opacity-0 group-hover:opacity-100 hover:bg-accent-subtle hover:text-accent transition-all"
         >
