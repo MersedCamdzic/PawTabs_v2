@@ -235,13 +235,6 @@ export function SettingsModal({ open, onClose }: Props) {
   );
 }
 
-const UNIT_MS_UI = {
-  seconds: 1000,
-  minutes: 60 * 1000,
-  hours: 60 * 60 * 1000,
-  days: 24 * 60 * 60 * 1000,
-} as const;
-
 function formatRelative(ts: number): string {
   const diff = Date.now() - ts;
   if (diff < 60_000) return `${Math.max(1, Math.round(diff / 1000))}s ago`;
