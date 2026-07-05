@@ -449,7 +449,6 @@ export function TabDetailsModal({
           )}
         </div>
       }
-      hideCloseButton={closedMode}
     >
       <div class="space-y-5">
         <div class="relative flex items-center gap-4 px-4 py-4 bg-gradient-to-br from-accent-subtle/40 via-bg-elevated to-bg-elevated rounded-xl border border-border">

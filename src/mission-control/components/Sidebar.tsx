@@ -42,9 +42,11 @@ export function Sidebar({ view, onChange, onOpenCleanup, counts }: Props) {
   return (
     <aside class="w-60 shrink-0 h-screen border-r border-border bg-bg flex flex-col">
       <div class="px-5 pt-5 pb-3 flex items-center gap-2">
-        <span class="inline-flex size-7 items-center justify-center rounded-md bg-accent-subtle text-accent">
-          <PawPrint size={16} weight="fill" />
-        </span>
+        <img
+          src="/icons/icon-128.png"
+          alt=""
+          class="size-7"
+        />
         <div class="leading-tight">
           <div class="text-[14px] font-semibold tracking-tight">PawTabs</div>
           <div class="text-[10px] text-fg-subtle">Pack</div>
