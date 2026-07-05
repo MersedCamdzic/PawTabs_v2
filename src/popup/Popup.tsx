@@ -239,10 +239,27 @@ export function Popup() {
 
       <section class="px-4 pb-3">
         <div class="grid grid-cols-3 gap-2">
-          <Stat value={snapshot?.windowCount ?? 0} label="Windows" />
-          <Stat value={snapshot?.tabCount ?? 0} label="Tabs" />
           <Stat
-            value={snapshot?.inactiveCount ?? 0}
+            value={
+              query.trim()
+                ? new Set(filtered.map((t) => t.windowId)).size
+                : snapshot?.windowCount ?? 0
+            }
+            total={query.trim() ? snapshot?.windowCount ?? 0 : null}
+            label="Windows"
+          />
+          <Stat
+            value={query.trim() ? filtered.length : snapshot?.tabCount ?? 0}
+            total={query.trim() ? snapshot?.tabCount ?? 0 : null}
+            label="Tabs"
+          />
+          <Stat
+            value={
+              query.trim()
+                ? filtered.filter((t) => t.discarded).length
+                : snapshot?.inactiveCount ?? 0
+            }
+            total={query.trim() ? snapshot?.inactiveCount ?? 0 : null}
             label="Inactive"
             tone="warning"
           />
@@ -467,15 +484,28 @@ function IconButton(props: {
 
 function Stat(props: {
   value: number;
+  total?: number | null;
   label: string;
   tone?: "default" | "warning";
 }) {
   const valueColor =
     props.tone === "warning" && props.value > 0 ? "text-warning" : "text-fg";
+  const hasFilter = props.total !== null && props.total !== undefined;
   return (
-    <div class="bg-surface border border-border rounded-md p-3 hover:border-border-strong transition-colors">
-      <div class={`text-[18px] font-semibold leading-tight ${valueColor}`}>
+    <div
+      class={`bg-surface border rounded-md p-3 hover:border-border-strong transition-colors ${
+        hasFilter ? "border-accent/40" : "border-border"
+      }`}
+    >
+      <div
+        class={`text-[18px] font-semibold leading-tight flex items-baseline gap-1 ${valueColor}`}
+      >
         {props.value}
+        {hasFilter && (
+          <span class="text-[11px] font-medium text-fg-subtle">
+            of {props.total}
+          </span>
+        )}
       </div>
       <div class="text-[11px] text-fg-muted uppercase tracking-wide mt-0.5">
         {props.label}
