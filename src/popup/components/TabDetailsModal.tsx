@@ -350,16 +350,15 @@ export function TabDetailsModal({
               <SpeakerHigh size={13} />
             )}
           </HeaderAction>
-          <HeaderAction
-            title={
-              closedMode ? "Jump unavailable — tab is closed" : "Jump to this tab"
-            }
-            disabled={closedMode}
-            tone="accent"
-            onClick={handleJump}
-          >
-            <ArrowSquareOut size={13} />
-          </HeaderAction>
+          {!closedMode && (
+            <HeaderAction
+              title="Jump to this tab"
+              tone="accent"
+              onClick={handleJump}
+            >
+              <ArrowSquareOut size={13} />
+            </HeaderAction>
+          )}
           {closedMode ? (
             <HeaderAction
               title="Reopen this URL"
