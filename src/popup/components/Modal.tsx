@@ -2,6 +2,7 @@ import { useEffect } from "preact/hooks";
 
 interface Props {
   title: string;
+  titleIcon?: preact.ComponentChildren;
   subtitle?: preact.ComponentChildren;
   open: boolean;
   onClose: () => void;
@@ -14,6 +15,7 @@ interface Props {
 
 export function Modal({
   title,
+  titleIcon,
   subtitle,
   open,
   onClose,
@@ -45,7 +47,8 @@ export function Modal({
       >
         <div class="flex items-center gap-2 px-4 py-3 border-b border-border">
           <div class="flex-1 min-w-0">
-            <h2 class="text-[14px] font-semibold tracking-tight leading-tight">
+            <h2 class="text-[14px] font-semibold tracking-tight leading-tight flex items-center gap-1.5">
+              {titleIcon}
               {title}
             </h2>
             {subtitle && (

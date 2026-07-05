@@ -18,6 +18,8 @@ import {
   Copy,
   Check,
   PencilSimple,
+  Broadcast,
+  Moon,
 } from "@phosphor-icons/react";
 import { Modal } from "./Modal";
 import {
@@ -207,6 +209,23 @@ export function TabDetailsModal({ tab, open, onClose, onAction }: Props) {
       open={open}
       onClose={onClose}
       title="Tab details"
+      titleIcon={
+        tab.discarded ? (
+          <span
+            title="Inactive — tab discarded from memory"
+            class="inline-flex text-fg-subtle"
+          >
+            <Moon size={13} weight="fill" />
+          </span>
+        ) : (
+          <span
+            title="Active — tab is loaded and ready"
+            class="inline-flex text-success"
+          >
+            <Broadcast size={13} weight="bold" />
+          </span>
+        )
+      }
       subtitle={
         <WindowSubtitle
           windowId={tab.windowId}
