@@ -6,6 +6,7 @@ import { Toolbar } from "./components/Toolbar";
 import { OverviewView } from "./components/views/OverviewView";
 import { TabsListView } from "./components/views/TabsListView";
 import { PawedView } from "./components/views/PawedView";
+import { PinnedView } from "./components/views/PinnedView";
 import { ColumnsPicker } from "./components/ColumnsPicker";
 import { GroupByDropdown } from "./components/GroupByDropdown";
 import { OrderByDropdown } from "./components/OrderByDropdown";
@@ -34,7 +35,7 @@ import { useTabSnapshot } from "./hooks";
 import { computeInsights } from "@/lib/stats";
 import { listBackups } from "@/lib/backups";
 import { listSessions } from "@/lib/sessions";
-import { getAllWindowTitles } from "@/lib/windows";
+import { getAllWindowTitles, getAllWindowMeta } from "@/lib/windows";
 import type { PawTab, GroupBy, OrderBy } from "@/types";
 
 const TabDetailsModal = lazy(() =>
@@ -90,6 +91,9 @@ export function MissionControl() {
   const [sessionCount, setSessionCount] = useState(0);
   const [backupCount, setBackupCount] = useState(0);
   const [windowTitles, setWindowTitles] = useState<Record<number, string>>({});
+  const [windowMeta, setWindowMeta] = useState<
+    Record<number, { title?: string; color?: import("@/types").WindowColor }>
+  >({});
   const [detailsTab, setDetailsTab] = useState<PawTab | null>(null);
   const [closedDetailsTab, setClosedDetailsTab] = useState<PawTab | null>(null);
   const [pawedBulkItems, setPawedBulkItems] = useState<BulkUrlItem[]>([]);
@@ -149,7 +153,12 @@ export function MissionControl() {
     setSnapshotColumnsByView((prev) => ({ ...prev, [view]: n }));
 
   const refreshWindowTitles = async () => {
-    setWindowTitles(await getAllWindowTitles());
+    const [titles, meta] = await Promise.all([
+      getAllWindowTitles(),
+      getAllWindowMeta(),
+    ]);
+    setWindowTitles(titles);
+    setWindowMeta(meta);
   };
 
   useEffect(() => {
@@ -448,13 +457,11 @@ export function MissionControl() {
         )}
 
         {view === "pinned" && (
-          <TabsListView
+          <PinnedView
             tabs={pinnedTabs}
             emptyText="No pinned tabs."
-            windowTitles={windowTitles}
+            windowMeta={windowMeta}
             columns={currentColumns}
-            grouping={currentGrouping}
-            ordering={currentOrdering}
             onAction={bumpAll}
             onOpenDetails={setDetailsTab}
           />
