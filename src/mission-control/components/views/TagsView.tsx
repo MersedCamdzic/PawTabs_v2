@@ -4,7 +4,6 @@ import {
   Globe,
   ArrowSquareOut,
   ArrowUUpLeft,
-  X,
   Trash,
 } from "@phosphor-icons/react";
 import {
@@ -338,12 +337,12 @@ function TaggedRow(props: {
             e.stopPropagation();
             props.onRemoveTag();
           }}
-          aria-label="Remove from this tag"
-          data-tooltip="Remove from this tag"
+          aria-label="Remove tag from URL"
+          data-tooltip="Remove tag from URL"
           data-tooltip-pos="above"
           class="size-8 inline-flex items-center justify-center rounded text-fg-muted opacity-0 group-hover:opacity-100 hover:bg-danger-subtle hover:text-danger transition-all"
         >
-          <X size={13} />
+          <Trash size={13} />
         </button>
       </div>
     </div>
