@@ -23,7 +23,7 @@ import {
   BulkUrlActionsMenu,
   type BulkUrlItem,
 } from "./components/BulkUrlActionsMenu";
-import { FloppyDisk, Trash } from "@phosphor-icons/react";
+import { FloppyDisk, Trash, ArrowUUpLeft } from "@phosphor-icons/react";
 import { TagsView } from "./components/views/TagsView";
 import { SessionsView } from "./components/views/SessionsView";
 import { BackupsView } from "./components/views/BackupsView";
@@ -97,6 +97,7 @@ export function MissionControl() {
   }>({ activeTag: null, items: [] });
   const [rcVisibleCount, setRcVisibleCount] = useState(0);
   const [rcClearSignal, setRcClearSignal] = useState(0);
+  const [rcReopenSignal, setRcReopenSignal] = useState(0);
   const [columnsByView, setColumnsByView] = useState<
     Record<string, 1 | 2 | 3 | 4>
   >({});
@@ -316,41 +317,65 @@ export function MissionControl() {
                 </>
               ) : view === "recently-closed" ? (
                 <>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (rcVisibleCount === 0) return;
-                      if (
-                        confirm(
-                          `Clear ${rcVisibleCount} item${rcVisibleCount === 1 ? "" : "s"} from the recently closed list? (Chrome still remembers them internally — this only hides them here.)`,
-                        )
-                      ) {
-                        setRcClearSignal((n) => n + 1);
-                      }
-                    }}
-                    disabled={rcVisibleCount === 0}
-                    class="h-9 px-3 inline-flex items-center gap-1.5 text-[12px] font-medium rounded-md border border-danger/30 text-danger bg-danger-subtle hover:border-danger hover:bg-danger hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                    title="Hide all currently listed items"
-                  >
-                    <Trash size={13} weight="fill" />
-                    Clear all
-                    <span class="text-[10px] font-mono px-1.5 h-4 inline-flex items-center rounded bg-danger/15 text-danger">
-                      {rcVisibleCount}
-                    </span>
-                  </button>
-                  <SnapshotSortDropdown
-                    value={currentSnapshotSort}
-                    onChange={setCurrentSnapshotSort}
-                    options={[
-                      { value: "date-desc", label: "Newest first" },
-                      { value: "date-asc", label: "Oldest first" },
-                      { value: "name", label: "Title (A→Z)" },
-                    ]}
+                  <div class="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (rcVisibleCount === 0) return;
+                        setRcReopenSignal((n) => n + 1);
+                      }}
+                      disabled={rcVisibleCount === 0}
+                      class="h-9 px-3 inline-flex items-center gap-1.5 text-[12px] font-medium rounded-md border border-accent/30 text-accent bg-accent-subtle hover:border-accent hover:bg-accent hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                      title="Reopen all visible tabs in one new window"
+                    >
+                      <ArrowUUpLeft size={13} weight="bold" />
+                      Reopen all
+                      <span class="text-[10px] font-mono px-1.5 h-4 inline-flex items-center rounded bg-accent/15 text-accent">
+                        {rcVisibleCount}
+                      </span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (rcVisibleCount === 0) return;
+                        if (
+                          confirm(
+                            `Clear ${rcVisibleCount} item${rcVisibleCount === 1 ? "" : "s"} from the recently closed list? (Chrome still remembers them internally — this only hides them here.)`,
+                          )
+                        ) {
+                          setRcClearSignal((n) => n + 1);
+                        }
+                      }}
+                      disabled={rcVisibleCount === 0}
+                      class="h-9 px-3 inline-flex items-center gap-1.5 text-[12px] font-medium rounded-md border border-danger/30 text-danger bg-danger-subtle hover:border-danger hover:bg-danger hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                      title="Hide all currently listed items"
+                    >
+                      <Trash size={13} weight="fill" />
+                      Clear all
+                      <span class="text-[10px] font-mono px-1.5 h-4 inline-flex items-center rounded bg-danger/15 text-danger">
+                        {rcVisibleCount}
+                      </span>
+                    </button>
+                  </div>
+                  <span
+                    class="w-px h-6 bg-border mx-1"
+                    aria-hidden="true"
                   />
-                  <ColumnsPicker
-                    value={currentSnapshotColumns}
-                    onChange={setCurrentSnapshotColumns}
-                  />
+                  <div class="flex items-center gap-1.5">
+                    <SnapshotSortDropdown
+                      value={currentSnapshotSort}
+                      onChange={setCurrentSnapshotSort}
+                      options={[
+                        { value: "date-desc", label: "Newest first" },
+                        { value: "date-asc", label: "Oldest first" },
+                        { value: "name", label: "Title (A→Z)" },
+                      ]}
+                    />
+                    <ColumnsPicker
+                      value={currentSnapshotColumns}
+                      onChange={setCurrentSnapshotColumns}
+                    />
+                  </div>
                 </>
               ) : undefined
             }
@@ -465,6 +490,7 @@ export function MissionControl() {
             sortBy={currentSnapshotSort}
             columns={currentSnapshotColumns}
             clearSignal={rcClearSignal}
+            reopenAllSignal={rcReopenSignal}
             onVisibleCountChange={setRcVisibleCount}
           />
         )}

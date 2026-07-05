@@ -22,6 +22,7 @@ interface Props {
   sortBy: SnapshotSortKey;
   columns: 1 | 2 | 3 | 4;
   clearSignal?: number;
+  reopenAllSignal?: number;
   onVisibleCountChange?: (n: number) => void;
 }
 
@@ -41,6 +42,7 @@ export function RecentlyClosedView({
   sortBy,
   columns,
   clearSignal,
+  reopenAllSignal,
   onVisibleCountChange,
 }: Props) {
   const [items, setItems] = useState<RecentlyClosedItem[]>([]);
@@ -140,6 +142,18 @@ export function RecentlyClosedView({
     hideAllVisible(visible);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lastClearSignal]);
+
+  const lastReopenSignal = useMemo(
+    () => reopenAllSignal ?? 0,
+    [reopenAllSignal],
+  );
+  useEffect(() => {
+    if (lastReopenSignal <= 0) return;
+    const urls = visible.map((v) => v.url).filter(Boolean);
+    if (urls.length === 0) return;
+    chrome.windows.create({ url: urls, focused: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lastReopenSignal]);
 
   return (
     <div class="px-6 py-3">
