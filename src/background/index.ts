@@ -159,35 +159,21 @@ chrome.tabs.onRemoved.addListener(async (tabId) => {
     await storage.set("savedPages", savedPages);
   }
   try {
-    const key = "pendingRestoreTabs";
-    const table =
-      ((await chrome.storage.local.get(key))[key] as Record<
-        number,
-        string
-      >) ?? {};
-    if (table[tabId]) {
-      delete table[tabId];
-      await chrome.storage.local.set({ [key]: table });
-    }
+    await chrome.storage.local.remove(`pawtabs_pending_${tabId}`);
   } catch {
     // ignore
   }
 });
 
 // Lazy restore: when a placeholder tab is activated, navigate it to
-// the target URL and remove it from the pending map.
+// the target URL and remove the pending entry.
 chrome.tabs.onActivated.addListener(async ({ tabId }) => {
+  const key = `pawtabs_pending_${tabId}`;
   try {
-    const key = "pendingRestoreTabs";
-    const table =
-      ((await chrome.storage.local.get(key))[key] as Record<
-        number,
-        string
-      >) ?? {};
-    const target = table[tabId];
+    const result = await chrome.storage.local.get(key);
+    const target = result[key] as string | undefined;
     if (!target) return;
-    delete table[tabId];
-    await chrome.storage.local.set({ [key]: table });
+    await chrome.storage.local.remove(key);
     await chrome.tabs.update(tabId, { url: target });
   } catch (err) {
     console.error("[PawTabs] lazy restore navigate failed", err);

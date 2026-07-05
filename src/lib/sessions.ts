@@ -109,17 +109,13 @@ async function createLazyTab(
       pinned: Boolean(tab.pinned),
     });
     if (!created?.id) return;
-    // Register real URL so onActivated can lazy-navigate. Stored in
-    // extension local storage under a small table keyed by tabId.
+    // Per-tab key so parallel Promise.all writes don't race and clobber
+    // each other (the old single-map read-modify-write only kept one
+    // entry per batch).
     try {
-      const key = "pendingRestoreTabs";
-      const current =
-        ((await chrome.storage.local.get(key))[key] as Record<
-          number,
-          string
-        >) ?? {};
-      current[created.id] = tab.url;
-      await chrome.storage.local.set({ [key]: current });
+      await chrome.storage.local.set({
+        [`pawtabs_pending_${created.id}`]: tab.url,
+      });
     } catch {
       // ignore
     }
