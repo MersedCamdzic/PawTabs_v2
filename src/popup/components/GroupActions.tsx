@@ -7,6 +7,7 @@ import {
   Browser,
   X,
   Check,
+  FloppyDisk,
 } from "@phosphor-icons/react";
 import {
   addTagToMany,
@@ -17,6 +18,7 @@ import {
   listWindowsForMove,
   type WindowInfo,
 } from "@/lib/tabs";
+import { saveSession } from "@/lib/sessions";
 import { getAllWindowMeta } from "@/lib/windows";
 import { WINDOW_COLOR_STYLES } from "@/lib/window-colors";
 import type { PawTab, WindowColor } from "@/types";
@@ -111,6 +113,28 @@ export function GroupActions({ tabs, onAction }: Props) {
     run(() => closeMany(ids));
   };
 
+  const handleSaveSnapshot = () => {
+    if (ids.length === 0) return;
+    const stamp = new Date().toLocaleString();
+    const name = `Group snapshot — ${stamp}`;
+    run(async () => {
+      const urls = new Set(tabs.map((t) => t.url));
+      const original = saveSession;
+      // Save a manual (not auto) session but only with this group's tabs.
+      const { storage } = await import("@/lib/storage");
+      const session = await original(name, false, `${ids.length} tabs`);
+      // Trim tabs to just our group's URLs (saveSession captured all open
+      // tabs — we filter down to the group).
+      await storage.update("savedSessions", (current) =>
+        (current ?? []).map((s) =>
+          s.id === session.id
+            ? { ...s, tabs: s.tabs.filter((t) => urls.has(t.url)) }
+            : s,
+        ),
+      );
+    });
+  };
+
   return (
     <div
       ref={wrapRef}
@@ -139,6 +163,12 @@ export function GroupActions({ tabs, onAction }: Props) {
         onClick={() => setPanel(panel === "move" ? null : "move")}
       >
         <ArrowsLeftRight size={13} weight="bold" />
+      </IconBtn>
+      <IconBtn
+        tooltip="Save this group as a snapshot"
+        onClick={handleSaveSnapshot}
+      >
+        <FloppyDisk size={13} weight="fill" />
       </IconBtn>
       <span
         class="w-px h-4 mx-1 bg-border opacity-0 group-hover:opacity-100 transition-opacity"

@@ -312,12 +312,21 @@ export function Popup() {
         )}
 
         {snapshot &&
-          groups.map((group) => (
+          groups.map((group) => {
+            const isSearchAllGroup =
+              grouping === "none" && query.trim() !== "";
+            const displayGroup = isSearchAllGroup
+              ? {
+                  ...group,
+                  title: `Search: "${query.trim()}"`,
+                }
+              : group;
+            return (
             <TabGroupSection
               key={group.key}
-              group={group}
+              group={displayGroup}
               grouping={grouping}
-              showHeader={grouping !== "none"}
+              showHeader={grouping !== "none" || isSearchAllGroup}
               collapsed={collapsed.has(group.key)}
               selectedIds={selectedIds}
               selectionMode={selectedIds.size > 0}
@@ -328,7 +337,8 @@ export function Popup() {
               onOpenDetails={setDetailsTab}
               onToggleSelect={toggleSelect}
             />
-          ))}
+            );
+          })}
       </div>
 
       {selectedIds.size > 0 && (
