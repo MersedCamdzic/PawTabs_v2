@@ -7,6 +7,7 @@ import {
   Trash,
   Tag,
   PawPrint,
+  NotePencil,
 } from "@phosphor-icons/react";
 import {
   listRecentlyClosedDetailed,
@@ -18,8 +19,11 @@ import { getRootDomain } from "@/lib/utils";
 import { storage } from "@/lib/storage";
 import { getTaggedMap } from "@/lib/tagged-urls";
 import { getPawedUrlSet } from "@/lib/pawed";
+import type { Note } from "@/types";
 
 import type { SnapshotSortKey } from "../SnapshotSortDropdown";
+
+import type { PawTab } from "@/types";
 
 interface Props {
   query: string;
@@ -28,10 +32,34 @@ interface Props {
   clearSignal?: number;
   reopenAllSignal?: number;
   onVisibleCountChange?: (n: number) => void;
+  onOpenClosedDetails?: (synthetic: PawTab) => void;
 }
 
 function itemKey(item: RecentlyClosedItem): string {
   return `${item.url}::${item.lastModified}`;
+}
+
+function buildSyntheticTab(
+  item: RecentlyClosedItem,
+  tags: string[],
+  pawed: boolean,
+  notes: Note[],
+): PawTab {
+  return {
+    id: -1,
+    windowId: -1,
+    url: item.url,
+    title: item.title,
+    favIconUrl: item.favIconUrl,
+    audible: false,
+    muted: false,
+    discarded: false,
+    pinned: false,
+    saved: false,
+    starred: pawed,
+    tags,
+    notes,
+  };
 }
 
 const COLUMN_GRID: Record<1 | 2 | 3 | 4, string> = {
@@ -48,6 +76,7 @@ export function RecentlyClosedView({
   clearSignal,
   reopenAllSignal,
   onVisibleCountChange,
+  onOpenClosedDetails,
 }: Props) {
   const [items, setItems] = useState<RecentlyClosedItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -55,6 +84,7 @@ export function RecentlyClosedView({
   const [apiAvailable, setApiAvailable] = useState(true);
   const [hidden, setHidden] = useState<Set<string>>(new Set());
   const [tagsByUrl, setTagsByUrl] = useState<Record<string, string[]>>({});
+  const [notesByUrl, setNotesByUrl] = useState<Record<string, Note[]>>({});
   const [pawedUrls, setPawedUrls] = useState<Set<string>>(new Set());
 
   useEffect(() => {
@@ -83,10 +113,11 @@ export function RecentlyClosedView({
   const refresh = useCallback(async () => {
     setLoading(true);
     try {
-      const [r, taggedMap, paws] = await Promise.all([
+      const [r, taggedMap, paws, notesMap] = await Promise.all([
         listRecentlyClosedDetailed(25),
         getTaggedMap(),
         getPawedUrlSet(),
+        storage.get("notesByUrl"),
       ]);
       setItems(r.items);
       setApiAvailable(r.apiAvailable);
@@ -96,6 +127,7 @@ export function RecentlyClosedView({
         if (entry.tags.length > 0) tagLookup[url] = entry.tags;
       }
       setTagsByUrl(tagLookup);
+      setNotesByUrl(notesMap ?? {});
       setPawedUrls(paws);
     } finally {
       setLoading(false);
@@ -242,20 +274,29 @@ export function RecentlyClosedView({
         <div class={COLUMN_GRID[columns]}>
           {filtered.map((item, i) => {
             const itemTags = tagsByUrl[item.url] ?? [];
+            const itemNotes = notesByUrl[item.url] ?? [];
             const isPawed = pawedUrls.has(item.url);
+            const openDetails = () =>
+              onOpenClosedDetails?.(
+                buildSyntheticTab(item, itemTags, isPawed, itemNotes),
+              );
             return (
               <div
                 key={`${item.sessionId}-${i}`}
-                onClick={() => handleReopen(item)}
+                onClick={() => {
+                  if (onOpenClosedDetails) openDetails();
+                  else handleReopen(item);
+                }}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" || e.key === " ") {
                     e.preventDefault();
-                    handleReopen(item);
+                    if (onOpenClosedDetails) openDetails();
+                    else handleReopen(item);
                   }
                 }}
                 role="button"
                 tabIndex={0}
-                title="Reopen"
+                title="Open details"
                 class="group flex items-center gap-3 px-3 py-2.5 rounded-md hover:bg-surface cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-accent/20"
               >
                 {item.favIconUrl ? (
@@ -300,6 +341,15 @@ export function RecentlyClosedView({
                       >
                         <Tag size={10} weight="fill" />
                         {itemTags.length}
+                      </span>
+                    )}
+                    {itemNotes.length > 0 && (
+                      <span
+                        title={`${itemNotes.length} note${itemNotes.length === 1 ? "" : "s"}`}
+                        class="inline-flex items-center gap-0.5 text-cyan-600 shrink-0"
+                      >
+                        <NotePencil size={10} weight="fill" />
+                        {itemNotes.length}
                       </span>
                     )}
                   </div>

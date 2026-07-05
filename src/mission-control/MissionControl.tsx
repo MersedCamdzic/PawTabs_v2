@@ -91,6 +91,7 @@ export function MissionControl() {
   const [backupCount, setBackupCount] = useState(0);
   const [windowTitles, setWindowTitles] = useState<Record<number, string>>({});
   const [detailsTab, setDetailsTab] = useState<PawTab | null>(null);
+  const [closedDetailsTab, setClosedDetailsTab] = useState<PawTab | null>(null);
   const [pawedBulkItems, setPawedBulkItems] = useState<BulkUrlItem[]>([]);
   const [tagsBulkState, setTagsBulkState] = useState<{
     activeTag: string | null;
@@ -100,6 +101,7 @@ export function MissionControl() {
   const [rcClearSignal, setRcClearSignal] = useState(0);
   const [rcReopenSignal, setRcReopenSignal] = useState(0);
   const [rcConfirmClearOpen, setRcConfirmClearOpen] = useState(false);
+  const [rcConfirmReopenOpen, setRcConfirmReopenOpen] = useState(false);
   const [columnsByView, setColumnsByView] = useState<
     Record<string, 1 | 2 | 3 | 4>
   >({});
@@ -324,7 +326,7 @@ export function MissionControl() {
                       type="button"
                       onClick={() => {
                         if (rcVisibleCount === 0) return;
-                        setRcReopenSignal((n) => n + 1);
+                        setRcConfirmReopenOpen(true);
                       }}
                       disabled={rcVisibleCount === 0}
                       class="h-9 px-3 inline-flex items-center gap-1.5 text-[12px] font-medium rounded-md border border-accent/30 text-accent bg-accent-subtle hover:border-accent hover:bg-accent hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
@@ -489,6 +491,7 @@ export function MissionControl() {
             clearSignal={rcClearSignal}
             reopenAllSignal={rcReopenSignal}
             onVisibleCountChange={setRcVisibleCount}
+            onOpenClosedDetails={setClosedDetailsTab}
           />
         )}
 
@@ -507,6 +510,15 @@ export function MissionControl() {
             tab={liveDetailsTab}
             open={detailsTab !== null}
             onClose={() => setDetailsTab(null)}
+            onAction={reload}
+          />
+        )}
+        {closedDetailsTab !== null && (
+          <TabDetailsModal
+            tab={closedDetailsTab}
+            closedMode
+            open={closedDetailsTab !== null}
+            onClose={() => setClosedDetailsTab(null)}
             onAction={reload}
           />
         )}
@@ -538,6 +550,27 @@ export function MissionControl() {
           setRcConfirmClearOpen(false);
         }}
         onCancel={() => setRcConfirmClearOpen(false)}
+      />
+
+      <ConfirmModal
+        open={rcConfirmReopenOpen}
+        title="Reopen all"
+        message={
+          <>
+            Open{" "}
+            <span class="font-semibold text-fg">
+              {rcVisibleCount} tab{rcVisibleCount === 1 ? "" : "s"}
+            </span>{" "}
+            in a new window?
+          </>
+        }
+        confirmLabel="Reopen in new window"
+        tone="accent"
+        onConfirm={() => {
+          setRcReopenSignal((n) => n + 1);
+          setRcConfirmReopenOpen(false);
+        }}
+        onCancel={() => setRcConfirmReopenOpen(false)}
       />
 
       <Suspense fallback={null}>

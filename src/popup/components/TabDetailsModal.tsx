@@ -20,6 +20,7 @@ import {
   PencilSimple,
   Broadcast,
   Moon,
+  Prohibit,
 } from "@phosphor-icons/react";
 import { Modal } from "./Modal";
 import {
@@ -27,10 +28,14 @@ import {
   removeTag,
   addNote,
   removeNote,
+  addNoteByUrl,
+  removeNoteByUrl,
   moveTabToWindow,
   moveTabToNewWindow,
   listWindowsForMove,
 } from "@/lib/tabs";
+import { addTagToUrl, removeTagFromUrl } from "@/lib/tagged-urls";
+import { pawTab, unpawTab } from "@/lib/pawed";
 import {
   focusTab,
   closeTab,
@@ -46,6 +51,7 @@ import type { PawTab, WindowColor } from "@/types";
 
 interface Props {
   tab: PawTab | null;
+  closedMode?: boolean;
   open: boolean;
   onClose: () => void;
   onAction: () => void;
@@ -58,7 +64,13 @@ interface WindowItem {
   firstTabTitle: string;
 }
 
-export function TabDetailsModal({ tab, open, onClose, onAction }: Props) {
+export function TabDetailsModal({
+  tab,
+  closedMode = false,
+  open,
+  onClose,
+  onAction,
+}: Props) {
   const [tagInput, setTagInput] = useState("");
   const [noteInput, setNoteInput] = useState("");
   const [windows, setWindows] = useState<WindowItem[]>([]);
@@ -93,34 +105,57 @@ export function TabDetailsModal({ tab, open, onClose, onAction }: Props) {
     setCopied(false);
     setRenamingWindow(false);
     setWindowNameDraft("");
-    refreshWindowMeta(tab.id);
-  }, [open, tab?.id]);
+    if (!closedMode) {
+      refreshWindowMeta(tab.id);
+    }
+  }, [open, tab?.id, closedMode]);
 
   if (!tab) return null;
 
   const handleAddTag = async (e?: Event) => {
     e?.preventDefault();
     if (!tagInput.trim()) return;
-    await addTag(tab.id, tagInput);
+    if (closedMode) {
+      await addTagToUrl({
+        url: tab.url,
+        title: tab.title,
+        favIconUrl: tab.favIconUrl,
+        tag: tagInput,
+      });
+    } else {
+      await addTag(tab.id, tagInput);
+    }
     setTagInput("");
     onAction();
   };
 
   const handleRemoveTag = async (t: string) => {
-    await removeTag(tab.id, t);
+    if (closedMode) {
+      await removeTagFromUrl(tab.url, t);
+    } else {
+      await removeTag(tab.id, t);
+    }
     onAction();
   };
 
   const handleAddNote = async (e?: Event) => {
     e?.preventDefault();
     if (!noteInput.trim()) return;
-    await addNote(tab.id, noteInput);
+    if (closedMode) {
+      await addNoteByUrl(tab.url, noteInput);
+    } else {
+      await addNote(tab.id, noteInput);
+    }
     setNoteInput("");
     onAction();
   };
 
   const handleRemoveNote = async (id: string) => {
-    await removeNote(tab.id, id);
+    if (closedMode) {
+      await removeNoteByUrl(tab.url, id);
+    } else {
+      await removeNote(tab.id, id);
+    }
     onAction();
   };
 
@@ -166,7 +201,19 @@ export function TabDetailsModal({ tab, open, onClose, onAction }: Props) {
   };
 
   const handlePaw = async () => {
-    await toggleStarred(tab.id);
+    if (closedMode) {
+      if (tab.starred) {
+        await unpawTab(tab.url);
+      } else {
+        await pawTab({
+          url: tab.url,
+          title: tab.title,
+          favIconUrl: tab.favIconUrl,
+        });
+      }
+    } else {
+      await toggleStarred(tab.id);
+    }
     onAction();
   };
 
@@ -210,7 +257,14 @@ export function TabDetailsModal({ tab, open, onClose, onAction }: Props) {
       onClose={onClose}
       title="Tab details"
       titleIcon={
-        tab.discarded ? (
+        closedMode ? (
+          <span
+            title="Closed — tab is no longer open"
+            class="inline-flex text-danger"
+          >
+            <Prohibit size={13} weight="bold" />
+          </span>
+        ) : tab.discarded ? (
           <span
             title="Inactive — tab discarded from memory"
             class="inline-flex text-fg-subtle"
@@ -227,17 +281,19 @@ export function TabDetailsModal({ tab, open, onClose, onAction }: Props) {
         )
       }
       subtitle={
-        <WindowSubtitle
-          windowId={tab.windowId}
-          name={currentWindowName}
-          colorStyle={currentWindowColorStyle}
-          renaming={renamingWindow}
-          draft={windowNameDraft}
-          onDraftChange={setWindowNameDraft}
-          onStartRename={startRenameWindow}
-          onCommitRename={commitRenameWindow}
-          onCancelRename={cancelRenameWindow}
-        />
+        closedMode ? undefined : (
+          <WindowSubtitle
+            windowId={tab.windowId}
+            name={currentWindowName}
+            colorStyle={currentWindowColorStyle}
+            renaming={renamingWindow}
+            draft={windowNameDraft}
+            onDraftChange={setWindowNameDraft}
+            onStartRename={startRenameWindow}
+            onCommitRename={commitRenameWindow}
+            onCancelRename={cancelRenameWindow}
+          />
+        )
       }
       closeOnBackdrop={false}
       headerActions={
@@ -250,15 +306,17 @@ export function TabDetailsModal({ tab, open, onClose, onAction }: Props) {
           >
             <PawPrint size={13} weight={tab.starred ? "fill" : "regular"} />
           </HeaderAction>
-          <HeaderAction
-            title={tab.pinned ? "Unpin this tab" : "Pin this tab"}
-            active={tab.pinned}
-            tone="warning"
-            onClick={handlePin}
-          >
-            <PushPin size={13} weight={tab.pinned ? "fill" : "regular"} />
-          </HeaderAction>
-          {(tab.audible || tab.muted) && (
+          {!closedMode && (
+            <HeaderAction
+              title={tab.pinned ? "Unpin this tab" : "Pin this tab"}
+              active={tab.pinned}
+              tone="warning"
+              onClick={handlePin}
+            >
+              <PushPin size={13} weight={tab.pinned ? "fill" : "regular"} />
+            </HeaderAction>
+          )}
+          {!closedMode && (tab.audible || tab.muted) && (
             <HeaderAction
               title={tab.muted ? "Unmute this tab" : "Mute this tab"}
               active={tab.muted ? true : tab.audible}
@@ -272,20 +330,24 @@ export function TabDetailsModal({ tab, open, onClose, onAction }: Props) {
               )}
             </HeaderAction>
           )}
-          <HeaderAction
-            title="Jump to this tab"
-            tone="accent"
-            onClick={handleJump}
-          >
-            <ArrowSquareOut size={13} />
-          </HeaderAction>
-          <HeaderAction
-            title="Close this tab"
-            tone="danger"
-            onClick={handleCloseTab}
-          >
-            <X size={13} />
-          </HeaderAction>
+          {!closedMode && (
+            <HeaderAction
+              title="Jump to this tab"
+              tone="accent"
+              onClick={handleJump}
+            >
+              <ArrowSquareOut size={13} />
+            </HeaderAction>
+          )}
+          {!closedMode && (
+            <HeaderAction
+              title="Close this tab"
+              tone="danger"
+              onClick={handleCloseTab}
+            >
+              <X size={13} />
+            </HeaderAction>
+          )}
         </div>
       }
     >
@@ -456,6 +518,7 @@ export function TabDetailsModal({ tab, open, onClose, onAction }: Props) {
           </form>
         </Section>
 
+        {!closedMode && (
         <Section icon={<Browser size={11} weight="fill" />} title="Move to window">
           {(() => {
             const others = windows.filter((w) => w.id !== tab.windowId);
@@ -559,6 +622,7 @@ export function TabDetailsModal({ tab, open, onClose, onAction }: Props) {
             );
           })()}
         </Section>
+        )}
       </div>
     </Modal>
   );

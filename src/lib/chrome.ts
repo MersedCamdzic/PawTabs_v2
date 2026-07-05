@@ -4,14 +4,16 @@ import { getPawedUrlSet, pawTab, unpawTab } from "./pawed";
 import { getTaggedMap } from "./tagged-urls";
 
 export async function fetchAllTabs(): Promise<TabSnapshot> {
-  const [windows, savedPages, pawedSet, taggedMap] = await Promise.all([
+  const [windows, savedPages, pawedSet, taggedMap, notesMap] = await Promise.all([
     chrome.windows.getAll({ populate: true }),
     storage.get("savedPages"),
     getPawedUrlSet(),
     getTaggedMap(),
+    storage.get("notesByUrl"),
   ]);
 
   const saved = savedPages ?? {};
+  const notes = notesMap ?? {};
   const allTabs = windows.flatMap((w) => w.tabs ?? []);
 
   const tabs: PawTab[] = allTabs
@@ -32,7 +34,7 @@ export async function fetchAllTabs(): Promise<TabSnapshot> {
         saved: Boolean(saved[t.id]?.saved),
         starred: pawedSet.has(url),
         tags: taggedMap[url]?.tags ?? [],
-        notes: saved[t.id]?.notes ?? [],
+        notes: notes[url] ?? saved[t.id]?.notes ?? [],
       };
     });
 

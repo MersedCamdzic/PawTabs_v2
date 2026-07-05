@@ -1,16 +1,7 @@
 import { storage } from "./storage";
 import { addTagToUrl, removeTagFromUrl } from "./tagged-urls";
-import type { Note, SavedPage } from "@/types";
+import type { Note } from "@/types";
 
-async function updateTab(
-  tabId: number,
-  patch: (entry: SavedPage) => SavedPage,
-): Promise<void> {
-  const savedPages = (await storage.get("savedPages")) ?? {};
-  const entry = savedPages[tabId] ?? {};
-  savedPages[tabId] = patch(entry);
-  await storage.set("savedPages", savedPages);
-}
 
 export async function addTag(tabId: number, tag: string): Promise<void> {
   const clean = tag.trim();
@@ -32,25 +23,63 @@ export async function removeTag(tabId: number, tag: string): Promise<void> {
   await removeTagFromUrl(tab.url, tag);
 }
 
-export async function addNote(tabId: number, text: string): Promise<void> {
+async function urlForTab(tabId: number): Promise<string | null> {
+  try {
+    const t = await chrome.tabs.get(tabId);
+    return t.url ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export async function addNoteByUrl(
+  url: string,
+  text: string,
+): Promise<void> {
   const clean = text.trim();
-  if (!clean) return;
+  if (!clean || !url) return;
   const note: Note = {
     id: `note_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
     text: clean,
     createdAt: Date.now(),
   };
-  await updateTab(tabId, (entry) => ({
-    ...entry,
-    notes: [...(entry.notes ?? []), note],
-  }));
+  await storage.update("notesByUrl", (current) => {
+    const map = { ...(current ?? {}) };
+    map[url] = [...(map[url] ?? []), note];
+    return map;
+  });
+}
+
+export async function removeNoteByUrl(
+  url: string,
+  noteId: string,
+): Promise<void> {
+  if (!url) return;
+  await storage.update("notesByUrl", (current) => {
+    const map = { ...(current ?? {}) };
+    const next = (map[url] ?? []).filter((n) => n.id !== noteId);
+    if (next.length === 0) delete map[url];
+    else map[url] = next;
+    return map;
+  });
+}
+
+export async function getNotesForUrl(url: string): Promise<Note[]> {
+  if (!url) return [];
+  const map = (await storage.get("notesByUrl")) ?? {};
+  return map[url] ?? [];
+}
+
+export async function addNote(tabId: number, text: string): Promise<void> {
+  const url = await urlForTab(tabId);
+  if (!url) return;
+  await addNoteByUrl(url, text);
 }
 
 export async function removeNote(tabId: number, noteId: string): Promise<void> {
-  await updateTab(tabId, (entry) => ({
-    ...entry,
-    notes: (entry.notes ?? []).filter((n) => n.id !== noteId),
-  }));
+  const url = await urlForTab(tabId);
+  if (!url) return;
+  await removeNoteByUrl(url, noteId);
 }
 
 export async function moveTabToWindow(
@@ -118,20 +147,27 @@ export async function addNoteToMany(
 ): Promise<void> {
   const clean = text.trim();
   if (!clean || tabIds.length === 0) return;
-  const savedPages = (await storage.get("savedPages")) ?? {};
-  for (const id of tabIds) {
-    const entry = savedPages[id] ?? {};
-    const note: Note = {
-      id: `note_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
-      text: clean,
-      createdAt: Date.now(),
-    };
-    savedPages[id] = {
-      ...entry,
-      notes: [...(entry.notes ?? []), note],
-    };
-  }
-  await storage.set("savedPages", savedPages);
+  const tabs = await Promise.all(
+    tabIds.map((id) =>
+      chrome.tabs.get(id).catch(() => null as chrome.tabs.Tab | null),
+    ),
+  );
+  const urls = Array.from(
+    new Set(tabs.map((t) => t?.url).filter((u): u is string => Boolean(u))),
+  );
+  if (urls.length === 0) return;
+  await storage.update("notesByUrl", (current) => {
+    const map = { ...(current ?? {}) };
+    for (const url of urls) {
+      const note: Note = {
+        id: `note_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+        text: clean,
+        createdAt: Date.now(),
+      };
+      map[url] = [...(map[url] ?? []), note];
+    }
+    return map;
+  });
 }
 
 export async function setStarredManyByUrl(

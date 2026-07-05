@@ -114,6 +114,7 @@ export interface StorageSchema {
   savedPages: Record<number, SavedPage>;
   pawedUrls: Record<string, PawedEntry>;
   taggedUrls: Record<string, TaggedUrlEntry>;
+  notesByUrl: Record<string, Note[]>;
   savedSessions: SavedSession[];
   savedGroups: SavedGroup[];
   windows: Record<number, WindowMeta>;
