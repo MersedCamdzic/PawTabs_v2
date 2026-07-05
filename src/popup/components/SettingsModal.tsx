@@ -105,33 +105,46 @@ export function SettingsModal({ open, onClose }: Props) {
         <Section
           title="Auto-save sessions"
           action={
-            <button
-              type="button"
-              onClick={() => setAutoSaveInfoOpen((v) => !v)}
-              aria-label="How does auto-save work?"
-              title="How does auto-save work?"
-              class={`size-5 inline-flex items-center justify-center rounded-full transition-colors ${
-                autoSaveInfoOpen
-                  ? "bg-accent-subtle text-accent"
-                  : "text-fg-subtle hover:bg-surface hover:text-fg"
-              }`}
-            >
-              <Info size={12} weight={autoSaveInfoOpen ? "fill" : "regular"} />
-            </button>
+            <div class="relative">
+              <button
+                type="button"
+                onClick={() => setAutoSaveInfoOpen((v) => !v)}
+                aria-label="How does auto-save work?"
+                title="How does auto-save work?"
+                class={`size-5 inline-flex items-center justify-center rounded-full transition-colors ${
+                  autoSaveInfoOpen
+                    ? "bg-accent-subtle text-accent"
+                    : "text-fg-subtle hover:bg-surface hover:text-fg"
+                }`}
+              >
+                <Info
+                  size={12}
+                  weight={autoSaveInfoOpen ? "fill" : "regular"}
+                />
+              </button>
+              {autoSaveInfoOpen && (
+                <>
+                  <div
+                    class="fixed inset-0 z-40"
+                    onClick={() => setAutoSaveInfoOpen(false)}
+                  />
+                  <div class="absolute right-0 top-full mt-1.5 z-50 w-64 bg-bg-elevated border border-border rounded-md shadow-lg p-3 text-[11px] text-fg-subtle leading-relaxed">
+                    <div class="absolute -top-1.5 right-2 size-3 rotate-45 bg-bg-elevated border-l border-t border-border" />
+                    PawTabs quietly takes snapshots of your open tabs on
+                    the schedule you set. If a laptop crashes or you close
+                    the wrong window, you can restore an earlier snapshot
+                    from the Snapshots view.
+                    <br />
+                    <br />
+                    When you hit the max, the oldest auto-snapshot is
+                    deleted to make room. Manual snapshots are never
+                    touched.
+                  </div>
+                </>
+              )}
+            </div>
           }
         >
-          {autoSaveInfoOpen && (
-            <div class="text-[11px] text-fg-subtle mb-3 leading-relaxed bg-surface/40 border border-border rounded-md px-3 py-2">
-              PawTabs quietly takes snapshots of your open tabs on the
-              schedule you set. If a laptop crashes or you close the wrong
-              window, you can restore an earlier snapshot from the
-              Snapshots view.
-              <br />
-              <br />
-              When you hit the max, the oldest auto-snapshot is deleted to
-              make room. Manual snapshots are never touched.
-            </div>
-          )}
           <label class="flex items-center justify-between py-1.5 cursor-pointer">
             <span class="text-[12px] text-fg">Enable auto snapshots</span>
             <input
