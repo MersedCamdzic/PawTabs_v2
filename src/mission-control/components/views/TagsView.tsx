@@ -385,10 +385,6 @@ function TaggedRow(props: {
           {entry.url}
         </div>
         <div class="flex flex-wrap items-center gap-1 mt-2">
-          <Chip bg={stateChip.bg} text={stateChip.text}>
-            <span class={`size-1.5 rounded-full ${stateChip.dot}`} />
-            {stateChip.label}
-          </Chip>
           {pawed && (
             <Chip bg="bg-accent-subtle" text="text-accent">
               <PawPrint size={9} weight="fill" />
