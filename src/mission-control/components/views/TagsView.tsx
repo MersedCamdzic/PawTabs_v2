@@ -25,6 +25,7 @@ interface Props {
   columns: 1 | 2 | 3 | 4;
   openTabs: PawTab[];
   onAction: () => void;
+  onOpenDetails?: (tab: PawTab) => void;
   onSelectionChange?: (
     info: {
       activeTag: string | null;
@@ -46,6 +47,7 @@ export function TagsView({
   columns,
   openTabs,
   onAction,
+  onOpenDetails,
   onSelectionChange,
 }: Props) {
   const [tagList, setTagList] = useState<TagAggregate[]>([]);
@@ -102,7 +104,20 @@ export function TagsView({
     return map;
   }, [openTabs]);
 
-  const handleOpen = async (entry: TaggedUrlEntry) => {
+  const handleRowClick = async (entry: TaggedUrlEntry) => {
+    const tab = openByUrl.get(entry.url);
+    if (tab && onOpenDetails) {
+      onOpenDetails(tab);
+      return;
+    }
+    if (tab) {
+      await focusTab(tab.id, tab.windowId);
+    } else {
+      await chrome.tabs.create({ url: entry.url });
+    }
+  };
+
+  const handleJump = async (entry: TaggedUrlEntry) => {
     const tab = openByUrl.get(entry.url);
     if (tab) {
       await focusTab(tab.id, tab.windowId);
@@ -202,7 +217,8 @@ export function TagsView({
                   key={entry.url}
                   entry={entry}
                   openTab={openByUrl.get(entry.url) ?? null}
-                  onOpen={() => handleOpen(entry)}
+                  onOpen={() => handleRowClick(entry)}
+                  onJump={() => handleJump(entry)}
                   onRemoveTag={() => handleRemoveTag(entry, selected)}
                 />
               ))}
@@ -246,6 +262,7 @@ function TaggedRow(props: {
   entry: TaggedUrlEntry;
   openTab: PawTab | null;
   onOpen: () => void;
+  onJump: () => void;
   onRemoveTag: () => void;
 }) {
   const { entry, openTab } = props;
@@ -318,7 +335,7 @@ function TaggedRow(props: {
           type="button"
           onClick={(e) => {
             e.stopPropagation();
-            props.onOpen();
+            props.onJump();
           }}
           aria-label={isOpen ? "Jump" : "Open"}
           data-tooltip={isOpen ? "Jump to tab" : "Open URL in new tab"}

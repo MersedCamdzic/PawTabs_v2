@@ -463,6 +463,7 @@ export function MissionControl() {
             columns={currentSnapshotColumns}
             openTabs={snapshot?.tabs ?? []}
             onAction={reload}
+            onOpenDetails={setDetailsTab}
             onSelectionChange={setTagsBulkState}
           />
         )}
