@@ -85,9 +85,12 @@ export interface WizardThresholds {
   regroupThreshold: number;
 }
 
+export type AutoSessionUnit = "seconds" | "minutes" | "hours" | "days";
+
 export interface AutoSessionConfig {
   enabled: boolean;
-  intervalHours: number;
+  intervalValue: number;
+  intervalUnit: AutoSessionUnit;
   maxCount: number;
   lastRunAt: number;
 }

@@ -15,11 +15,20 @@ chrome.runtime.onStartup.addListener(() => {
   scheduleAutoSessionAlarm().catch(() => undefined);
 });
 
+const UNIT_MS = {
+  seconds: 1000,
+  minutes: 60 * 1000,
+  hours: 60 * 60 * 1000,
+  days: 24 * 60 * 60 * 1000,
+} as const;
+
 async function scheduleAutoSessionAlarm(): Promise<void> {
   await chrome.alarms.clear(AUTO_SESSION_ALARM);
+  // Chrome min periodInMinutes is 0.5 in dev / 1 in prod. Sub-minute
+  // intervals rely on shorter tick + polling.
   await chrome.alarms.create(AUTO_SESSION_ALARM, {
-    periodInMinutes: 60,
-    delayInMinutes: 1,
+    periodInMinutes: 0.5,
+    delayInMinutes: 0.1,
   });
 }
 
@@ -29,10 +38,12 @@ async function runAutoSessionIfDue(): Promise<void> {
     const cfg = prefs.autoSession;
     if (!cfg?.enabled) return;
     const now = Date.now();
-    const dueAt = (cfg.lastRunAt || 0) + cfg.intervalHours * 60 * 60 * 1000;
+    const intervalMs =
+      (cfg.intervalValue || 1) * (UNIT_MS[cfg.intervalUnit] ?? UNIT_MS.days);
+    const dueAt = (cfg.lastRunAt || 0) + intervalMs;
     if (now < dueAt) return;
     const stamp = new Date(now).toLocaleString();
-    await saveSession(`Auto: ${stamp}`, true, "Automatic daily session backup");
+    await saveSession(`Auto: ${stamp}`, true, "Automatic session backup");
     await pruneAutoSessions(cfg.maxCount);
     await setPreference("autoSession", { ...cfg, lastRunAt: now });
   } catch (err) {

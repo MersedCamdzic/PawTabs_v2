@@ -20,7 +20,8 @@ export const DEFAULT_PREFERENCES: Preferences = {
   },
   autoSession: {
     enabled: false,
-    intervalHours: 24,
+    intervalValue: 1,
+    intervalUnit: "days",
     maxCount: 10,
     lastRunAt: 0,
   },

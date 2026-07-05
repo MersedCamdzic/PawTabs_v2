@@ -23,145 +23,107 @@ function fav(host: string): string {
   return `https://www.google.com/s2/favicons?sz=64&domain=${host}`;
 }
 
-const DEMO_URLS: Record<string, DemoUrl> = {
-  amazon: {
-    url: "https://www.amazon.com/dp/B0BDHWDR12",
-    title: "Kindle Paperwhite (2024) — Amazon",
-    favIconUrl: fav("amazon.com"),
-  },
-  amazonCart: {
-    url: "https://www.amazon.com/gp/cart/view.html",
-    title: "Your Shopping Cart — Amazon",
-    favIconUrl: fav("amazon.com"),
-  },
-  google: {
-    url: "https://www.google.com/search?q=react+server+components+2026",
-    title: "react server components 2026 — Google Search",
-    favIconUrl: fav("google.com"),
-  },
-  gmail: {
-    url: "https://mail.google.com/mail/u/0/#inbox",
-    title: "Inbox (12) — mersed@gmail.com",
-    favIconUrl: fav("gmail.com"),
-  },
-  calendar: {
-    url: "https://calendar.google.com/calendar/u/0/r/week",
-    title: "This week — Google Calendar",
-    favIconUrl: fav("calendar.google.com"),
-  },
-  cnn: {
-    url: "https://www.cnn.com/2026/07/03/tech/ai-agents-market/index.html",
-    title: "AI agents market crosses $50B — CNN",
-    favIconUrl: fav("cnn.com"),
-  },
-  bbc: {
-    url: "https://www.bbc.com/news/technology-68931201",
-    title: "Chrome's new tab groups explained — BBC",
-    favIconUrl: fav("bbc.com"),
-  },
-  nyt: {
-    url: "https://www.nytimes.com/2026/06/28/technology/browsers-productivity.html",
-    title: "The browser as a productivity tool — NYT",
-    favIconUrl: fav("nytimes.com"),
-  },
-  github: {
-    url: "https://github.com/mersedca/pawtabs/pull/42",
-    title: "Add bulk group actions #42 — mersedca/pawtabs",
-    favIconUrl: fav("github.com"),
-  },
-  githubIssues: {
-    url: "https://github.com/mersedca/pawtabs/issues",
-    title: "Issues · mersedca/pawtabs",
-    favIconUrl: fav("github.com"),
-  },
-  linear: {
-    url: "https://linear.app/pawtabs/issue/PAW-128",
-    title: "PAW-128: Snapshot compression",
-    favIconUrl: fav("linear.app"),
-  },
-  notion: {
-    url: "https://www.notion.so/pawtabs/Q3-Roadmap-a7f2b8",
-    title: "Q3 Roadmap — Notion",
-    favIconUrl: fav("notion.so"),
-  },
-  figma: {
-    url: "https://www.figma.com/design/AbC123/PawTabs-2-2",
-    title: "PawTabs 2.2 – Design specs — Figma",
-    favIconUrl: fav("figma.com"),
-  },
-  vercel: {
-    url: "https://vercel.com/mersedca/pawtabs-web/deployments",
-    title: "Deployments — pawtabs-web — Vercel",
-    favIconUrl: fav("vercel.com"),
-  },
-  youtube: {
-    url: "https://www.youtube.com/watch?v=demo-tab-management",
-    title: "Manage 200+ tabs without losing focus — YouTube",
-    favIconUrl: fav("youtube.com"),
-  },
-  youtubeMusic: {
-    url: "https://music.youtube.com/playlist?list=RDCLAK5uy",
-    title: "Focus playlist — YouTube Music",
-    favIconUrl: fav("music.youtube.com"),
-  },
-  stackoverflow: {
-    url: "https://stackoverflow.com/questions/77123456/preact-lazy-loading",
-    title: "Lazy loading with Preact 10 signals — Stack Overflow",
-    favIconUrl: fav("stackoverflow.com"),
-  },
-  mdn: {
-    url: "https://developer.mozilla.org/en-US/docs/Web/API/Storage",
-    title: "Web Storage API — MDN",
-    favIconUrl: fav("developer.mozilla.org"),
-  },
-  reddit: {
-    url: "https://www.reddit.com/r/productivity/comments/xyz/tab_management",
-    title: "How do you handle 100+ tabs? — r/productivity",
-    favIconUrl: fav("reddit.com"),
-  },
-  hackerNews: {
-    url: "https://news.ycombinator.com/item?id=41234567",
-    title: "Show HN: PawTabs — tab manager — Hacker News",
-    favIconUrl: fav("news.ycombinator.com"),
-  },
-  wikipedia: {
-    url: "https://en.wikipedia.org/wiki/Tab_(interface)",
-    title: "Tab (interface) — Wikipedia",
-    favIconUrl: fav("en.wikipedia.org"),
-  },
-  slack: {
-    url: "https://pawtabs.slack.com/archives/C01ABC",
-    title: "#general — PawTabs Slack",
-    favIconUrl: fav("slack.com"),
-  },
-  arxiv: {
-    url: "https://arxiv.org/abs/2401.12345",
-    title: "Attention as Memory: Long-context transformers — arXiv",
-    favIconUrl: fav("arxiv.org"),
-  },
-  medium: {
-    url: "https://medium.com/tech/the-hidden-cost-of-open-tabs-a1b2c3",
-    title: "The hidden cost of 200 open tabs — Medium",
-    favIconUrl: fav("medium.com"),
-  },
-  netflix: {
-    url: "https://www.netflix.com/browse",
-    title: "Netflix — Home",
-    favIconUrl: fav("netflix.com"),
-  },
-  spotify: {
-    url: "https://open.spotify.com/playlist/37i9dQZF1DX",
-    title: "Deep Focus — Spotify",
-    favIconUrl: fav("spotify.com"),
-  },
+function mk(url: string, title: string, host: string): DemoUrl {
+  return { url, title, favIconUrl: fav(host) };
+}
+
+const U = {
+  // ---------- Work / Productivity ----------
+  gmail: mk("https://mail.google.com/mail/u/0/#inbox", "Inbox (12) — mersed@gmail.com", "gmail.com"),
+  calendar: mk("https://calendar.google.com/calendar/u/0/r/week", "This week — Google Calendar", "calendar.google.com"),
+  drive: mk("https://drive.google.com/drive/u/0/my-drive", "My Drive — Google Drive", "drive.google.com"),
+  meet: mk("https://meet.google.com/xyz-abc-def", "Standup — Google Meet", "meet.google.com"),
+  github: mk("https://github.com/mersedca/pawtabs/pull/42", "Add bulk group actions #42 — mersedca/pawtabs", "github.com"),
+  githubIssues: mk("https://github.com/mersedca/pawtabs/issues", "Issues · mersedca/pawtabs", "github.com"),
+  githubActions: mk("https://github.com/mersedca/pawtabs/actions", "Actions · mersedca/pawtabs", "github.com"),
+  githubDiscussions: mk("https://github.com/anthropics/claude-code/discussions", "Discussions · anthropics/claude-code", "github.com"),
+  linear: mk("https://linear.app/pawtabs/issue/PAW-128", "PAW-128: Snapshot compression", "linear.app"),
+  linearMy: mk("https://linear.app/pawtabs/my-issues", "My issues — Linear", "linear.app"),
+  notion: mk("https://www.notion.so/pawtabs/Q3-Roadmap-a7f2b8", "Q3 Roadmap — Notion", "notion.so"),
+  notionMeeting: mk("https://www.notion.so/pawtabs/Team-1-1-2026-07-05", "1:1 notes 2026-07-05 — Notion", "notion.so"),
+  figma: mk("https://www.figma.com/design/AbC123/PawTabs-2-2", "PawTabs 2.2 – Design specs — Figma", "figma.com"),
+  figmaComments: mk("https://www.figma.com/file/XyZ456/Sprint-11-comments", "Sprint 11 comments — Figma", "figma.com"),
+  vercel: mk("https://vercel.com/mersedca/pawtabs-web/deployments", "Deployments — pawtabs-web — Vercel", "vercel.com"),
+  vercelLogs: mk("https://vercel.com/mersedca/pawtabs-web/logs", "Runtime logs — Vercel", "vercel.com"),
+  slack: mk("https://pawtabs.slack.com/archives/C01ABC", "#general — PawTabs Slack", "slack.com"),
+  slackDm: mk("https://pawtabs.slack.com/archives/D02DEF", "Anja Kordić — direct message", "slack.com"),
+  jira: mk("https://mersedca.atlassian.net/jira/software/projects/PAW/boards/1", "Sprint board — Jira", "atlassian.net"),
+  clickup: mk("https://app.clickup.com/2/v/l/li/93kA", "Marketing tasks — ClickUp", "clickup.com"),
+  trello: mk("https://trello.com/b/xyz/product", "Product roadmap — Trello", "trello.com"),
+
+  // ---------- Research / Learning ----------
+  arxiv: mk("https://arxiv.org/abs/2401.12345", "Attention as Memory: Long-context transformers — arXiv", "arxiv.org"),
+  arxiv2: mk("https://arxiv.org/abs/2405.09876", "Mixture-of-Experts scaling laws — arXiv", "arxiv.org"),
+  wikipedia: mk("https://en.wikipedia.org/wiki/Tab_(interface)", "Tab (interface) — Wikipedia", "en.wikipedia.org"),
+  wikipediaBrowser: mk("https://en.wikipedia.org/wiki/Google_Chrome", "Google Chrome — Wikipedia", "en.wikipedia.org"),
+  stackoverflow: mk("https://stackoverflow.com/questions/77123456/preact-lazy-loading", "Lazy loading with Preact 10 signals — Stack Overflow", "stackoverflow.com"),
+  stackoverflow2: mk("https://stackoverflow.com/questions/78901234/tailwind-v4-source-inline", "Tailwind v4 @source inline dynamic classes — Stack Overflow", "stackoverflow.com"),
+  mdn: mk("https://developer.mozilla.org/en-US/docs/Web/API/Storage", "Web Storage API — MDN", "developer.mozilla.org"),
+  mdnEvents: mk("https://developer.mozilla.org/en-US/docs/Web/Events", "Events reference — MDN", "developer.mozilla.org"),
+  mdnCss: mk("https://developer.mozilla.org/en-US/docs/Web/CSS/@container", "@container — MDN", "developer.mozilla.org"),
+  hackerNews: mk("https://news.ycombinator.com/item?id=41234567", "Show HN: PawTabs — tab manager — Hacker News", "news.ycombinator.com"),
+  hackerNewsFront: mk("https://news.ycombinator.com/", "Hacker News", "news.ycombinator.com"),
+  medium: mk("https://medium.com/tech/the-hidden-cost-of-open-tabs-a1b2c3", "The hidden cost of 200 open tabs — Medium", "medium.com"),
+  substack: mk("https://everything.substack.com/p/browser-productivity", "Browser productivity: 2026 edition — Substack", "substack.com"),
+  chatgpt: mk("https://chatgpt.com/c/xyz", "Refactor idea — ChatGPT", "chatgpt.com"),
+  claude: mk("https://claude.ai/chat/abc", "Design brainstorm — Claude", "claude.ai"),
+  perplexity: mk("https://www.perplexity.ai/search/tab-management-tools", "tab management tools 2026 — Perplexity", "perplexity.ai"),
+  coursera: mk("https://www.coursera.org/learn/algorithms-part1", "Algorithms Part I — Coursera", "coursera.org"),
+  udemy: mk("https://www.udemy.com/course/react-the-complete-guide", "React The Complete Guide — Udemy", "udemy.com"),
+  freecodecamp: mk("https://www.freecodecamp.org/learn/2022/responsive-web-design/", "Responsive Web Design — freeCodeCamp", "freecodecamp.org"),
+  egghead: mk("https://egghead.io/courses/reactive-state", "Reactive state — egghead.io", "egghead.io"),
+
+  // ---------- Weekend / Personal ----------
+  amazon: mk("https://www.amazon.com/dp/B0BDHWDR12", "Kindle Paperwhite (2024) — Amazon", "amazon.com"),
+  amazonCart: mk("https://www.amazon.com/gp/cart/view.html", "Your Shopping Cart — Amazon", "amazon.com"),
+  amazonOrders: mk("https://www.amazon.com/gp/your-account/order-history", "Your Orders — Amazon", "amazon.com"),
+  amazonWishlist: mk("https://www.amazon.com/hz/wishlist/ls/2E2A3", "Wishlist — Amazon", "amazon.com"),
+  cnn: mk("https://www.cnn.com/2026/07/03/tech/ai-agents-market/index.html", "AI agents market crosses $50B — CNN", "cnn.com"),
+  bbc: mk("https://www.bbc.com/news/technology-68931201", "Chrome's new tab groups explained — BBC", "bbc.com"),
+  nyt: mk("https://www.nytimes.com/2026/06/28/technology/browsers-productivity.html", "The browser as a productivity tool — NYT", "nytimes.com"),
+  guardian: mk("https://www.theguardian.com/technology/2026/jul/04/browser-wars", "The new browser wars — The Guardian", "theguardian.com"),
+  reddit: mk("https://www.reddit.com/r/productivity/comments/xyz/tab_management", "How do you handle 100+ tabs? — r/productivity", "reddit.com"),
+  redditFront: mk("https://www.reddit.com/", "Reddit — front page", "reddit.com"),
+  youtube: mk("https://www.youtube.com/watch?v=demo-tab-management", "Manage 200+ tabs without losing focus — YouTube", "youtube.com"),
+  youtubeMusic: mk("https://music.youtube.com/playlist?list=RDCLAK5uy", "Focus playlist — YouTube Music", "music.youtube.com"),
+  youtubeVideo2: mk("https://www.youtube.com/watch?v=dQw4w9WgXcQ", "Never Gonna Give You Up — YouTube", "youtube.com"),
+  netflix: mk("https://www.netflix.com/browse", "Netflix — Home", "netflix.com"),
+  spotify: mk("https://open.spotify.com/playlist/37i9dQZF1DX", "Deep Focus — Spotify", "spotify.com"),
+  spotifyLikes: mk("https://open.spotify.com/collection/tracks", "Liked Songs — Spotify", "spotify.com"),
+  soundcloud: mk("https://soundcloud.com/discover", "Discover — SoundCloud", "soundcloud.com"),
+  bandcamp: mk("https://bandcamp.com/discover", "Discover — Bandcamp", "bandcamp.com"),
+  applemusic: mk("https://music.apple.com/us/browse", "Apple Music", "music.apple.com"),
+  instagram: mk("https://www.instagram.com/", "Instagram", "instagram.com"),
+  twitter: mk("https://x.com/home", "Home / X", "x.com"),
+  linkedin: mk("https://www.linkedin.com/feed/", "LinkedIn Feed", "linkedin.com"),
+  pinterest: mk("https://www.pinterest.com/", "Pinterest", "pinterest.com"),
+  imdb: mk("https://www.imdb.com/", "IMDb — Movies", "imdb.com"),
+  rottentomatoes: mk("https://www.rottentomatoes.com/", "Rotten Tomatoes", "rottentomatoes.com"),
+  goodreads: mk("https://www.goodreads.com/", "Goodreads — Books", "goodreads.com"),
+  strava: mk("https://www.strava.com/dashboard", "Dashboard — Strava", "strava.com"),
+  maps: mk("https://www.google.com/maps/search/coffee+near+me", "coffee near me — Google Maps", "maps.google.com"),
+  weather: mk("https://www.wunderground.com/forecast/us/ny/new-york-city", "New York, NY — Weather Underground", "wunderground.com"),
+  airbnb: mk("https://www.airbnb.com/s/Portugal", "Portugal stays — Airbnb", "airbnb.com"),
+  booking: mk("https://www.booking.com/searchresults.html?ss=Lisbon", "Lisbon hotels — Booking.com", "booking.com"),
+
+  // ---------- Finance ----------
+  chase: mk("https://www.chase.com/", "Chase — Personal Banking", "chase.com"),
+  fidelity: mk("https://www.fidelity.com/", "Fidelity — Investments", "fidelity.com"),
+  wsj: mk("https://www.wsj.com/finance/markets", "Markets — WSJ", "wsj.com"),
+  bloomberg: mk("https://www.bloomberg.com/markets", "Markets — Bloomberg", "bloomberg.com"),
+  coingecko: mk("https://www.coingecko.com/", "CoinGecko — Crypto prices", "coingecko.com"),
+  mint: mk("https://mint.intuit.com/", "Mint — Budget tracker", "mint.intuit.com"),
+
+  // ---------- Music / audible ----------
+  spotifyPlaying: mk("https://open.spotify.com/track/current", "Now playing — Spotify", "spotify.com"),
 };
 
-const url = (k: keyof typeof DEMO_URLS): DemoUrl => DEMO_URLS[k];
+const K = Object.keys(U) as (keyof typeof U)[];
 
 export async function seedDemoData(): Promise<void> {
-  // ---------- pawedUrls (persistent favorites, mix of "open + closed") ----------
+  // ---------- pawedUrls (persistent favorites) ----------
   const pawed: Record<string, PawedEntry> = {};
-  const pawedKeys: Array<keyof typeof DEMO_URLS> = [
+  const pawedKeys: (keyof typeof U)[] = [
     "github",
     "linear",
     "notion",
@@ -170,26 +132,41 @@ export async function seedDemoData(): Promise<void> {
     "calendar",
     "amazonCart",
     "arxiv",
+    "chatgpt",
+    "claude",
+    "gmail",
+    "slack",
+    "trello",
+    "notionMeeting",
+    "spotify",
+    "bloomberg",
+    "youtube",
+    "coursera",
   ];
   pawedKeys.forEach((k, i) => {
-    const u = url(k);
+    const u = U[k];
     pawed[u.url] = {
       url: u.url,
       title: u.title,
       favIconUrl: u.favIconUrl,
-      pawedAt: now - (i + 1) * 6 * HOUR,
-      note: i === 0 ? "Review before EOD Thursday" : undefined,
+      pawedAt: now - (i + 1) * 3 * HOUR,
+      note:
+        i === 0
+          ? "Review before EOD Thursday"
+          : i === 3
+            ? "Design signoff needed"
+            : undefined,
     };
   });
 
   // ---------- taggedUrls (custom lists) ----------
   const tagged: Record<string, TaggedUrlEntry> = {};
   const addTag = (
-    key: keyof typeof DEMO_URLS,
+    key: keyof typeof U,
     tags: string[],
     ageDays: number,
   ) => {
-    const u = url(key);
+    const u = U[key];
     const existing = tagged[u.url];
     tagged[u.url] = {
       url: u.url,
@@ -200,37 +177,75 @@ export async function seedDemoData(): Promise<void> {
     };
   };
 
-  addTag("cnn", ["Reading"], 1);
-  addTag("bbc", ["Reading"], 2);
-  addTag("nyt", ["Reading"], 3);
-  addTag("medium", ["Reading"], 4);
-  addTag("hackerNews", ["Reading", "Research"], 1);
+  // Reading list
+  ["cnn", "bbc", "nyt", "guardian", "medium", "substack", "hackerNews"].forEach(
+    (k, i) => addTag(k as keyof typeof U, ["Reading"], i),
+  );
+  // Research
+  ["arxiv", "arxiv2", "wikipedia", "wikipediaBrowser", "chatgpt", "claude", "perplexity", "mdn", "mdnEvents", "mdnCss", "stackoverflow", "stackoverflow2"].forEach(
+    (k, i) => addTag(k as keyof typeof U, ["Research"], i),
+  );
+  // Shopping
+  ["amazon", "amazonCart", "amazonWishlist", "amazonOrders", "airbnb", "booking"].forEach(
+    (k, i) => addTag(k as keyof typeof U, ["Shopping"], i),
+  );
+  // Work
+  ["github", "githubIssues", "githubActions", "linear", "linearMy", "notion", "notionMeeting", "figma", "figmaComments", "vercel", "vercelLogs", "slack", "slackDm", "jira", "clickup", "trello", "gmail", "calendar", "meet", "drive"].forEach(
+    (k, i) => addTag(k as keyof typeof U, ["Work"], i),
+  );
+  // Learning
+  ["coursera", "udemy", "freecodecamp", "egghead", "mdn", "stackoverflow"].forEach(
+    (k, i) => addTag(k as keyof typeof U, ["Learning"], i),
+  );
+  // Watch later
+  ["youtube", "youtubeVideo2", "netflix", "youtubeMusic"].forEach((k, i) =>
+    addTag(k as keyof typeof U, ["Watch later"], i),
+  );
+  // Music
+  ["spotify", "spotifyLikes", "spotifyPlaying", "youtubeMusic", "soundcloud", "bandcamp", "applemusic"].forEach(
+    (k, i) => addTag(k as keyof typeof U, ["Music"], i),
+  );
+  // Social
+  ["twitter", "linkedin", "instagram", "pinterest", "reddit", "redditFront"].forEach(
+    (k, i) => addTag(k as keyof typeof U, ["Social"], i),
+  );
+  // Finance
+  ["chase", "fidelity", "wsj", "bloomberg", "coingecko", "mint"].forEach(
+    (k, i) => addTag(k as keyof typeof U, ["Finance"], i),
+  );
+  // Travel
+  ["airbnb", "booking", "maps", "weather"].forEach((k, i) =>
+    addTag(k as keyof typeof U, ["Travel"], i),
+  );
 
-  addTag("amazon", ["Shopping"], 0);
-  addTag("amazonCart", ["Shopping"], 0);
-
-  addTag("github", ["Work"], 0);
-  addTag("githubIssues", ["Work"], 1);
-  addTag("linear", ["Work"], 0);
-  addTag("notion", ["Work"], 2);
-  addTag("figma", ["Work"], 3);
-  addTag("vercel", ["Work"], 1);
-  addTag("slack", ["Work"], 0);
-
-  addTag("arxiv", ["Research"], 5);
-  addTag("wikipedia", ["Research"], 6);
-  addTag("stackoverflow", ["Research", "Learning"], 3);
-  addTag("mdn", ["Learning"], 4);
-  addTag("google", ["Research"], 0);
-  addTag("reddit", ["Research"], 2);
-
-  addTag("youtube", ["Watch later"], 1);
-  addTag("youtubeMusic", ["Watch later"], 2);
-  addTag("netflix", ["Watch later"], 5);
+  // ---------- notesByUrl ----------
+  const notesMap: Record<string, Note[]> = {};
+  const mkNote = (text: string, ageHours = 3): Note => ({
+    id: `note_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+    text,
+    createdAt: now - ageHours * HOUR,
+  });
+  notesMap[U.github.url] = [mkNote("Waiting on review from Anja — pinged in Slack")];
+  notesMap[U.linear.url] = [mkNote("Blocked by PAW-127; check migration next Monday")];
+  notesMap[U.notion.url] = [
+    mkNote("Legal signoff needed for Q3 launch (RFC-2026-14)"),
+    mkNote("Add engineering estimate to the roadmap doc"),
+  ];
+  notesMap[U.figma.url] = [mkNote("Prefer purple palette for the empty state")];
+  notesMap[U.arxiv.url] = [
+    mkNote("Skim intro + sec 4.2, cite in Q3 roadmap doc"),
+  ];
+  notesMap[U.amazonCart.url] = [
+    mkNote("Wait for Prime Day discount, don't check out"),
+  ];
+  notesMap[U.spotify.url] = [mkNote("Playlist for deep-focus mornings")];
+  notesMap[U.coursera.url] = [
+    mkNote("Assignment 3 due next Friday — start by Wed"),
+  ];
 
   // ---------- savedSessions (snapshots) ----------
-  const mkSessionTab = (key: keyof typeof DEMO_URLS, i: number) => {
-    const u = url(key);
+  const mkSessionTab = (key: keyof typeof U, i: number) => {
+    const u = U[key];
     return {
       id: i,
       windowId: 1000,
@@ -246,107 +261,150 @@ export async function seedDemoData(): Promise<void> {
   const workStart: SavedSession = {
     id: `sess_${now}_a`,
     sessionName: "Monday work start",
-    description: "Standup + morning inbox + 3 open PRs",
+    description: "Standup + inbox + open PRs",
     dateTime: iso(now - 2 * DAY),
     tabs: [
-      mkSessionTab("gmail", 1),
-      mkSessionTab("calendar", 2),
-      mkSessionTab("linear", 3),
-      mkSessionTab("github", 4),
-      mkSessionTab("notion", 5),
-      mkSessionTab("slack", 6),
-    ],
+      "gmail",
+      "calendar",
+      "linear",
+      "github",
+      "githubIssues",
+      "notion",
+      "figma",
+      "slack",
+      "vercel",
+    ].map((k, i) => mkSessionTab(k as keyof typeof U, i + 1)),
     windows: [{ id: 1000, title: "Posao" }],
   };
 
-  const research: SavedSession = {
+  const researchAI: SavedSession = {
     id: `sess_${now}_b`,
     sessionName: "Research: AI agents",
     description: "Papers + benchmarks for Q3 roadmap prep",
     dateTime: iso(now - 5 * DAY),
     tabs: [
-      mkSessionTab("arxiv", 10),
-      mkSessionTab("hackerNews", 11),
-      mkSessionTab("medium", 12),
-      mkSessionTab("wikipedia", 13),
-      mkSessionTab("google", 14),
-    ],
+      "arxiv",
+      "arxiv2",
+      "hackerNews",
+      "medium",
+      "wikipedia",
+      "chatgpt",
+      "claude",
+      "perplexity",
+    ].map((k, i) => mkSessionTab(k as keyof typeof U, i + 20)),
     windows: [{ id: 1000, title: "Research" }],
   };
 
-  const shopping: SavedSession = {
+  const weekendShopping: SavedSession = {
     id: `sess_${now}_c`,
     sessionName: "Weekend shopping list",
-    description: "Amazon prime day picks",
+    description: "Amazon prime day picks + gift ideas",
     dateTime: iso(now - 3 * DAY),
-    tabs: [mkSessionTab("amazon", 20), mkSessionTab("amazonCart", 21)],
+    tabs: [
+      "amazon",
+      "amazonCart",
+      "amazonWishlist",
+      "amazonOrders",
+    ].map((k, i) => mkSessionTab(k as keyof typeof U, i + 30)),
     windows: [{ id: 1000, title: "Vikend" }],
+  };
+
+  const musicSession: SavedSession = {
+    id: `sess_${now}_e`,
+    sessionName: "Focus music",
+    description: "Playlists that work",
+    dateTime: iso(now - 1 * DAY),
+    tabs: ["spotify", "youtubeMusic", "soundcloud", "bandcamp"].map((k, i) =>
+      mkSessionTab(k as keyof typeof U, i + 40),
+    ),
+    windows: [{ id: 1000, title: "Vikend" }],
+  };
+
+  const learningSession: SavedSession = {
+    id: `sess_${now}_f`,
+    sessionName: "Weekly learning",
+    description: "Courses + tutorials to catch up on",
+    dateTime: iso(now - 4 * DAY),
+    tabs: [
+      "coursera",
+      "udemy",
+      "freecodecamp",
+      "egghead",
+      "mdn",
+      "stackoverflow",
+    ].map((k, i) => mkSessionTab(k as keyof typeof U, i + 50)),
+    windows: [{ id: 1000, title: "Learning" }],
   };
 
   const autoBackup: SavedSession = {
     id: `sess_${now}_d`,
-    sessionName: "Auto: pre-cleanup 2026-06-28",
-    description: "Automatic backup before Cleanup Wizard run",
+    sessionName: `Auto: ${new Date(now - 7 * DAY).toLocaleString()}`,
+    description: "Automatic daily snapshot",
     dateTime: iso(now - 7 * DAY),
     auto: true,
-    tabs: Array.from({ length: 32 }, (_, i) => mkSessionTab("google", 100 + i)),
+    tabs: K.slice(0, 30).map((k, i) => mkSessionTab(k, 100 + i)),
     windows: [{ id: 1000 }],
   };
 
-  const sessions: SavedSession[] = [workStart, research, shopping, autoBackup];
+  const autoBackup2: SavedSession = {
+    id: `sess_${now}_g`,
+    sessionName: `Auto: ${new Date(now - 8 * DAY).toLocaleString()}`,
+    description: "Automatic daily snapshot",
+    dateTime: iso(now - 8 * DAY),
+    auto: true,
+    tabs: K.slice(0, 22).map((k, i) => mkSessionTab(k, 200 + i)),
+    windows: [{ id: 1000 }],
+  };
 
-  // ---------- backups (wizard-created safety nets) ----------
+  const sessions: SavedSession[] = [
+    workStart,
+    researchAI,
+    weekendShopping,
+    musicSession,
+    learningSession,
+    autoBackup,
+    autoBackup2,
+  ];
+
+  // ---------- backups (wizard) ----------
   const backups: Backup[] = [
     {
       id: `backup_${now}_a`,
-      name: "Before closing 8 inactive tabs",
+      name: "Before closing 18 inactive tabs",
       createdAt: iso(now - 3 * HOUR),
-      windowCount: 3,
-      tabCount: 12,
-      data: {
-        savedSessions: [workStart],
-      },
+      windowCount: 4,
+      tabCount: 18,
+      data: { savedSessions: [workStart] },
     },
     {
       id: `backup_${now}_b`,
-      name: "Before closing 24 duplicates",
+      name: "Before closing 32 duplicates",
       createdAt: iso(now - 2 * DAY),
-      windowCount: 4,
-      tabCount: 24,
-      data: {
-        savedSessions: [autoBackup],
-      },
+      windowCount: 5,
+      tabCount: 32,
+      data: { savedSessions: [autoBackup] },
+    },
+    {
+      id: `backup_${now}_c`,
+      name: "Manual full backup",
+      createdAt: iso(now - 6 * DAY),
+      windowCount: 6,
+      tabCount: 47,
+      data: { savedSessions: [autoBackup2] },
     },
   ];
 
-  // ---------- windows metadata (named + colored) ----------
-  // Uses real Chrome window IDs won't match — but seeding these lets the
-  // demo show OFF the color feature in Windows view AFTER user renames
-  // their real windows to match. We seed common ID ranges as a fallback.
+  // ---------- windows metadata ----------
   const windows: Record<number, WindowMeta> = {
     1: { title: "Posao", color: "blue" },
     2: { title: "Research", color: "green" },
     3: { title: "Vikend", color: "amber" },
     4: { title: "Learning", color: "purple" },
+    5: { title: "Finance", color: "red" },
   };
 
-  // ---------- savedPages (notes attached to open tabs — cleared when tab id changes) ----------
-  // We seed a couple of notes that will apply IF the user has tabs open at these ids.
-  // Otherwise harmless — cleaned up automatically by the tab-removed listener.
   const savedPages: Record<number, SavedPage> = {};
-  const seedNote = (tabId: number, text: string): Note => ({
-    id: `note_${tabId}_${Math.random().toString(36).slice(2, 6)}`,
-    text,
-    createdAt: now - 4 * HOUR,
-  });
-  savedPages[999001] = {
-    notes: [seedNote(999001, "Design review needed before merge — ping Anja")],
-  };
-  savedPages[999002] = {
-    notes: [seedNote(999002, "Wait for legal signoff (RFC-2026-14)")],
-  };
 
-  // ---------- write everything ----------
   await Promise.all([
     storage.set("pawedUrls", pawed),
     storage.set("taggedUrls", tagged),
@@ -354,6 +412,7 @@ export async function seedDemoData(): Promise<void> {
     storage.set("backups", backups),
     storage.set("windows", windows),
     storage.set("savedPages", savedPages),
+    storage.set("notesByUrl", notesMap),
   ]);
 }
 
@@ -365,6 +424,7 @@ export async function clearDemoData(): Promise<void> {
     storage.set("backups", []),
     storage.set("windows", {}),
     storage.set("savedPages", {}),
+    storage.set("notesByUrl", {}),
   ]);
 }
 
@@ -377,40 +437,119 @@ export const SUGGESTED_TABS_TO_OPEN: {
     windowName: "Posao",
     color: "blue",
     urls: [
-      DEMO_URLS.gmail!.url,
-      DEMO_URLS.calendar!.url,
-      DEMO_URLS.github!.url,
-      DEMO_URLS.linear!.url,
-      DEMO_URLS.notion!.url,
-      DEMO_URLS.figma!.url,
-      DEMO_URLS.vercel!.url,
-      DEMO_URLS.slack!.url,
+      U.gmail.url,
+      U.calendar.url,
+      U.drive.url,
+      U.meet.url,
+      U.github.url,
+      U.githubIssues.url,
+      U.githubActions.url,
+      U.linear.url,
+      U.linearMy.url,
+      U.notion.url,
+      U.notionMeeting.url,
+      U.figma.url,
+      U.figmaComments.url,
+      U.vercel.url,
+      U.vercelLogs.url,
+      U.slack.url,
+      U.slackDm.url,
+      U.jira.url,
+      U.trello.url,
+      U.clickup.url,
     ],
   },
   {
     windowName: "Research",
     color: "green",
     urls: [
-      DEMO_URLS.arxiv!.url,
-      DEMO_URLS.wikipedia!.url,
-      DEMO_URLS.stackoverflow!.url,
-      DEMO_URLS.mdn!.url,
-      DEMO_URLS.hackerNews!.url,
-      DEMO_URLS.medium!.url,
+      U.arxiv.url,
+      U.arxiv2.url,
+      U.wikipedia.url,
+      U.wikipediaBrowser.url,
+      U.stackoverflow.url,
+      U.stackoverflow2.url,
+      U.mdn.url,
+      U.mdnEvents.url,
+      U.mdnCss.url,
+      U.hackerNews.url,
+      U.hackerNewsFront.url,
+      U.medium.url,
+      U.substack.url,
+      U.chatgpt.url,
+      U.claude.url,
+      U.perplexity.url,
+      U.githubDiscussions.url,
     ],
   },
   {
     windowName: "Vikend",
     color: "amber",
     urls: [
-      DEMO_URLS.amazon!.url,
-      DEMO_URLS.amazonCart!.url,
-      DEMO_URLS.cnn!.url,
-      DEMO_URLS.bbc!.url,
-      DEMO_URLS.nyt!.url,
-      DEMO_URLS.youtube!.url,
-      DEMO_URLS.netflix!.url,
-      DEMO_URLS.spotify!.url,
+      U.amazon.url,
+      U.amazonCart.url,
+      U.amazonWishlist.url,
+      U.amazonOrders.url,
+      U.cnn.url,
+      U.bbc.url,
+      U.nyt.url,
+      U.guardian.url,
+      U.reddit.url,
+      U.redditFront.url,
+      U.youtube.url,
+      U.youtubeVideo2.url,
+      U.netflix.url,
+      U.instagram.url,
+      U.twitter.url,
+      U.linkedin.url,
+      U.pinterest.url,
+      U.imdb.url,
+      U.rottentomatoes.url,
+      U.goodreads.url,
+      U.strava.url,
+      U.maps.url,
+      U.weather.url,
+      U.airbnb.url,
+      U.booking.url,
+    ],
+  },
+  {
+    windowName: "Learning",
+    color: "purple",
+    urls: [
+      U.coursera.url,
+      U.udemy.url,
+      U.freecodecamp.url,
+      U.egghead.url,
+      U.wikipedia.url,
+      U.mdn.url,
+      U.mdnCss.url,
+      U.stackoverflow.url,
+    ],
+  },
+  {
+    windowName: "Finance",
+    color: "red",
+    urls: [
+      U.chase.url,
+      U.fidelity.url,
+      U.wsj.url,
+      U.bloomberg.url,
+      U.coingecko.url,
+      U.mint.url,
+    ],
+  },
+  {
+    windowName: "Music",
+    color: "pink",
+    urls: [
+      U.spotify.url,
+      U.spotifyLikes.url,
+      U.spotifyPlaying.url,
+      U.youtubeMusic.url,
+      U.soundcloud.url,
+      U.bandcamp.url,
+      U.applemusic.url,
     ],
   },
 ];
