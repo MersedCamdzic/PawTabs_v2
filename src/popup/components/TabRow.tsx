@@ -130,14 +130,14 @@ export function TabRow({
         <div class="text-[13px] text-fg truncate leading-tight flex items-center gap-1.5">
           {tab.discarded ? (
             <span
-              title="Inactive (discarded from memory)"
+              title="Inactive — tab discarded from memory, will reload on focus"
               class="shrink-0 inline-flex text-fg-subtle"
             >
               <Moon size={11} weight="fill" />
             </span>
           ) : (
             <span
-              title="Active"
+              title="Active — tab is loaded and ready"
               class="shrink-0 inline-flex text-success"
             >
               <Broadcast size={11} weight="bold" />
