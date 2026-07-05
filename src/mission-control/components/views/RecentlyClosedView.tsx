@@ -343,16 +343,21 @@ export function RecentlyClosedView({
                         {itemTags.length}
                       </span>
                     )}
-                    {itemNotes.length > 0 && (
-                      <span
-                        title={`${itemNotes.length} note${itemNotes.length === 1 ? "" : "s"}`}
-                        class="inline-flex items-center gap-0.5 text-cyan-600 shrink-0"
-                      >
-                        <NotePencil size={10} weight="fill" />
-                        {itemNotes.length}
-                      </span>
-                    )}
                   </div>
+                  {itemNotes.length > 0 && (
+                    <div class="mt-1.5">
+                      <span
+                        title={itemNotes
+                          .map((n) => n.text)
+                          .join("\n\n")
+                          .slice(0, 300)}
+                        class="inline-flex items-center gap-1 h-5 px-1.5 rounded text-[10px] font-medium bg-cyan-500/15 text-cyan-700"
+                      >
+                        <NotePencil size={9} weight="fill" class="text-cyan-600" />
+                        {itemNotes.length} note{itemNotes.length === 1 ? "" : "s"}
+                      </span>
+                    </div>
+                  )}
                 </div>
                 <button
                   type="button"
