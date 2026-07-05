@@ -49,9 +49,9 @@ export function RestorePromptModal({ open, session, onClose, onDone }: Props) {
         mode,
         signal: controller.signal,
         onProgress: (p) => setProgress(p),
-        discardAfterCreate: true,
-        batchSize: 5,
-        delayMs: 350,
+        lazyPlaceholders: true,
+        batchSize: 10,
+        delayMs: 120,
         closeExistingWindows: closeExisting,
       });
       onDone?.();
@@ -84,7 +84,7 @@ export function RestorePromptModal({ open, session, onClose, onDone }: Props) {
           <div class="text-[11px] text-fg-subtle">
             {running && progress
               ? `${progress.done} of ${progress.total} tabs opened`
-              : "Tabs open in chunks (5 at a time, 350 ms apart) so Chrome stays responsive."}
+              : "Tabs open as inert placeholders (no network) — they navigate to the real URL only when you click them."}
           </div>
           <div class="flex items-center gap-2">
             <button
@@ -138,8 +138,8 @@ export function RestorePromptModal({ open, session, onClose, onDone }: Props) {
             </div>
           )}
           <div class="text-[10px] text-fg-subtle mt-1.5">
-            Tabs open unloaded (discarded) to save memory — they render
-            when you click them.
+            Tabs open as inert placeholders — no network hits until you
+            click a tab.
           </div>
         </div>
       )}

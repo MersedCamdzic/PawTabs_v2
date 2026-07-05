@@ -63,6 +63,7 @@ export interface RestoreOptions {
   signal?: AbortSignal;
   discardAfterCreate?: boolean;
   closeExistingWindows?: boolean;
+  lazyPlaceholders?: boolean;
 }
 
 async function pause(ms: number, signal?: AbortSignal): Promise<void> {
@@ -76,11 +77,55 @@ async function pause(ms: number, signal?: AbortSignal): Promise<void> {
   });
 }
 
-async function createAndDiscard(
+function lazyPlaceholderUrl(tab: SessionTab): string {
+  // Renders a tiny page with a real <title> and the target URL as a
+  // clickable link. Chrome shows the title in the tab, and the tab
+  // stays fully quiet until the user clicks it (or the extension
+  // redirects on activation).
+  const title = (tab.title || tab.url).replace(/[<>&"]/g, (c) =>
+    c === "<"
+      ? "&lt;"
+      : c === ">"
+        ? "&gt;"
+        : c === "&"
+          ? "&amp;"
+          : "&quot;",
+  );
+  const escapedUrl = tab.url.replace(/"/g, "%22");
+  const html = `<!doctype html><meta charset="utf-8"><title>${title}</title><style>body{font:14px system-ui;padding:2rem;color:#555}a{color:#2563eb}</style><body>Snapshot placeholder for <a href="${escapedUrl}">${escapedUrl}</a>. This tab hasn't loaded yet — click to open.</body>`;
+  return `data:text/html;charset=utf-8,${encodeURIComponent(html)}`;
+}
+
+async function createLazyTab(
   windowId: number | undefined,
   tab: SessionTab,
-  discardAfter: boolean,
+  lazy: boolean,
 ): Promise<void> {
+  if (lazy) {
+    // Create a data: URL placeholder — no network hit, no loader.
+    const created = await chrome.tabs.create({
+      windowId,
+      url: lazyPlaceholderUrl(tab),
+      active: false,
+      pinned: Boolean(tab.pinned),
+    });
+    if (!created?.id) return;
+    // Register real URL so onActivated can lazy-navigate. Stored in
+    // extension local storage under a small table keyed by tabId.
+    try {
+      const key = "pendingRestoreTabs";
+      const current =
+        ((await chrome.storage.local.get(key))[key] as Record<
+          number,
+          string
+        >) ?? {};
+      current[created.id] = tab.url;
+      await chrome.storage.local.set({ [key]: current });
+    } catch {
+      // ignore
+    }
+    return;
+  }
   const created = await chrome.tabs.create({
     windowId,
     url: tab.url,
@@ -95,13 +140,6 @@ async function createAndDiscard(
       // ignore
     }
   }
-  if (discardAfter) {
-    // Give the tab a beat to register with Chrome, then ask it to be
-    // discarded so it doesn't sit in memory rendered.
-    setTimeout(() => {
-      chrome.tabs.discard(created.id!).catch(() => undefined);
-    }, 250);
-  }
 }
 
 async function createBatched(
@@ -112,7 +150,7 @@ async function createBatched(
 ): Promise<void> {
   const batchSize = Math.max(1, options.batchSize ?? 5);
   const delayMs = Math.max(0, options.delayMs ?? 300);
-  const discardAfter = options.discardAfterCreate ?? true;
+  const lazy = options.lazyPlaceholders ?? true;
   for (let i = 0; i < tabs.length; i += batchSize) {
     if (options.signal?.aborted) {
       throw new DOMException("aborted", "AbortError");
@@ -120,7 +158,7 @@ async function createBatched(
     const chunk = tabs.slice(i, i + batchSize);
     await Promise.all(
       chunk.map((t) =>
-        createAndDiscard(windowId, t, discardAfter).catch(() => undefined),
+        createLazyTab(windowId, t, lazy).catch(() => undefined),
       ),
     );
     progressBase.done += chunk.length;
