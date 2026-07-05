@@ -20,6 +20,11 @@ import { orderTabsInGroups } from "@/lib/grouping";
 const WizardModal = lazy(() =>
   import("./components/WizardModal").then((m) => ({ default: m.WizardModal })),
 );
+const SnapshotPromptModal = lazy(() =>
+  import("@/mission-control/components/SnapshotPromptModal").then((m) => ({
+    default: m.SnapshotPromptModal,
+  })),
+);
 const SessionsModal = lazy(() =>
   import("./components/SessionsModal").then((m) => ({
     default: m.SessionsModal,
@@ -66,6 +71,10 @@ export function Popup() {
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [lastSelectedId, setLastSelectedId] = useState<number | null>(null);
   const [currentTabId, setCurrentTabId] = useState<number | null>(null);
+  const [snapshotPrompt, setSnapshotPrompt] = useState<{
+    subsetUrls: string[];
+    contextLabel: string;
+  } | null>(null);
 
   const clearSelection = () => {
     setSelectedIds(new Set());
@@ -336,6 +345,9 @@ export function Popup() {
               onAction={handleAction}
               onOpenDetails={setDetailsTab}
               onToggleSelect={toggleSelect}
+              onRequestSnapshot={(subsetUrls, contextLabel) =>
+                setSnapshotPrompt({ subsetUrls, contextLabel })
+              }
             />
             );
           })}
@@ -373,6 +385,15 @@ export function Popup() {
       </footer>
 
       <Suspense fallback={null}>
+        {snapshotPrompt !== null && (
+          <SnapshotPromptModal
+            open={snapshotPrompt !== null}
+            onClose={() => setSnapshotPrompt(null)}
+            onSaved={handleAction}
+            subsetUrls={snapshotPrompt.subsetUrls}
+            contextLabel={snapshotPrompt.contextLabel}
+          />
+        )}
         {wizardOpen && (
           <WizardModal
             open={wizardOpen}

@@ -25,12 +25,19 @@ import type { PawTab, WindowColor } from "@/types";
 
 interface Props {
   tabs: PawTab[];
+  contextLabel?: string;
   onAction: () => void;
+  onRequestSnapshot?: (subsetUrls: string[], contextLabel: string) => void;
 }
 
 type Panel = null | "tag" | "note" | "move";
 
-export function GroupActions({ tabs, onAction }: Props) {
+export function GroupActions({
+  tabs,
+  contextLabel,
+  onAction,
+  onRequestSnapshot,
+}: Props) {
   const [panel, setPanel] = useState<Panel>(null);
   const [tagInput, setTagInput] = useState("");
   const [noteInput, setNoteInput] = useState("");
@@ -115,20 +122,26 @@ export function GroupActions({ tabs, onAction }: Props) {
 
   const handleSaveSnapshot = () => {
     if (ids.length === 0) return;
+    const urls = tabs.map((t) => t.url);
+    if (onRequestSnapshot) {
+      onRequestSnapshot(urls, contextLabel ?? "");
+      return;
+    }
+    // Fallback: no host wired to open a prompt — just auto-save with
+    // sensible defaults so the button never silently no-ops.
     const stamp = new Date().toLocaleString();
-    const name = `Group snapshot — ${stamp}`;
     run(async () => {
-      const urls = new Set(tabs.map((t) => t.url));
-      const original = saveSession;
-      // Save a manual (not auto) session but only with this group's tabs.
       const { storage } = await import("@/lib/storage");
-      const session = await original(name, false, `${ids.length} tabs`);
-      // Trim tabs to just our group's URLs (saveSession captured all open
-      // tabs — we filter down to the group).
+      const session = await saveSession(
+        contextLabel ? `${stamp} (${contextLabel})` : stamp,
+        false,
+        `${ids.length} tabs`,
+      );
+      const set = new Set(urls);
       await storage.update("savedSessions", (current) =>
         (current ?? []).map((s) =>
           s.id === session.id
-            ? { ...s, tabs: s.tabs.filter((t) => urls.has(t.url)) }
+            ? { ...s, tabs: s.tabs.filter((t) => set.has(t.url)) }
             : s,
         ),
       );

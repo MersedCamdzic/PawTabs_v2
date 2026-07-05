@@ -7,14 +7,23 @@ import {
 } from "@phosphor-icons/react";
 import { saveSession } from "@/lib/sessions";
 import { fetchAllTabs } from "@/lib/chrome";
+import { storage } from "@/lib/storage";
 
 interface Props {
   open: boolean;
   onClose: () => void;
   onSaved: () => void;
+  subsetUrls?: string[] | null;
+  contextLabel?: string | null;
 }
 
-export function SnapshotPromptModal({ open, onClose, onSaved }: Props) {
+export function SnapshotPromptModal({
+  open,
+  onClose,
+  onSaved,
+  subsetUrls,
+  contextLabel,
+}: Props) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [saving, setSaving] = useState(false);
@@ -30,13 +39,18 @@ export function SnapshotPromptModal({ open, onClose, onSaved }: Props) {
     setDescription("");
     setSaving(false);
     fetchAllTabs().then((s) => {
+      const isSubset = Array.isArray(subsetUrls);
+      const filtered = isSubset
+        ? s.tabs.filter((t) => (subsetUrls as string[]).includes(t.url))
+        : s.tabs;
+      const windowIds = new Set(filtered.map((t) => t.windowId));
       setStats({
-        windowCount: s.windowCount,
-        tabCount: s.tabCount,
-        pinnedCount: s.tabs.filter((t) => t.pinned).length,
+        windowCount: isSubset ? windowIds.size : s.windowCount,
+        tabCount: filtered.length,
+        pinnedCount: filtered.filter((t) => t.pinned).length,
       });
     });
-  }, [open]);
+  }, [open, subsetUrls]);
 
   useEffect(() => {
     if (!open) return;
@@ -50,7 +64,24 @@ export function SnapshotPromptModal({ open, onClose, onSaved }: Props) {
   const handleSave = async () => {
     setSaving(true);
     try {
-      await saveSession(name, false, description);
+      const finalName = name.trim()
+        ? contextLabel
+          ? `${name.trim()} (${contextLabel})`
+          : name.trim()
+        : contextLabel
+          ? `${new Date().toLocaleString()} (${contextLabel})`
+          : "";
+      const session = await saveSession(finalName, false, description);
+      if (Array.isArray(subsetUrls)) {
+        const set = new Set(subsetUrls);
+        await storage.update("savedSessions", (current) =>
+          (current ?? []).map((s) =>
+            s.id === session.id
+              ? { ...s, tabs: s.tabs.filter((t) => set.has(t.url)) }
+              : s,
+          ),
+        );
+      }
       onSaved();
       onClose();
     } finally {
@@ -103,6 +134,13 @@ export function SnapshotPromptModal({ open, onClose, onSaved }: Props) {
                   </>
                 )}
               </span>
+            </div>
+          )}
+
+          {contextLabel && (
+            <div class="text-[11px] text-accent bg-accent-subtle/60 border border-accent/20 rounded-md px-2.5 py-1.5">
+              Context appended to name:{" "}
+              <span class="font-semibold">({contextLabel})</span>
             </div>
           )}
 

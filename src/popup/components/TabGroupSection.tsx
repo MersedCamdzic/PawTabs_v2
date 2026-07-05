@@ -20,6 +20,7 @@ interface Props {
   onAction: () => void;
   onOpenDetails: (tab: PawTab) => void;
   onToggleSelect: (tabId: number, event: MouseEvent) => void;
+  onRequestSnapshot?: (subsetUrls: string[], contextLabel: string) => void;
 }
 
 export function TabGroupSection({
@@ -35,6 +36,7 @@ export function TabGroupSection({
   onAction,
   onOpenDetails,
   onToggleSelect,
+  onRequestSnapshot,
 }: Props) {
   const rows = group.tabs.map((tab) => (
     <TabRow
@@ -62,6 +64,7 @@ export function TabGroupSection({
         windowColors={windowColors}
         onToggle={onToggle}
         onAction={onAction}
+        onRequestSnapshot={onRequestSnapshot}
       />
 
       {!collapsed && <div class="space-y-0.5 mt-0.5">{rows}</div>}
@@ -76,6 +79,7 @@ function GroupHeader({
   windowColors,
   onToggle,
   onAction,
+  onRequestSnapshot,
 }: {
   group: TabGroup;
   grouping: GroupBy;
@@ -83,6 +87,7 @@ function GroupHeader({
   windowColors?: Record<number, WindowColor>;
   onToggle: () => void;
   onAction: () => void;
+  onRequestSnapshot?: (subsetUrls: string[], contextLabel: string) => void;
 }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState("");
@@ -209,7 +214,12 @@ function GroupHeader({
           </button>
         )}
       </div>
-      <GroupActions tabs={group.tabs} onAction={onAction} />
+      <GroupActions
+        tabs={group.tabs}
+        contextLabel={group.title}
+        onAction={onAction}
+        onRequestSnapshot={onRequestSnapshot}
+      />
     </div>
   );
 }
