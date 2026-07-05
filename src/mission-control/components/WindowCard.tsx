@@ -24,6 +24,7 @@ import {
   SpeakerSlash,
   Tag,
   NotePencil,
+  Broadcast,
 } from "@phosphor-icons/react";
 import {
   setWindowTitle,
@@ -730,48 +731,64 @@ function CompactTabRow(props: {
 
       <div class="flex-1 min-w-0">
         <div
-          class={`text-[13px] leading-snug break-words line-clamp-2 flex items-baseline gap-1.5 ${
+          class={`text-[13px] leading-snug break-words line-clamp-2 flex items-start gap-1.5 ${
             props.tab.discarded ? "italic text-fg-muted" : "text-fg"
           }`}
         >
-          {props.tab.discarded && (
-            <Moon
-              size={11}
-              weight="fill"
-              class="text-fg-subtle shrink-0 relative top-[2px]"
-            />
+          {props.tab.discarded ? (
+            <span
+              title="Inactive — tab discarded from memory"
+              class="shrink-0 inline-flex mt-1 text-fg-subtle"
+            >
+              <Moon size={11} weight="fill" />
+            </span>
+          ) : (
+            <span
+              title="Active — tab is loaded and ready"
+              class="shrink-0 inline-flex mt-1 text-success"
+            >
+              <Broadcast size={11} weight="bold" />
+            </span>
           )}
-          <span>{props.tab.title || domain || "Untitled"}</span>
+          {props.tab.starred && (
+            <span
+              title="Pawed"
+              class="shrink-0 inline-flex mt-1 text-accent"
+            >
+              <PawPrint size={11} weight="fill" />
+            </span>
+          )}
+          {props.tab.pinned && (
+            <span
+              title="Pinned"
+              class="shrink-0 inline-flex mt-1 text-warning"
+            >
+              <PushPin size={11} weight="fill" />
+            </span>
+          )}
+          {props.tab.tags.length > 0 && (
+            <span
+              title={props.tab.tags.join(", ")}
+              class="shrink-0 inline-flex items-center gap-0.5 mt-1 text-purple-600 text-[11px] font-semibold"
+            >
+              <Tag size={10} weight="fill" />
+              {props.tab.tags.length}
+            </span>
+          )}
+          {props.tab.notes.length > 0 && (
+            <span
+              title={notesTooltipText(props.tab.notes)}
+              class="shrink-0 inline-flex items-center gap-0.5 mt-1 text-cyan-600 text-[11px] font-semibold"
+            >
+              <NotePencil size={10} weight="fill" />
+              {props.tab.notes.length}
+            </span>
+          )}
+          <span class="min-w-0">{props.tab.title || domain || "Untitled"}</span>
         </div>
         <div class="text-[11px] text-fg-subtle leading-tight mt-1 break-all line-clamp-2">
           {props.tab.url}
         </div>
-        {props.tab.notes.length > 0 && (
-          <div class="text-[11px] text-fg-subtle mt-1 flex items-center gap-2 flex-wrap">
-            <span
-              data-tooltip={notesTooltipText(props.tab.notes)}
-              data-tooltip-pos="above"
-              class="inline-flex items-center gap-0.5 text-accent shrink-0 cursor-help"
-            >
-              <NotePencil size={10} weight="fill" />
-              {props.tab.notes.length} note
-              {props.tab.notes.length === 1 ? "" : "s"}
-            </span>
-          </div>
-        )}
-        {props.tab.tags.length > 0 && (
-          <div class="flex items-center flex-wrap gap-1 mt-1.5">
-            {props.tab.tags.map((t) => (
-              <span
-                key={t}
-                class="inline-flex items-center gap-1 px-1.5 h-4 bg-accent-subtle text-accent-fg text-[10px] rounded"
-              >
-                <Tag size={8} weight="fill" class="text-accent" />
-                {t}
-              </span>
-            ))}
-          </div>
-        )}
       </div>
 
       {showActions && (
