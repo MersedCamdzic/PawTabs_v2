@@ -5,6 +5,10 @@ import {
   ArrowSquareOut,
   ArrowUUpLeft,
   Trash,
+  PawPrint,
+  PushPin,
+  Moon,
+  Circle,
 } from "@phosphor-icons/react";
 import {
   listTags,
@@ -12,6 +16,7 @@ import {
   type TagAggregate,
 } from "@/lib/tagged-urls";
 import { removeTagFromManyUrls } from "@/lib/tabs";
+import { getPawedUrlSet } from "@/lib/pawed";
 import { focusTab } from "@/lib/chrome";
 import { getRootDomain } from "@/lib/utils";
 import { formatRelativeTime } from "@/lib/sessions";
@@ -53,9 +58,12 @@ export function TagsView({
   const [tagList, setTagList] = useState<TagAggregate[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
   const [pendingDelete, setPendingDelete] = useState<TagAggregate | null>(null);
+  const [pawedUrls, setPawedUrls] = useState<Set<string>>(new Set());
 
   const refresh = useCallback(async () => {
-    setTagList(await listTags());
+    const [tags, paws] = await Promise.all([listTags(), getPawedUrlSet()]);
+    setTagList(tags);
+    setPawedUrls(paws);
   }, []);
 
   useEffect(() => {
@@ -217,6 +225,7 @@ export function TagsView({
                   key={entry.url}
                   entry={entry}
                   openTab={openByUrl.get(entry.url) ?? null}
+                  pawed={pawedUrls.has(entry.url)}
                   onOpen={() => handleRowClick(entry)}
                   onJump={() => handleJump(entry)}
                   onRemoveTag={() => handleRemoveTag(entry, selected)}
@@ -261,26 +270,28 @@ export function TagsView({
 function TaggedRow(props: {
   entry: TaggedUrlEntry;
   openTab: PawTab | null;
+  pawed: boolean;
   onOpen: () => void;
   onJump: () => void;
   onRemoveTag: () => void;
 }) {
-  const { entry, openTab } = props;
+  const { entry, openTab, pawed } = props;
   const domain = getRootDomain(entry.url);
   const isOpen = openTab !== null;
   const isInactive = isOpen && openTab.discarded;
+  const isPinned = isOpen && openTab.pinned;
 
-  let tagColor: string;
-  let tagTooltip: string;
+  let statusDotClass: string;
+  let statusTooltip: string;
   if (!isOpen) {
-    tagColor = "bg-danger-subtle text-danger";
-    tagTooltip = "Closed — click to reopen URL";
+    statusDotClass = "text-danger";
+    statusTooltip = "Closed — click to reopen";
   } else if (isInactive) {
-    tagColor = "bg-surface text-fg-subtle";
-    tagTooltip = "Open but inactive (discarded) — click to wake + jump";
+    statusDotClass = "text-fg-subtle";
+    statusTooltip = "Open but inactive (discarded)";
   } else {
-    tagColor = "bg-success-subtle text-success";
-    tagTooltip = "Open and active — click to jump";
+    statusDotClass = "text-success";
+    statusTooltip = "Open and active";
   }
 
   return (
@@ -288,14 +299,6 @@ function TaggedRow(props: {
       onClick={props.onOpen}
       class="group flex items-center gap-3 px-3 py-2.5 rounded-md hover:bg-surface cursor-pointer transition-colors"
     >
-      <span
-        data-tooltip={tagTooltip}
-        data-tooltip-pos="right"
-        class={`inline-flex size-7 items-center justify-center rounded-full shrink-0 ${tagColor}`}
-      >
-        <Tag size={14} weight="fill" />
-      </span>
-
       {entry.favIconUrl ? (
         <img
           src={entry.favIconUrl}
@@ -313,7 +316,7 @@ function TaggedRow(props: {
       )}
       <div class="flex-1 min-w-0">
         <div
-          class={`text-[13px] leading-snug line-clamp-2 ${
+          class={`flex items-center gap-1.5 text-[13px] leading-snug line-clamp-2 ${
             isOpen && !isInactive
               ? "text-fg"
               : isInactive
@@ -321,7 +324,37 @@ function TaggedRow(props: {
                 : "text-fg-muted"
           }`}
         >
-          {entry.title || domain}
+          <span
+            title={statusTooltip}
+            class={`shrink-0 inline-flex ${statusDotClass}`}
+          >
+            <Circle size={8} weight="fill" />
+          </span>
+          <span class="truncate">{entry.title || domain}</span>
+          {pawed && (
+            <span
+              title="Pawed"
+              class="shrink-0 inline-flex text-accent"
+            >
+              <PawPrint size={11} weight="fill" />
+            </span>
+          )}
+          {isPinned && (
+            <span
+              title="Pinned"
+              class="shrink-0 inline-flex text-warning"
+            >
+              <PushPin size={11} weight="fill" />
+            </span>
+          )}
+          {isInactive && (
+            <span
+              title="Inactive (discarded)"
+              class="shrink-0 inline-flex text-fg-subtle"
+            >
+              <Moon size={11} weight="fill" />
+            </span>
+          )}
         </div>
         <div class="text-[11px] text-fg-subtle leading-tight mt-1 break-all line-clamp-2">
           {entry.url}
