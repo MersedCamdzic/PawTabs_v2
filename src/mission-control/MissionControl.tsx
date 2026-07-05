@@ -450,8 +450,11 @@ export function MissionControl() {
             query={query}
             columns={currentColumns}
             openTabs={snapshot?.tabs ?? []}
+            windowMeta={windowMeta}
             onAction={bumpAll}
             onFilteredChange={setPawedBulkItems}
+            onOpenDetails={setDetailsTab}
+            onOpenClosedDetails={setClosedDetailsTab}
             refreshSignal={urlDataSignal}
           />
         )}

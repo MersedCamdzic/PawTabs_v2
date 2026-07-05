@@ -5,21 +5,30 @@ import {
   ArrowSquareOut,
   ArrowUUpLeft,
   Trash,
+  PushPin,
+  Broadcast,
+  Moon,
+  Prohibit,
+  Browsers,
+  X,
 } from "@phosphor-icons/react";
 import { listPawed, unpawTab } from "@/lib/pawed";
-import { focusTab } from "@/lib/chrome";
+import { focusTab, closeTab } from "@/lib/chrome";
 import { getRootDomain } from "@/lib/utils";
-import { formatRelativeTime, formatAbsoluteDateTime } from "@/lib/sessions";
-import type { PawTab, PawedEntry } from "@/types";
+import { WINDOW_COLOR_STYLES } from "@/lib/window-colors";
+import type { PawTab, PawedEntry, WindowColor } from "@/types";
 
 interface Props {
   query: string;
   columns: 1 | 2 | 3 | 4;
   openTabs: PawTab[];
+  windowMeta: Record<number, { title?: string; color?: WindowColor }>;
   onAction: () => void;
   onFilteredChange?: (
     items: { url: string; title: string; favIconUrl: string }[],
   ) => void;
+  onOpenDetails?: (tab: PawTab) => void;
+  onOpenClosedDetails?: (synthetic: PawTab) => void;
   refreshSignal?: number;
 }
 
@@ -39,8 +48,11 @@ export function PawedView({
   query,
   columns,
   openTabs,
+  windowMeta,
   onAction,
   onFilteredChange,
+  onOpenDetails,
+  onOpenClosedDetails,
   refreshSignal,
 }: Props) {
   const [entries, setEntries] = useState<PawedEntry[]>([]);
@@ -82,7 +94,43 @@ export function PawedView({
     );
   }, [rows, onFilteredChange]);
 
-  const handleOpen = async (row: Row) => {
+  const handleRowClick = async (row: Row) => {
+    if (row.openTab && onOpenDetails) {
+      onOpenDetails(row.openTab);
+      return;
+    }
+    if (row.openTab) {
+      await focusTab(row.openTab.id, row.openTab.windowId);
+      return;
+    }
+    if (onOpenClosedDetails) {
+      const { getNotesForUrl } = await import("@/lib/tabs");
+      const { getTagsForUrl } = await import("@/lib/tagged-urls");
+      const [notes, tags] = await Promise.all([
+        getNotesForUrl(row.entry.url),
+        getTagsForUrl(row.entry.url),
+      ]);
+      onOpenClosedDetails({
+        id: -1,
+        windowId: -1,
+        url: row.entry.url,
+        title: row.entry.title,
+        favIconUrl: row.entry.favIconUrl,
+        audible: false,
+        muted: false,
+        discarded: false,
+        pinned: false,
+        saved: false,
+        starred: true,
+        tags,
+        notes,
+      });
+      return;
+    }
+    await chrome.tabs.create({ url: row.entry.url });
+  };
+
+  const handleJump = async (row: Row) => {
     if (row.openTab) {
       await focusTab(row.openTab.id, row.openTab.windowId);
     } else {
@@ -93,6 +141,12 @@ export function PawedView({
   const handleUnpaw = async (entry: PawedEntry) => {
     await unpawTab(entry.url);
     await refresh();
+    onAction();
+  };
+
+  const handleCloseTab = async (row: Row) => {
+    if (!row.openTab) return;
+    await closeTab(row.openTab.id);
     onAction();
   };
 
@@ -121,14 +175,23 @@ export function PawedView({
         </div>
       )}
       <div class={COLUMN_LAYOUT[columns]}>
-        {rows.map((row) => (
-          <PawedRow
-            key={row.entry.url}
-            row={row}
-            onOpen={() => handleOpen(row)}
-            onUnpaw={() => handleUnpaw(row.entry)}
-          />
-        ))}
+        {rows.map((row) => {
+          const wm = row.openTab
+            ? windowMeta[row.openTab.windowId]
+            : undefined;
+          return (
+            <PawedRow
+              key={row.entry.url}
+              row={row}
+              windowName={wm?.title ?? null}
+              windowColor={wm?.color ?? null}
+              onOpen={() => handleRowClick(row)}
+              onJump={() => handleJump(row)}
+              onUnpaw={() => handleUnpaw(row.entry)}
+              onCloseTab={() => handleCloseTab(row)}
+            />
+          );
+        })}
       </div>
     </div>
   );
@@ -136,45 +199,48 @@ export function PawedView({
 
 function PawedRow(props: {
   row: Row;
+  windowName: string | null;
+  windowColor: WindowColor | null;
   onOpen: () => void;
+  onJump: () => void;
   onUnpaw: () => void;
+  onCloseTab: () => void;
 }) {
-  const { entry, openTab } = props.row;
+  const { row, windowName, windowColor } = props;
+  const { entry, openTab } = row;
   const domain = getRootDomain(entry.url);
   const isOpen = openTab !== null;
   const isInactive = isOpen && openTab.discarded;
+  const isPinned = isOpen && openTab.pinned;
+  const windowColorStyle = windowColor ? WINDOW_COLOR_STYLES[windowColor] : null;
 
-  let pawColor: string;
-  let pawTooltip: string;
+  let stateIcon: preact.ComponentChildren;
+  let stateColor: string;
+  let stateTooltip: string;
   if (!isOpen) {
-    pawColor = "bg-danger-subtle text-danger";
-    pawTooltip = "Closed — click to reopen URL";
+    stateIcon = <Prohibit size={12} weight="bold" />;
+    stateColor = "text-danger";
+    stateTooltip = "Closed — tab is gone, click to reopen URL";
   } else if (isInactive) {
-    pawColor = "bg-surface text-fg-subtle";
-    pawTooltip = "Open but inactive (discarded) — click to wake + jump";
+    stateIcon = <Moon size={12} weight="fill" />;
+    stateColor = "text-fg-subtle";
+    stateTooltip = "Open but inactive (discarded from memory)";
   } else {
-    pawColor = "bg-success-subtle text-success";
-    pawTooltip = "Open and active — click to jump";
+    stateIcon = <Broadcast size={12} weight="bold" />;
+    stateColor = "text-success";
+    stateTooltip = "Open and active";
   }
 
   return (
     <div
       onClick={props.onOpen}
-      class="group flex items-center gap-3 px-3 py-2.5 rounded-md hover:bg-surface cursor-pointer transition-colors"
+      class="group flex items-start gap-3 px-3 py-2.5 rounded-md hover:bg-surface cursor-pointer transition-colors"
     >
-      <span
-        data-tooltip={pawTooltip}
-        data-tooltip-pos="right"
-        class={`inline-flex size-7 items-center justify-center rounded-full shrink-0 ${pawColor}`}
-      >
-        <PawPrint size={14} weight="fill" />
-      </span>
-
       {entry.favIconUrl ? (
         <img
           src={entry.favIconUrl}
           alt=""
-          class={`size-5 shrink-0 rounded ${isOpen && !isInactive ? "" : "grayscale opacity-70"}`}
+          class={`size-5 shrink-0 rounded mt-0.5 ${isOpen && !isInactive ? "" : "grayscale opacity-70"}`}
           onError={(e) => {
             (e.currentTarget as HTMLImageElement).style.display = "none";
           }}
@@ -182,13 +248,12 @@ function PawedRow(props: {
       ) : (
         <Globe
           size={16}
-          class={`text-fg-subtle shrink-0 ${isOpen && !isInactive ? "" : "opacity-70"}`}
+          class={`text-fg-subtle shrink-0 mt-0.5 ${isOpen && !isInactive ? "" : "opacity-70"}`}
         />
       )}
-
       <div class="flex-1 min-w-0">
         <div
-          class={`text-[13px] leading-snug line-clamp-2 break-words ${
+          class={`flex items-start gap-1.5 text-[13px] leading-snug line-clamp-2 ${
             isOpen && !isInactive
               ? "text-fg"
               : isInactive
@@ -196,34 +261,89 @@ function PawedRow(props: {
                 : "text-fg-muted"
           }`}
         >
-          {entry.title || domain || entry.url}
+          <span
+            title={stateTooltip}
+            class={`shrink-0 inline-flex mt-1 ${stateColor}`}
+          >
+            {stateIcon}
+          </span>
+          <span
+            title="Pawed"
+            class="shrink-0 inline-flex mt-1 text-accent"
+          >
+            <PawPrint size={12} weight="fill" />
+          </span>
+          {isPinned && (
+            <span
+              title="Pinned"
+              class="shrink-0 inline-flex mt-1 text-warning"
+            >
+              <PushPin size={12} weight="fill" />
+            </span>
+          )}
+          <span class="min-w-0">{entry.title || domain || entry.url}</span>
         </div>
         <div class="text-[11px] text-fg-subtle leading-tight mt-1 break-all line-clamp-2">
           {entry.url}
         </div>
-        <div class="text-[10px] text-fg-subtle/70 mt-0.5 font-mono">
-          Pawed {formatRelativeTime(new Date(entry.pawedAt).toISOString())} ·{" "}
-          {formatAbsoluteDateTime(new Date(entry.pawedAt).toISOString())}
-        </div>
+        {isOpen && openTab && (
+          <div class="flex flex-wrap items-center gap-1 mt-2">
+            {windowName ? (
+              <span
+                class={`inline-flex items-center gap-1 h-5 px-1.5 rounded text-[10px] font-medium ${
+                  windowColorStyle ? windowColorStyle.headerBg : "bg-surface"
+                } ${
+                  windowColorStyle
+                    ? windowColorStyle.titleText
+                    : "text-fg-muted"
+                }`}
+              >
+                <Browsers
+                  size={9}
+                  weight="fill"
+                  class={
+                    windowColorStyle
+                      ? windowColorStyle.iconText
+                      : "text-fg-subtle"
+                  }
+                />
+                {windowName}
+              </span>
+            ) : (
+              <span class="inline-flex items-center gap-1 h-5 px-1.5 rounded text-[10px] font-medium bg-surface text-fg-muted">
+                <Browsers size={9} weight="fill" class="text-fg-subtle" />
+                Window {openTab.windowId}
+              </span>
+            )}
+          </div>
+        )}
       </div>
-
       <div class="flex items-center gap-0.5 shrink-0">
         <button
           type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            props.onOpen();
-          }}
-          aria-label={isOpen ? "Jump to tab" : "Open URL"}
-          data-tooltip={isOpen ? "Jump to tab" : "Open URL in new tab"}
+          onClick={
+            isOpen
+              ? (e) => {
+                  e.stopPropagation();
+                  props.onJump();
+                }
+              : undefined
+          }
+          disabled={!isOpen}
+          aria-label={
+            isOpen ? "Jump to this tab" : "Jump unavailable — tab is closed"
+          }
+          data-tooltip={
+            isOpen ? "Jump to this tab" : "Jump unavailable — tab is closed"
+          }
           data-tooltip-pos="above"
-          class="size-8 inline-flex items-center justify-center rounded text-fg-muted opacity-0 group-hover:opacity-100 hover:bg-accent-subtle hover:text-accent transition-all"
+          class={`size-8 inline-flex items-center justify-center rounded transition-all ${
+            isOpen
+              ? "text-fg-muted opacity-0 group-hover:opacity-100 hover:bg-accent-subtle hover:text-accent"
+              : "text-fg-subtle/40 opacity-0 group-hover:opacity-100 cursor-not-allowed"
+          }`}
         >
-          {isOpen ? (
-            <ArrowSquareOut size={13} />
-          ) : (
-            <ArrowUUpLeft size={14} weight="bold" />
-          )}
+          <ArrowSquareOut size={13} />
         </button>
         <button
           type="button"
@@ -231,13 +351,46 @@ function PawedRow(props: {
             e.stopPropagation();
             props.onUnpaw();
           }}
-          aria-label="Unpaw"
+          aria-label="Unpaw — remove from list"
           data-tooltip="Unpaw — remove from list"
           data-tooltip-pos="above"
           class="size-8 inline-flex items-center justify-center rounded text-fg-muted opacity-0 group-hover:opacity-100 hover:bg-danger-subtle hover:text-danger transition-all"
         >
           <Trash size={13} />
         </button>
+        <span
+          class="w-px h-4 mx-1 bg-border opacity-0 group-hover:opacity-100 transition-opacity"
+          aria-hidden="true"
+        />
+        {isOpen ? (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              props.onCloseTab();
+            }}
+            aria-label="Close this tab"
+            data-tooltip="Close this tab"
+            data-tooltip-pos="above"
+            class="size-8 inline-flex items-center justify-center rounded text-fg-muted opacity-0 group-hover:opacity-100 hover:bg-danger-subtle hover:text-danger transition-all"
+          >
+            <X size={13} />
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              props.onJump();
+            }}
+            aria-label="Restore in a new tab"
+            data-tooltip="Restore in a new tab"
+            data-tooltip-pos="above"
+            class="size-8 inline-flex items-center justify-center rounded text-fg-muted opacity-0 group-hover:opacity-100 hover:bg-accent-subtle hover:text-accent transition-all"
+          >
+            <ArrowUUpLeft size={14} weight="bold" />
+          </button>
+        )}
       </div>
     </div>
   );
