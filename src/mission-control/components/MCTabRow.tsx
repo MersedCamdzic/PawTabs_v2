@@ -164,21 +164,31 @@ export function MCTabRow({ tab, windowTitle, onAction, onOpenDetails }: Props) {
         >
           <PushPin size={13} weight={tab.pinned ? "fill" : "regular"} />
         </ActionBtn>
-        {(tab.audible || tab.muted) && (
-          <ActionBtn
-            title={tab.muted ? "Unmute" : "Mute"}
-            active={tab.muted || tab.audible}
-            tone={tab.muted ? "danger" : "success"}
-            forceVisible
-            onClick={handleMute}
-          >
-            {tab.muted ? (
-              <SpeakerSlash size={13} />
-            ) : (
-              <SpeakerHigh size={13} />
-            )}
-          </ActionBtn>
-        )}
+        {(() => {
+          const hasAudio = tab.audible || tab.muted;
+          const disabled = !hasAudio;
+          const title = disabled
+            ? "No audio playing"
+            : tab.muted
+              ? "Unmute this tab"
+              : "Mute this tab";
+          return (
+            <ActionBtn
+              title={title}
+              active={hasAudio}
+              tone={tab.muted ? "danger" : "success"}
+              forceVisible={hasAudio}
+              disabled={disabled}
+              onClick={handleMute}
+            >
+              {tab.muted ? (
+                <SpeakerSlash size={13} />
+              ) : (
+                <SpeakerHigh size={13} />
+              )}
+            </ActionBtn>
+          );
+        })()}
         {tab.discarded && (
           <ActionBtn
             title="Wake up tab (reload from sleep)"
@@ -271,22 +281,31 @@ function ActionBtn(props: {
   active: boolean;
   tone: keyof typeof TONE_ACTIVE;
   forceVisible?: boolean;
+  disabled?: boolean;
   onClick: (e: MouseEvent) => void;
   children: preact.ComponentChildren;
 }) {
-  const activeClass = props.active ? TONE_ACTIVE[props.tone] : "text-fg-subtle";
+  const activeClass = props.disabled
+    ? "text-fg-subtle/40 cursor-not-allowed"
+    : props.active
+      ? TONE_ACTIVE[props.tone]
+      : "text-fg-subtle";
   const visibility =
     props.active || props.forceVisible
       ? "opacity-100"
       : "opacity-0 group-hover:opacity-100";
+  const hover = props.disabled
+    ? ""
+    : `${TONE_HOVER_BG[props.tone]} ${TONE_HOVER_FG[props.tone]}`;
   return (
     <button
       type="button"
-      onClick={props.onClick}
+      onClick={props.disabled ? undefined : props.onClick}
+      disabled={props.disabled}
       data-tooltip={props.title}
       data-tooltip-pos="above"
       aria-label={props.title}
-      class={`size-7 inline-flex items-center justify-center rounded ${activeClass} ${visibility} ${TONE_HOVER_BG[props.tone]} ${TONE_HOVER_FG[props.tone]} transition-all`}
+      class={`size-7 inline-flex items-center justify-center rounded ${activeClass} ${visibility} ${hover} transition-all`}
     >
       {props.children}
     </button>
