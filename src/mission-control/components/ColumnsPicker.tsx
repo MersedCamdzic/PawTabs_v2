@@ -1,12 +1,14 @@
 interface Props {
   value: 1 | 2 | 3 | 4;
   onChange: (next: 1 | 2 | 3 | 4) => void;
+  max?: 1 | 2 | 3 | 4;
 }
 
-export function ColumnsPicker({ value, onChange }: Props) {
+export function ColumnsPicker({ value, onChange, max = 4 }: Props) {
+  const options = ([1, 2, 3, 4] as const).filter((n) => n <= max);
   return (
     <div class="inline-flex items-center gap-0.5 p-0.5 bg-surface border border-border rounded-md">
-      {([1, 2, 3, 4] as const).map((n) => {
+      {options.map((n) => {
         const active = value === n;
         return (
           <button

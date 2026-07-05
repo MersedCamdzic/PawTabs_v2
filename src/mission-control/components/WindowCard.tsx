@@ -177,22 +177,21 @@ export function WindowCard({
   const inSelectMode = isSelectionSource || isMoveTarget;
 
   const colorStyle = window.color ? WINDOW_COLOR_STYLES[window.color] : null;
-  const hasIdentity = !!window.customTitle || !!window.color;
+  const _hasIdentity = !!window.customTitle || !!window.color;
+  void _hasIdentity;
 
   let cardClass: string;
   if (isMoveTarget) {
     cardClass =
       selectionCount > 0
-        ? "border-2 border-accent bg-accent-subtle/30 ring-4 ring-accent/15 cursor-pointer hover:bg-accent-subtle/60 hover:ring-accent/30 hover:scale-[1.01]"
-        : "border-2 border-dashed border-border opacity-60";
+        ? "border border-accent bg-accent-subtle/30 ring-2 ring-accent/15 cursor-pointer hover:bg-accent-subtle/60 hover:ring-accent/30"
+        : "border border-dashed border-border opacity-60";
   } else if (isSelectionSource) {
-    cardClass = "border-2 border-border-strong shadow-md bg-surface/40";
+    cardClass = "border border-border-strong bg-surface/40";
   } else if (colorStyle) {
-    cardClass = `border-2 ${colorStyle.cardBorder} ${colorStyle.cardBg} shadow-sm`;
+    cardClass = `border ${colorStyle.cardBorder} ${colorStyle.cardBg}`;
   } else if (window.focused) {
-    cardClass = "border-2 border-accent/40 bg-accent-subtle/10 shadow-sm";
-  } else if (hasIdentity) {
-    cardClass = "border border-border-strong shadow-sm";
+    cardClass = "border border-accent/40 bg-accent-subtle/10";
   } else {
     cardClass = "border border-border hover:border-border-strong";
   }
@@ -209,7 +208,7 @@ export function WindowCard({
   return (
     <div
       onClick={handleCardClick}
-      class={`relative flex flex-col bg-bg rounded-lg overflow-visible transition-all ${cardClass}`}
+      class={`relative flex flex-col bg-bg rounded-md overflow-visible transition-colors ${cardClass}`}
     >
       {isMoveTarget && selectionCount > 0 && (
         <div class="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
@@ -316,19 +315,6 @@ export function WindowCard({
             </div>
             {!inSelectMode && (
               <>
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    startEdit();
-                  }}
-                  aria-label="Rename window"
-                  data-tooltip="Rename window"
-                  data-tooltip-pos="above"
-                  class="size-7 inline-flex items-center justify-center rounded text-fg-muted hover:bg-accent-subtle hover:text-accent transition-colors"
-                >
-                  <PencilSimple size={12} />
-                </button>
                 <div ref={colorRef} class="relative">
                   <button
                     type="button"
@@ -339,7 +325,7 @@ export function WindowCard({
                     aria-label="Set color"
                     data-tooltip="Set color"
                     data-tooltip-pos="above"
-                    class={`size-7 inline-flex items-center justify-center rounded transition-colors ${
+                    class={`sr-only size-7 inline-flex items-center justify-center rounded transition-colors ${
                       colorOpen
                         ? "bg-surface text-fg"
                         : "text-fg-muted hover:bg-accent-subtle hover:text-accent"
@@ -404,16 +390,6 @@ export function WindowCard({
                     </div>
                   )}
                 </div>
-                <button
-                  type="button"
-                  onClick={handleFocusWindow}
-                  aria-label="Focus this window in Chrome"
-                  data-tooltip="Focus this window in Chrome"
-                  data-tooltip-pos="above"
-                  class="size-7 inline-flex items-center justify-center rounded text-fg-muted hover:bg-accent-subtle hover:text-accent transition-colors"
-                >
-                  <ArrowSquareOut size={12} />
-                </button>
                 <div ref={menuRef} class="relative">
                   <button
                     type="button"
@@ -434,6 +410,30 @@ export function WindowCard({
                   </button>
                   {mode === "menu" && (
                     <div class="absolute right-0 top-full mt-1 z-20 w-52 bg-bg-elevated border border-border rounded-md shadow-md py-1 text-[12px]">
+                      <MenuItem
+                        icon={<PencilSimple size={12} />}
+                        label="Rename window"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setMode("view");
+                          startEdit();
+                        }}
+                      />
+                      <MenuItem
+                        icon={<Palette size={12} />}
+                        label="Set color…"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setMode("view");
+                          setColorOpen(true);
+                        }}
+                      />
+                      <MenuItem
+                        icon={<ArrowSquareOut size={12} />}
+                        label="Focus in Chrome"
+                        onClick={handleFocusWindow}
+                      />
+                      <div class="border-t border-border my-1" />
                       <MenuItem
                         icon={<ArrowRight size={12} />}
                         label="Move tabs…"

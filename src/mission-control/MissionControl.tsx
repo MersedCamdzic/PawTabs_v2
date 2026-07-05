@@ -283,8 +283,9 @@ export function MissionControl() {
                     onChange={setWindowsSort}
                   />
                   <ColumnsPicker
-                    value={windowsColumns}
+                    value={windowsColumns > 3 ? 3 : windowsColumns}
                     onChange={setWindowsColumns}
+                    max={3}
                   />
                 </>
               ) : view === "sessions" || view === "backups" ? (
@@ -436,7 +437,9 @@ export function MissionControl() {
           <WindowsView
             query={query}
             sortBy={windowsSort}
-            columns={windowsColumns}
+            columns={
+              (windowsColumns > 3 ? 3 : windowsColumns) as 1 | 2 | 3
+            }
             onAction={() => {
               reload();
               refreshWindowTitles();
