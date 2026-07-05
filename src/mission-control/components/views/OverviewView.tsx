@@ -10,6 +10,7 @@ import {
   ArrowUpRight,
   Globe,
   ArrowRight,
+  Broadcast,
 } from "@phosphor-icons/react";
 import type { Insights } from "@/lib/stats";
 import { formatRelativeTime } from "@/lib/sessions";
@@ -65,13 +66,13 @@ export function OverviewView({
             tone="default"
           />
           <HeroStat
-            icon={<Browsers size={16} />}
-            value={insights.tabCount}
-            label="Tabs"
-            tone="accent"
+            icon={<Broadcast size={16} weight="bold" />}
+            value={insights.tabCount - insights.inactiveCount}
+            label="Open"
+            tone="success"
           />
           <HeroStat
-            icon={<Moon size={16} />}
+            icon={<Moon size={16} weight="fill" />}
             value={insights.inactiveCount}
             label="Inactive"
             tone="warning"
@@ -266,11 +267,12 @@ function HeroStat(props: {
   icon: preact.ComponentChildren;
   value: number;
   label: string;
-  tone: "default" | "accent" | "warning";
+  tone: "default" | "accent" | "warning" | "success";
   highlightWhenPositive?: boolean;
 }) {
   let valueColor = "text-fg";
   if (props.tone === "accent") valueColor = "text-accent";
+  if (props.tone === "success") valueColor = "text-success";
   if (props.tone === "warning") {
     if (!props.highlightWhenPositive || props.value > 0)
       valueColor = "text-warning";
