@@ -19,6 +19,7 @@ import {
 } from "./components/SnapshotSortDropdown";
 import { SnapshotPromptModal } from "./components/SnapshotPromptModal";
 import { BulkActionsMenu } from "./components/BulkActionsMenu";
+import { ConfirmModal } from "@/popup/components/ConfirmModal";
 import {
   BulkUrlActionsMenu,
   type BulkUrlItem,
@@ -98,6 +99,7 @@ export function MissionControl() {
   const [rcVisibleCount, setRcVisibleCount] = useState(0);
   const [rcClearSignal, setRcClearSignal] = useState(0);
   const [rcReopenSignal, setRcReopenSignal] = useState(0);
+  const [rcConfirmClearOpen, setRcConfirmClearOpen] = useState(false);
   const [columnsByView, setColumnsByView] = useState<
     Record<string, 1 | 2 | 3 | 4>
   >({});
@@ -338,13 +340,7 @@ export function MissionControl() {
                       type="button"
                       onClick={() => {
                         if (rcVisibleCount === 0) return;
-                        if (
-                          confirm(
-                            `Clear ${rcVisibleCount} item${rcVisibleCount === 1 ? "" : "s"} from the recently closed list? (Chrome still remembers them internally — this only hides them here.)`,
-                          )
-                        ) {
-                          setRcClearSignal((n) => n + 1);
-                        }
+                        setRcConfirmClearOpen(true);
                       }}
                       disabled={rcVisibleCount === 0}
                       class="h-9 px-3 inline-flex items-center gap-1.5 text-[12px] font-medium rounded-md border border-danger/30 text-danger bg-danger-subtle hover:border-danger hover:bg-danger hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
@@ -520,6 +516,28 @@ export function MissionControl() {
         open={snapshotPromptOpen}
         onClose={() => setSnapshotPromptOpen(false)}
         onSaved={() => setSnapshotsRefreshSignal((n) => n + 1)}
+      />
+
+      <ConfirmModal
+        open={rcConfirmClearOpen}
+        title="Clear recently closed"
+        message={
+          <>
+            Hide{" "}
+            <span class="font-semibold text-fg">
+              {rcVisibleCount} item{rcVisibleCount === 1 ? "" : "s"}
+            </span>{" "}
+            from the recently closed list? Chrome still remembers them
+            internally — this only clears them here.
+          </>
+        }
+        confirmLabel="Clear all"
+        tone="danger"
+        onConfirm={() => {
+          setRcClearSignal((n) => n + 1);
+          setRcConfirmClearOpen(false);
+        }}
+        onCancel={() => setRcConfirmClearOpen(false)}
       />
 
       <Suspense fallback={null}>
