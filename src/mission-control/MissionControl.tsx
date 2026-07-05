@@ -425,6 +425,7 @@ export function MissionControl() {
               query ? `No tabs match "${query}"` : "No tabs open"
             }
             windowTitles={windowTitles}
+            windowMeta={windowMeta}
             columns={currentColumns}
             grouping={currentGrouping}
             ordering={currentOrdering}

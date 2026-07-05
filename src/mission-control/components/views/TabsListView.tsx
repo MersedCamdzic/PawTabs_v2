@@ -8,6 +8,7 @@ interface Props {
   tabs: PawTab[];
   emptyText: string;
   windowTitles: Record<number, string>;
+  windowMeta?: Record<number, { title?: string; color?: import("@/types").WindowColor }>;
   columns?: 1 | 2 | 3 | 4;
   grouping?: GroupBy;
   ordering?: OrderBy;
@@ -26,6 +27,7 @@ export function TabsListView({
   tabs,
   emptyText,
   windowTitles,
+  windowMeta,
   columns = 1,
   grouping = "none",
   ordering = "none",
@@ -88,6 +90,7 @@ export function TabsListView({
                   key={tab.id}
                   tab={tab}
                   windowTitle={windowTitles[tab.windowId]}
+                  windowColor={windowMeta?.[tab.windowId]?.color ?? null}
                   onAction={onAction}
                   onOpenDetails={onOpenDetails}
                 />

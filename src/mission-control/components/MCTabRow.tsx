@@ -1,32 +1,25 @@
 import {
   PushPin,
-  SpeakerHigh,
-  SpeakerSlash,
   PawPrint,
   X,
   Globe,
   Tag,
   NotePencil,
   Moon,
-  Lightning,
+  Broadcast,
   ArrowSquareOut,
   ArrowsLeftRight,
   Browsers,
 } from "@phosphor-icons/react";
-import {
-  focusTab,
-  closeTab,
-  togglePinned,
-  toggleMuted,
-  toggleStarred,
-  wakeTab,
-} from "@/lib/chrome";
+import { focusTab, closeTab } from "@/lib/chrome";
 import { getRootDomain } from "@/lib/utils";
-import type { PawTab } from "@/types";
+import { WINDOW_COLOR_STYLES } from "@/lib/window-colors";
+import type { PawTab, WindowColor } from "@/types";
 
 interface Props {
   tab: PawTab;
   windowTitle?: string;
+  windowColor?: WindowColor | null;
   onAction: () => void;
   onOpenDetails: (tab: PawTab) => void;
 }
@@ -39,28 +32,19 @@ function notesTooltip(notes: { text: string }[]): string {
   return `"${first}${truncated}"  (+${notes.length - 1} more — click row to view all)`;
 }
 
-export function MCTabRow({ tab, windowTitle, onAction, onOpenDetails }: Props) {
+export function MCTabRow({
+  tab,
+  windowTitle,
+  windowColor,
+  onAction,
+  onOpenDetails,
+}: Props) {
   const domain = getRootDomain(tab.url);
 
   const handleRowClick = () => onOpenDetails(tab);
 
   const stop = (e: Event) => e.stopPropagation();
 
-  const handlePaw = async (e: MouseEvent) => {
-    stop(e);
-    await toggleStarred(tab.id);
-    onAction();
-  };
-  const handlePin = async (e: MouseEvent) => {
-    stop(e);
-    await togglePinned(tab.id, !tab.pinned);
-    onAction();
-  };
-  const handleMute = async (e: MouseEvent) => {
-    stop(e);
-    await toggleMuted(tab.id, !tab.muted);
-    onAction();
-  };
   const handleClose = async (e: MouseEvent) => {
     stop(e);
     await closeTab(tab.id);
@@ -77,12 +61,6 @@ export function MCTabRow({ tab, windowTitle, onAction, onOpenDetails }: Props) {
     onOpenDetails(tab);
   };
 
-  const handleWake = async (e: MouseEvent) => {
-    stop(e);
-    await wakeTab(tab.id);
-    onAction();
-  };
-
   const rowClass = tab.discarded
     ? "opacity-60 hover:opacity-100 hover:bg-surface bg-surface/30"
     : "hover:bg-surface";
@@ -96,109 +74,98 @@ export function MCTabRow({ tab, windowTitle, onAction, onOpenDetails }: Props) {
 
       <div class="flex-1 min-w-0">
         <div
-          class={`text-[13px] leading-snug flex flex-wrap items-baseline gap-x-2 gap-y-0.5 ${
+          class={`flex items-start gap-1.5 text-[13px] leading-snug line-clamp-2 ${
             tab.discarded ? "italic text-fg-muted" : "text-fg"
           }`}
         >
-          {tab.discarded && (
-            <Moon
-              size={11}
-              weight="fill"
-              class="text-fg-subtle shrink-0 relative top-[2px]"
-            />
-          )}
-          <span class="break-words line-clamp-2">
-            {tab.title || domain || "Untitled"}
-          </span>
-          {windowTitle && (
-            <span class="inline-flex items-center gap-1 px-1.5 py-0.5 bg-accent-subtle text-accent text-[10px] font-medium rounded shrink-0 relative top-[-1px] not-italic">
-              <Browsers size={9} weight="fill" />
-              {windowTitle}
+          {tab.discarded ? (
+            <span
+              title="Inactive — tab discarded from memory"
+              class="shrink-0 inline-flex mt-1 text-fg-subtle"
+            >
+              <Moon size={11} weight="fill" />
+            </span>
+          ) : (
+            <span
+              title="Active — tab is loaded and ready"
+              class="shrink-0 inline-flex mt-1 text-success"
+            >
+              <Broadcast size={11} weight="bold" />
             </span>
           )}
+          {tab.starred && (
+            <span
+              title="Pawed"
+              class="shrink-0 inline-flex mt-1 text-accent"
+            >
+              <PawPrint size={11} weight="fill" />
+            </span>
+          )}
+          {tab.pinned && (
+            <span
+              title="Pinned"
+              class="shrink-0 inline-flex mt-1 text-warning"
+            >
+              <PushPin size={11} weight="fill" />
+            </span>
+          )}
+          {tab.tags.length > 0 && (
+            <span
+              title={tab.tags.join(", ")}
+              class="shrink-0 inline-flex items-center gap-0.5 mt-1 text-purple-600 text-[11px] font-semibold"
+            >
+              <Tag size={11} weight="fill" />
+              {tab.tags.length}
+            </span>
+          )}
+          {tab.notes.length > 0 && (
+            <span
+              title={notesTooltip(tab.notes)}
+              class="shrink-0 inline-flex items-center gap-0.5 mt-1 text-cyan-600 text-[11px] font-semibold"
+            >
+              <NotePencil size={11} weight="fill" />
+              {tab.notes.length}
+            </span>
+          )}
+          <span class="min-w-0">{tab.title || domain || "Untitled"}</span>
         </div>
         <div class="text-[11px] text-fg-subtle leading-tight mt-1 break-all line-clamp-2">
           {tab.url}
         </div>
-        {tab.notes.length > 0 && (
-          <div class="text-[11px] text-fg-subtle mt-1 flex items-center gap-2 flex-wrap">
-            <span
-              data-tooltip={notesTooltip(tab.notes)}
-              data-tooltip-pos="above"
-              class="inline-flex items-center gap-0.5 text-cyan-600 shrink-0 cursor-help"
-            >
-              <NotePencil size={10} weight="fill" />
-              {tab.notes.length} note{tab.notes.length === 1 ? "" : "s"}
-            </span>
-          </div>
-        )}
-        {tab.tags.length > 0 && (
-          <div class="flex items-center flex-wrap gap-1 mt-1.5">
-            {tab.tags.map((t) => (
-              <span
-                key={t}
-                class="inline-flex items-center gap-1 px-1.5 h-4 bg-purple-500/15 text-purple-700 text-[10px] rounded"
-              >
-                <Tag size={8} weight="fill" class="text-purple-600" />
-                {t}
-              </span>
-            ))}
+        {windowTitle && (
+          <div class="flex flex-wrap items-center gap-1 mt-2">
+            {(() => {
+              const cs = windowColor
+                ? WINDOW_COLOR_STYLES[windowColor]
+                : null;
+              return (
+                <span
+                  class={`inline-flex items-center gap-1 h-5 px-1.5 rounded text-[10px] font-medium ${
+                    cs ? cs.headerBg : "bg-surface"
+                  } ${cs ? cs.titleText : "text-fg-muted"}`}
+                >
+                  <Browsers
+                    size={9}
+                    weight="fill"
+                    class={cs ? cs.iconText : "text-fg-subtle"}
+                  />
+                  {windowTitle}
+                </span>
+              );
+            })()}
           </div>
         )}
       </div>
 
       <div class="flex items-center gap-0.5 shrink-0">
         <ActionBtn
-          title={tab.starred ? "Unpaw" : "Paw"}
-          active={tab.starred}
+          title="Jump to this tab"
+          active={false}
           tone="accent"
-          onClick={handlePaw}
+          onClick={handleJump}
         >
-          <PawPrint size={13} weight={tab.starred ? "fill" : "regular"} />
+          <ArrowSquareOut size={13} />
         </ActionBtn>
-        <ActionBtn
-          title={tab.pinned ? "Unpin" : "Pin"}
-          active={tab.pinned}
-          tone="warning"
-          onClick={handlePin}
-        >
-          <PushPin size={13} weight={tab.pinned ? "fill" : "regular"} />
-        </ActionBtn>
-        {(() => {
-          const hasAudio = tab.audible || tab.muted;
-          const disabled = !hasAudio;
-          const title = disabled
-            ? "No audio playing"
-            : tab.muted
-              ? "Unmute this tab"
-              : "Mute this tab";
-          return (
-            <ActionBtn
-              title={title}
-              active={hasAudio}
-              tone={tab.muted ? "danger" : "success"}
-              forceVisible={hasAudio}
-              disabled={disabled}
-              onClick={handleMute}
-            >
-              {tab.muted ? (
-                <SpeakerSlash size={13} />
-              ) : (
-                <SpeakerHigh size={13} />
-              )}
-            </ActionBtn>
-          );
-        })()}
-        {tab.discarded && (
-          <ActionBtn
-            title="Wake up tab (reload from sleep)"
-            active={true}
-            tone="warning"
-            onClick={handleWake}
-          >
-            <Lightning size={13} weight="fill" />
-          </ActionBtn>
-        )}
         <ActionBtn
           title="Move to another window"
           active={false}
@@ -207,14 +174,6 @@ export function MCTabRow({ tab, windowTitle, onAction, onOpenDetails }: Props) {
         >
           <ArrowsLeftRight size={13} weight="bold" />
         </ActionBtn>
-        <ActionBtn
-          title="Jump to tab"
-          active={false}
-          tone="accent"
-          onClick={handleJump}
-        >
-          <ArrowSquareOut size={13} />
-        </ActionBtn>
         <span
           class="w-px h-4 mx-1 bg-border opacity-0 group-hover:opacity-100 transition-opacity"
           aria-hidden="true"
@@ -222,8 +181,8 @@ export function MCTabRow({ tab, windowTitle, onAction, onOpenDetails }: Props) {
         <button
           type="button"
           onClick={handleClose}
-          aria-label="Close tab"
-          data-tooltip="Close tab"
+          aria-label="Close this tab"
+          data-tooltip="Close this tab"
           data-tooltip-pos="above"
           class="size-7 inline-flex items-center justify-center rounded text-fg-subtle opacity-0 group-hover:opacity-100 hover:bg-danger-subtle hover:text-danger transition-all"
         >
