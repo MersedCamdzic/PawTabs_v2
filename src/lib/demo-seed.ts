@@ -220,6 +220,18 @@ export async function seedDemoData(): Promise<void> {
   ["airbnb", "booking", "maps", "weather"].forEach((k, i) =>
     addTag(k as keyof typeof U, ["Travel"], i),
   );
+  // Coverage sweep — every URL that ships in the demo windows gets
+  // at least one tag so no tab in demo mode appears bare.
+  addTag("meet", ["Work"], 0);
+  addTag("drive", ["Work"], 0);
+  addTag("jira", ["Work"], 0);
+  addTag("clickup", ["Work"], 0);
+  addTag("githubDiscussions", ["Research"], 0);
+  addTag("hackerNewsFront", ["Reading"], 0);
+  addTag("imdb", ["Watch later"], 0);
+  addTag("rottentomatoes", ["Watch later"], 0);
+  addTag("goodreads", ["Reading"], 0);
+  addTag("strava", ["Social"], 0);
 
   // ---------- notesByUrl ----------
   const notesMap: Record<string, Note[]> = {};
@@ -285,6 +297,113 @@ export async function seedDemoData(): Promise<void> {
   notesMap[U.coursera.url] = [
     mkNote("Assignment 3 due next Friday — start by Wed"),
     mkNote("Review Prof. Lin's optional readings before quiz"),
+  ];
+  // Broaden note coverage so more tabs in the demo windows show the
+  // cyan note badge on the title line.
+  notesMap[U.figmaComments.url] = [
+    mkNote("Address the 4 unread comments before design review"),
+  ];
+  notesMap[U.vercelLogs.url] = [
+    mkNote("Check the SSR crash pattern from yesterday's spike"),
+  ];
+  notesMap[U.jira.url] = [
+    mkNote("Update sprint carryover before standup"),
+  ];
+  notesMap[U.clickup.url] = [
+    mkNote("Move ML training tasks to next sprint"),
+  ];
+  notesMap[U.udemy.url] = [
+    mkNote("Continue from lesson 42 — CI/CD basics"),
+  ];
+  notesMap[U.freecodecamp.url] = [
+    mkNote("Finish responsive design section this weekend"),
+  ];
+  notesMap[U.mdnEvents.url] = [
+    mkNote("Reference for the PointerEvent refactor"),
+  ];
+  notesMap[U.stackoverflow.url] = [
+    mkNote("Bookmark the accepted answer — reused pattern"),
+  ];
+  notesMap[U.perplexity.url] = [
+    mkNote("Compare with Claude's answer on the same query"),
+  ];
+  notesMap[U.medium.url] = [
+    mkNote("Interesting take on browser productivity — save quote"),
+  ];
+  notesMap[U.hackerNews.url] = [
+    mkNote("Follow-up on the 300+ comment thread later"),
+  ];
+  notesMap[U.reddit.url] = [
+    mkNote("Reply to my comment thread"),
+  ];
+  notesMap[U.linkedin.url] = [
+    mkNote("Message Priya about the DevRel role"),
+  ];
+  notesMap[U.twitter.url] = [
+    mkNote("Save the AI benchmark thread for later"),
+  ];
+  notesMap[U.instagram.url] = [
+    mkNote("Reply to Nadia's story tomorrow"),
+  ];
+  notesMap[U.imdb.url] = [
+    mkNote("Check Denis Villeneuve's next project date"),
+  ];
+  notesMap[U.rottentomatoes.url] = [
+    mkNote("Filter to 90%+ for weekend picks"),
+  ];
+  notesMap[U.goodreads.url] = [
+    mkNote("Add 'Klara and the Sun' to want-to-read"),
+  ];
+  notesMap[U.netflix.url] = [
+    mkNote("Season 2 drops Friday — clear evening"),
+  ];
+  notesMap[U.spotifyLikes.url] = [
+    mkNote("Prune tracks older than 2022 quarter"),
+  ];
+  notesMap[U.soundcloud.url] = [
+    mkNote("New producer to follow — link from Discord"),
+  ];
+  notesMap[U.bandcamp.url] = [
+    mkNote("Support this artist before Bandcamp Friday"),
+  ];
+  notesMap[U.chase.url] = [
+    mkNote("Reconcile card statement, transfer to savings"),
+  ];
+  notesMap[U.fidelity.url] = [
+    mkNote("Rebalance target allocation quarterly"),
+  ];
+  notesMap[U.wsj.url] = [
+    mkNote("Read the earnings recap piece"),
+  ];
+  notesMap[U.coingecko.url] = [
+    mkNote("Watchlist alert set at $2400"),
+  ];
+  notesMap[U.mint.url] = [
+    mkNote("Categorize last month's transactions"),
+  ];
+  notesMap[U.airbnb.url] = [
+    mkNote("Compare 3 shortlisted stays before booking"),
+  ];
+  notesMap[U.booking.url] = [
+    mkNote("Flexible dates give ~30% saving — worth juggling calendar"),
+  ];
+  notesMap[U.maps.url] = [
+    mkNote("Save the good coffee spots as pins"),
+  ];
+  notesMap[U.weather.url] = [
+    mkNote("Rain expected Sat afternoon — plan indoor backup"),
+  ];
+  notesMap[U.strava.url] = [
+    mkNote("Log this week's long run"),
+  ];
+  notesMap[U.wikipedia.url] = [
+    mkNote("Cite the interface history section in the design doc"),
+  ];
+  notesMap[U.drive.url] = [
+    mkNote("Move Q3 planning doc to shared team folder"),
+  ];
+  notesMap[U.meet.url] = [
+    mkNote("Add attendee list from Slack invite"),
   ];
 
   // ---------- savedSessions (snapshots) ----------
