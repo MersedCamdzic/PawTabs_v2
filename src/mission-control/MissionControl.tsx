@@ -462,6 +462,7 @@ export function MissionControl() {
             openTabs={snapshot?.tabs ?? []}
             onAction={reload}
             onOpenDetails={setDetailsTab}
+            onOpenClosedDetails={setClosedDetailsTab}
             onSelectionChange={setTagsBulkState}
           />
         )}

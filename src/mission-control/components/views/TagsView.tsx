@@ -34,6 +34,7 @@ interface Props {
   openTabs: PawTab[];
   onAction: () => void;
   onOpenDetails?: (tab: PawTab) => void;
+  onOpenClosedDetails?: (synthetic: PawTab) => void;
   onSelectionChange?: (
     info: {
       activeTag: string | null;
@@ -56,6 +57,7 @@ export function TagsView({
   openTabs,
   onAction,
   onOpenDetails,
+  onOpenClosedDetails,
   onSelectionChange,
 }: Props) {
   const [tagList, setTagList] = useState<TagAggregate[]>([]);
@@ -148,6 +150,36 @@ export function TagsView({
     });
   };
 
+  const buildSyntheticClosedTab = async (
+    entry: TaggedUrlEntry,
+  ): Promise<PawTab> => {
+    const [notes, paw] = await Promise.all([
+      (async () => {
+        const { getNotesForUrl } = await import("@/lib/tabs");
+        return getNotesForUrl(entry.url);
+      })(),
+      (async () => {
+        const { isPawed } = await import("@/lib/pawed");
+        return isPawed(entry.url);
+      })(),
+    ]);
+    return {
+      id: -1,
+      windowId: -1,
+      url: entry.url,
+      title: entry.title,
+      favIconUrl: entry.favIconUrl,
+      audible: false,
+      muted: false,
+      discarded: false,
+      pinned: false,
+      saved: false,
+      starred: paw,
+      tags: entry.tags,
+      notes,
+    };
+  };
+
   const handleRowClick = async (entry: TaggedUrlEntry) => {
     const tab = openByUrl.get(entry.url);
     if (tab && onOpenDetails) {
@@ -156,9 +188,14 @@ export function TagsView({
     }
     if (tab) {
       await focusTab(tab.id, tab.windowId);
-    } else {
-      await restoreUrl(entry);
+      return;
     }
+    if (onOpenClosedDetails) {
+      const synthetic = await buildSyntheticClosedTab(entry);
+      onOpenClosedDetails(synthetic);
+      return;
+    }
+    await restoreUrl(entry);
   };
 
   const handleJump = async (entry: TaggedUrlEntry) => {
