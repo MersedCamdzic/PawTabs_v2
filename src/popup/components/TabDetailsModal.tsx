@@ -22,8 +22,10 @@ import {
   Moon,
   Prohibit,
   ArrowUUpLeft,
+  Trash,
 } from "@phosphor-icons/react";
 import { Modal } from "./Modal";
+import { ConfirmModal } from "./ConfirmModal";
 import {
   addTag,
   removeTag,
@@ -37,6 +39,7 @@ import {
 } from "@/lib/tabs";
 import { addTagToUrl, removeTagFromUrl } from "@/lib/tagged-urls";
 import { pawTab, unpawTab } from "@/lib/pawed";
+import { storage } from "@/lib/storage";
 import {
   focusTab,
   closeTab,
@@ -83,6 +86,7 @@ export function TabDetailsModal({
   >({});
   const [renamingWindow, setRenamingWindow] = useState(false);
   const [windowNameDraft, setWindowNameDraft] = useState("");
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
 
   const refreshWindowMeta = async (tabId: number) => {
     const [list, meta] = await Promise.all([
@@ -240,6 +244,30 @@ export function TabDetailsModal({
     onClose();
   };
 
+  const handleDeleteFromDb = async () => {
+    const url = tab.url;
+    await Promise.all([
+      storage.update("pawedUrls", (current) => {
+        const map = { ...(current ?? {}) };
+        delete map[url];
+        return map;
+      }),
+      storage.update("taggedUrls", (current) => {
+        const map = { ...(current ?? {}) };
+        delete map[url];
+        return map;
+      }),
+      storage.update("notesByUrl", (current) => {
+        const map = { ...(current ?? {}) };
+        delete map[url];
+        return map;
+      }),
+    ]);
+    setConfirmDeleteOpen(false);
+    onAction();
+    onClose();
+  };
+
   const handleCopyUrl = async () => {
     try {
       await navigator.clipboard.writeText(tab.url);
@@ -360,13 +388,22 @@ export function TabDetailsModal({
             </HeaderAction>
           )}
           {closedMode ? (
-            <HeaderAction
-              title="Reopen this URL"
-              tone="accent"
-              onClick={handleReopen}
-            >
-              <ArrowUUpLeft size={13} weight="bold" />
-            </HeaderAction>
+            <>
+              <HeaderAction
+                title="Reopen this URL"
+                tone="accent"
+                onClick={handleReopen}
+              >
+                <ArrowUUpLeft size={13} weight="bold" />
+              </HeaderAction>
+              <HeaderAction
+                title="Delete this URL from PawTabs (paws, tags, notes)"
+                tone="danger"
+                onClick={() => setConfirmDeleteOpen(true)}
+              >
+                <Trash size={13} />
+              </HeaderAction>
+            </>
           ) : (
             <HeaderAction
               title="Close this tab"
@@ -378,6 +415,7 @@ export function TabDetailsModal({
           )}
         </div>
       }
+      hideCloseButton={closedMode}
     >
       <div class="space-y-5">
         <div class="relative flex items-center gap-4 px-4 py-4 bg-gradient-to-br from-accent-subtle/40 via-bg-elevated to-bg-elevated rounded-xl border border-border">
@@ -652,6 +690,24 @@ export function TabDetailsModal({
         </Section>
         )}
       </div>
+      <ConfirmModal
+        open={confirmDeleteOpen}
+        title="Delete URL from PawTabs"
+        message={
+          <>
+            Remove all PawTabs data for{" "}
+            <span class="font-semibold text-fg">
+              {tab.title || tab.url}
+            </span>
+            ? This clears its paw status, tags, and notes. The URL itself
+            isn't affected — Chrome still knows it.
+          </>
+        }
+        confirmLabel="Delete"
+        tone="danger"
+        onConfirm={handleDeleteFromDb}
+        onCancel={() => setConfirmDeleteOpen(false)}
+      />
     </Modal>
   );
 }
