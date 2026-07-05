@@ -8,10 +8,6 @@ import {
   NotePencil,
   Moon,
   ArrowUpRight,
-  BookmarkSimple,
-  ClockCounterClockwise,
-  ArrowCounterClockwise,
-  Gear,
   Globe,
   ArrowRight,
 } from "@phosphor-icons/react";
@@ -112,31 +108,6 @@ export function OverviewView({
             label="Tagged"
             tone="accent"
             onClick={() => onChangeView("tags")}
-          />
-        </div>
-      </Section>
-
-      <Section label="Jump to">
-        <div class="grid grid-cols-4 gap-2">
-          <QuickAction
-            icon={<BookmarkSimple size={16} />}
-            label="Sessions"
-            onClick={() => onChangeView("sessions")}
-          />
-          <QuickAction
-            icon={<ClockCounterClockwise size={16} />}
-            label="Recently closed"
-            onClick={() => onChangeView("recently-closed")}
-          />
-          <QuickAction
-            icon={<ArrowCounterClockwise size={16} />}
-            label="Backups"
-            onClick={() => onChangeView("backups")}
-          />
-          <QuickAction
-            icon={<Gear size={16} />}
-            label="Settings"
-            onClick={() => onChangeView("settings")}
           />
         </div>
       </Section>
@@ -350,27 +321,6 @@ function MiniStat(props: {
           {props.label}
         </div>
       </div>
-    </button>
-  );
-}
-
-function QuickAction(props: {
-  icon: preact.ComponentChildren;
-  label: string;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={props.onClick}
-      class="bg-bg border border-border rounded-md px-3 py-3 flex flex-col items-center justify-center gap-1.5 hover:border-accent hover:bg-accent-subtle/30 hover:text-accent transition-colors group"
-    >
-      <span class="text-fg-muted group-hover:text-accent transition-colors">
-        {props.icon}
-      </span>
-      <span class="text-[11px] font-medium text-fg-muted group-hover:text-accent">
-        {props.label}
-      </span>
     </button>
   );
 }
