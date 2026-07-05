@@ -23,7 +23,7 @@ import {
   BulkUrlActionsMenu,
   type BulkUrlItem,
 } from "./components/BulkUrlActionsMenu";
-import { FloppyDisk } from "@phosphor-icons/react";
+import { FloppyDisk, Trash } from "@phosphor-icons/react";
 import { TagsView } from "./components/views/TagsView";
 import { SessionsView } from "./components/views/SessionsView";
 import { BackupsView } from "./components/views/BackupsView";
@@ -329,11 +329,12 @@ export function MissionControl() {
                       }
                     }}
                     disabled={rcVisibleCount === 0}
-                    class="h-9 px-3 inline-flex items-center gap-1.5 text-[12px] font-medium rounded-md border border-border text-fg-muted hover:border-danger hover:text-danger hover:bg-danger-subtle disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                    class="h-9 px-3 inline-flex items-center gap-1.5 text-[12px] font-medium rounded-md border border-danger/30 text-danger bg-danger-subtle hover:border-danger hover:bg-danger hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                     title="Hide all currently listed items"
                   >
+                    <Trash size={13} weight="fill" />
                     Clear all
-                    <span class="text-[10px] font-mono px-1.5 h-4 inline-flex items-center rounded bg-surface text-fg-muted">
+                    <span class="text-[10px] font-mono px-1.5 h-4 inline-flex items-center rounded bg-danger/15 text-danger">
                       {rcVisibleCount}
                     </span>
                   </button>
