@@ -81,11 +81,15 @@ export function SettingsModal({ open, onClose }: Props) {
         </Section>
 
         <Section title="Auto-save sessions">
-          <div class="text-[11px] text-fg-subtle mb-3">
-            Save a snapshot of your open tabs automatically. Oldest auto
-            snapshots are pruned when the max is reached. Chrome ticks the
-            background alarm every ~30s, so sub-minute intervals fire at
-            the next tick.
+          <div class="text-[11px] text-fg-subtle mb-3 leading-relaxed">
+            PawTabs quietly takes snapshots of your open tabs on the
+            schedule you set. If a laptop crashes or you close the wrong
+            window, you can restore an earlier snapshot from the
+            Snapshots view.
+            <br />
+            <br />
+            When you hit the max, the oldest auto-snapshot is deleted to
+            make room. Manual snapshots are never touched.
           </div>
           <label class="flex items-center justify-between py-1.5 cursor-pointer">
             <span class="text-[12px] text-fg">Enable auto snapshots</span>
