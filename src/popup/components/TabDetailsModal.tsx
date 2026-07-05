@@ -307,12 +307,18 @@ export function TabDetailsModal({ tab, open, onClose, onAction }: Props) {
               )}
             </div>
             {tab.starred && (
-              <span class="absolute -top-1 -right-1 inline-flex size-5 items-center justify-center rounded-full bg-accent text-white shadow ring-2 ring-bg-elevated">
+              <span
+                title="Pawed"
+                class="absolute -top-1 -right-1 inline-flex size-5 items-center justify-center rounded-full bg-accent text-white shadow ring-2 ring-bg-elevated"
+              >
                 <PawPrint size={10} weight="fill" />
               </span>
             )}
-            {tab.pinned && !tab.starred && (
-              <span class="absolute -top-1 -right-1 inline-flex size-5 items-center justify-center rounded-full bg-warning text-white shadow ring-2 ring-bg-elevated">
+            {tab.pinned && (
+              <span
+                title="Pinned"
+                class="absolute -top-1 -left-1 inline-flex size-5 items-center justify-center rounded-full bg-warning text-white shadow ring-2 ring-bg-elevated"
+              >
                 <PushPin size={10} weight="fill" />
               </span>
             )}
