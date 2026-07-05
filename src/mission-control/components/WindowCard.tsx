@@ -16,12 +16,9 @@ import {
   ArrowSquareIn,
   ArrowSquareUpRight,
   Moon,
-  Lightning,
   XCircle,
   Palette,
   PawPrint,
-  SpeakerHigh,
-  SpeakerSlash,
   Tag,
   NotePencil,
   Broadcast,
@@ -36,14 +33,7 @@ import {
   WINDOW_COLOR_STYLES,
 } from "@/lib/window-colors";
 import type { WindowColor } from "@/types";
-import {
-  focusTab,
-  closeTab,
-  togglePinned,
-  toggleMuted,
-  toggleStarred,
-  wakeTab,
-} from "@/lib/chrome";
+import { focusTab, closeTab } from "@/lib/chrome";
 import { getRootDomain } from "@/lib/utils";
 import type { PawTab } from "@/types";
 
@@ -659,14 +649,6 @@ function CompactTabRow(props: {
     stop(e);
     props.onMoveSingle();
   };
-  const handleWake = wrap(async () => {
-    await wakeTab(props.tab.id);
-  });
-  const handlePaw = wrap(async () => {
-    await toggleStarred(props.tab.id);
-  });
-  const handlePin = wrap(() => togglePinned(props.tab.id, !props.tab.pinned));
-  const handleMute = wrap(() => toggleMuted(props.tab.id, !props.tab.muted));
   const handleClose = wrap(() => closeTab(props.tab.id));
 
   let rowClass = "hover:bg-surface cursor-pointer";
@@ -794,53 +776,12 @@ function CompactTabRow(props: {
       {showActions && (
         <div class="flex items-center gap-0 shrink-0">
           <TinyActionBtn
-            title={props.tab.starred ? "Unpaw" : "Paw"}
-            active={props.tab.starred}
+            title="Jump to this tab"
             tone="accent"
-            onClick={handlePaw}
+            onClick={handleJump}
           >
-            <PawPrint
-              size={13}
-              weight={props.tab.starred ? "fill" : "regular"}
-            />
+            <ArrowSquareOut size={13} />
           </TinyActionBtn>
-          <TinyActionBtn
-            title={props.tab.pinned ? "Unpin" : "Pin"}
-            active={props.tab.pinned}
-            tone="warning"
-            onClick={handlePin}
-          >
-            <PushPin
-              size={13}
-              weight={props.tab.pinned ? "fill" : "regular"}
-            />
-          </TinyActionBtn>
-          {(props.tab.audible || props.tab.muted) && (
-            <TinyActionBtn
-              title={props.tab.muted ? "Unmute" : "Mute"}
-              active={props.tab.muted || props.tab.audible}
-              tone={props.tab.muted ? "danger" : "success"}
-              forceVisible
-              onClick={handleMute}
-            >
-              {props.tab.muted ? (
-                <SpeakerSlash size={13} />
-              ) : (
-                <SpeakerHigh size={13} />
-              )}
-            </TinyActionBtn>
-          )}
-          {props.tab.discarded && (
-            <TinyActionBtn
-              title="Wake up tab (reload from sleep)"
-              tone="warning"
-              active
-              forceVisible
-              onClick={handleWake}
-            >
-              <Lightning size={12} weight="fill" />
-            </TinyActionBtn>
-          )}
           <TinyActionBtn
             title="Move to another window"
             tone="accent"
@@ -848,19 +789,12 @@ function CompactTabRow(props: {
           >
             <ArrowsLeftRight size={12} weight="bold" />
           </TinyActionBtn>
-          <TinyActionBtn
-            title="Jump to tab"
-            tone="accent"
-            onClick={handleJump}
-          >
-            <ArrowSquareOut size={13} />
-          </TinyActionBtn>
           <span
             class="w-px h-3 mx-0.5 bg-border opacity-0 group-hover:opacity-100 transition-opacity"
             aria-hidden="true"
           />
           <TinyActionBtn
-            title="Close tab"
+            title="Close this tab"
             tone="danger"
             onClick={handleClose}
           >
