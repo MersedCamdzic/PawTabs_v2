@@ -1,0 +1,136 @@
+================================================================
+PawTabs v2.1.0 — Screenshot recipe for Chrome Web Store
+================================================================
+
+Setup (do once)
+---------------
+1. Load unpacked dist/ into Chrome (chrome://extensions → Developer mode)
+2. Open the popup → Settings gear → "Load demo data"
+   This seeds pawed URLs, tags (Reading/Shopping/Work/Research/
+   Watch later), snapshots, backups, and named+colored windows.
+3. Open THREE real Chrome windows and populate them with the
+   URLs from the OPEN_TABS section below. This makes the popup /
+   Mission Control screenshots look organized.
+4. In Mission Control → Windows, RENAME your open windows to match:
+   - Window 1 → "Posao"  → color blue
+   - Window 2 → "Research" → color green
+   - Window 3 → "Vikend" → color amber
+5. Set Chrome zoom to 100% (Cmd+0), viewport 1440×900 or similar so
+   the popup renders at 480px cleanly.
+
+Web Store screenshot spec: 1280×800 PNG, max 5.
+Take screenshots at native size then export/scale.
+Recommended tool: macOS Cmd+Shift+4 → Space → click window
+(gives you a clean window shot with shadow).
+
+================================================================
+OPEN TABS — one per line, copy-paste bulk in Chrome
+(File → New Window, then paste, hit Enter one by one, OR use
+"Open all in tab group" bookmark hack)
+================================================================
+
+Window "Posao" (blue) — open these:
+  https://mail.google.com/mail/u/0/#inbox
+  https://calendar.google.com/calendar/u/0/r/week
+  https://github.com/mersedca/pawtabs/pull/42
+  https://github.com/mersedca/pawtabs/issues
+  https://linear.app/
+  https://www.notion.so/
+  https://www.figma.com/
+  https://vercel.com/
+  https://app.slack.com/
+
+Window "Research" (green) — open these:
+  https://arxiv.org/
+  https://en.wikipedia.org/wiki/Tab_(interface)
+  https://stackoverflow.com/questions
+  https://developer.mozilla.org/en-US/docs/Web/API/Storage
+  https://news.ycombinator.com/
+  https://medium.com/
+  https://www.google.com/search?q=react+server+components+2026
+
+Window "Vikend" (amber) — open these:
+  https://www.amazon.com/
+  https://www.cnn.com/
+  https://www.bbc.com/news
+  https://www.nytimes.com/
+  https://www.youtube.com/
+  https://www.netflix.com/browse
+  https://open.spotify.com/
+  https://www.reddit.com/r/productivity
+
+================================================================
+5 SCREENSHOTS TO CAPTURE (in this order)
+================================================================
+
+--- Screenshot 1: Popup with grouped-by-window view ---
+Purpose: shows the everyday interface + window color theming.
+Steps:
+  1. Focus the Vikend (amber) window so it becomes "current".
+  2. Click PawTabs icon.
+  3. Grouping: Window. Search: empty.
+  4. Hover over the "POSAO (9)" header so the group actions
+     (Tag / Note / Move / X) fade in and are visible.
+  5. Capture the popup only.
+Composition: three colored group headers stacked, actions visible,
+  current-tab card at top with pulse dot.
+
+--- Screenshot 2: Mission Control Overview ---
+Purpose: shows the "cockpit" and richness of data.
+Steps:
+  1. Open Pack (grid icon in popup) OR go to chrome-extension://<id>/
+     src/mission-control/index.html
+  2. Sidebar visible on left, Overview view.
+  3. Screenshot the whole Chrome window (1280×800).
+Composition: sidebar + Overview cards (activity, top domains,
+  saved snapshots count, etc.)
+
+--- Screenshot 3: Mission Control → Windows view ---
+Purpose: shows window naming + color theming + grouped tabs.
+Steps:
+  1. Sidebar → Collections → Windows
+  2. Columns: 2 or 3
+  3. Ensure at least three windows have color + name.
+  4. Capture the Chrome window.
+Composition: named window cards with colored borders/headers,
+  compact tab rows inside.
+
+--- Screenshot 4: Tab details modal ---
+Purpose: shows the depth per tab (tags, notes, move, colors).
+Steps:
+  1. In popup, click any tab row (not the Jump icon).
+  2. Modal opens with window subtitle, hero card, URL bar, tags,
+     notes, and Move-to-window section.
+  3. Open the "Pick destination window" dropdown so the colored
+     window entries are visible.
+  4. Capture the whole popup.
+
+--- Screenshot 5: Tags view OR Sessions view ---
+Purpose: shows persistent lists that survive tab close.
+Steps A (Tags):
+  1. Mission Control → Collections → Tags
+  2. Click the "Reading" or "Work" tag in the sidebar.
+  3. Right panel shows tagged URLs (CNN, BBC, NYT for Reading).
+  4. Capture.
+
+OR Steps B (Sessions):
+  1. Mission Control → Saved → Snapshots
+  2. Expand "Monday work start" so tabs are visible.
+  3. Capture.
+
+Pick whichever looks fuller (probably Tags — Reading has 5 sites).
+
+================================================================
+POST-SHOOT
+================================================================
+
+After screenshots done:
+  [ ] Settings → "Clear all" to remove demo data (if using your
+      personal Chrome profile). Skip if this is a dedicated demo
+      profile.
+  [ ] Rename PNGs: 01-popup.png, 02-overview.png,
+      03-windows.png, 04-details.png, 05-tags.png
+  [ ] Verify each is exactly 1280×800 (crop/resize if needed)
+  [ ] Upload in Chrome Web Store dashboard in order.
+
+================================================================
