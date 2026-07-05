@@ -2,62 +2,37 @@
 PawTabs v2.1.0 — Screenshot recipe for Chrome Web Store
 ================================================================
 
-Setup (do once)
----------------
-1. Load unpacked dist/ into Chrome (chrome://extensions → Developer mode)
-2. Open the popup → Settings gear → "Load demo data"
-   This seeds pawed URLs, tags (Reading/Shopping/Work/Research/
-   Watch later), snapshots, backups, and named+colored windows.
-3. Open THREE real Chrome windows and populate them with the
-   URLs from the OPEN_TABS section below. This makes the popup /
-   Mission Control screenshots look organized.
-4. In Mission Control → Windows, RENAME your open windows to match:
-   - Window 1 → "Posao"  → color blue
-   - Window 2 → "Research" → color green
-   - Window 3 → "Vikend" → color amber
-5. Set Chrome zoom to 100% (Cmd+0), viewport 1440×900 or similar so
-   the popup renders at 480px cleanly.
+Setup (fully automated now — no manual tab opening needed)
+----------------------------------------------------------
+1. Load unpacked dist/ into Chrome (chrome://extensions →
+   Developer mode → Load unpacked → select the dist/ folder).
+2. Open Mission Control (click PawTabs icon in Chrome, then the
+   GridFour icon at the top-right of the popup — or navigate to
+   chrome-extension://<id>/src/mission-control/index.html).
+3. Scroll to the bottom of the Overview page → "Demo / testing"
+   card.
+4. Click "Load demo data" — populates paw / tags / notes /
+   snapshots / backups / window colors. Confirms with a dialog.
+5. Click "Enter demo mode" — saves your current session as
+   "Pre-demo backup", closes all your open windows, then opens
+   6 named+colored demo windows (~90 tabs total):
+     - Posao (blue) — Gmail, Calendar, GitHub, Linear, Notion,
+       Figma, Vercel, Slack, Jira, ClickUp, Trello, Meet, Drive
+     - Research (green) — arXiv, Wikipedia, MDN, StackOverflow,
+       Hacker News, Medium, ChatGPT, Claude, Perplexity
+     - Vikend (amber) — Amazon, CNN, BBC, NYT, YouTube, Netflix,
+       Reddit, Instagram, X, LinkedIn, Pinterest, Airbnb
+     - Learning (purple) — Coursera, Udemy, freeCodeCamp,
+       egghead
+     - Finance (red) — Chase, Fidelity, WSJ, Bloomberg, CoinGecko
+     - Music (pink) — Spotify, YouTube Music, SoundCloud,
+       Bandcamp, Apple Music
+6. Set Chrome zoom to 100% (Cmd+0) and resize the browser to
+   ~1440×900 so the popup renders cleanly at 480px.
 
 Web Store screenshot spec: 1280×800 PNG, max 5.
-Take screenshots at native size then export/scale.
-Recommended tool: macOS Cmd+Shift+4 → Space → click window
-(gives you a clean window shot with shadow).
-
-================================================================
-OPEN TABS — one per line, copy-paste bulk in Chrome
-(File → New Window, then paste, hit Enter one by one, OR use
-"Open all in tab group" bookmark hack)
-================================================================
-
-Window "Posao" (blue) — open these:
-  https://mail.google.com/mail/u/0/#inbox
-  https://calendar.google.com/calendar/u/0/r/week
-  https://github.com/mersedca/pawtabs/pull/42
-  https://github.com/mersedca/pawtabs/issues
-  https://linear.app/
-  https://www.notion.so/
-  https://www.figma.com/
-  https://vercel.com/
-  https://app.slack.com/
-
-Window "Research" (green) — open these:
-  https://arxiv.org/
-  https://en.wikipedia.org/wiki/Tab_(interface)
-  https://stackoverflow.com/questions
-  https://developer.mozilla.org/en-US/docs/Web/API/Storage
-  https://news.ycombinator.com/
-  https://medium.com/
-  https://www.google.com/search?q=react+server+components+2026
-
-Window "Vikend" (amber) — open these:
-  https://www.amazon.com/
-  https://www.cnn.com/
-  https://www.bbc.com/news
-  https://www.nytimes.com/
-  https://www.youtube.com/
-  https://www.netflix.com/browse
-  https://open.spotify.com/
-  https://www.reddit.com/r/productivity
+Recommended macOS tool: Cmd+Shift+4 → Space → click window
+(gives a clean shot with drop shadow).
 
 ================================================================
 5 SCREENSHOTS TO CAPTURE (in this order)
@@ -66,71 +41,100 @@ Window "Vikend" (amber) — open these:
 --- Screenshot 1: Popup with grouped-by-window view ---
 Purpose: shows the everyday interface + window color theming.
 Steps:
-  1. Focus the Vikend (amber) window so it becomes "current".
+  1. Focus the Vikend (amber) demo window so it becomes "current".
   2. Click PawTabs icon.
   3. Grouping: Window. Search: empty.
-  4. Hover over the "POSAO (9)" header so the group actions
-     (Tag / Note / Move / X) fade in and are visible.
-  5. Capture the popup only.
-Composition: three colored group headers stacked, actions visible,
-  current-tab card at top with pulse dot.
+  4. Hover over the "POSAO (13)" group header so the group
+     actions (Tag / Note / Move / Save-snapshot / X) fade in.
+  5. Capture the popup only (Cmd+Shift+4 → Space → click popup).
+Composition: colored group headers stacked (Posao blue / Vikend
+  amber / Research green / etc), inline actions visible, current
+  tab card at top with pulsing green dot.
 
 --- Screenshot 2: Mission Control Overview ---
 Purpose: shows the "cockpit" and richness of data.
 Steps:
-  1. Open Pack (grid icon in popup) OR go to chrome-extension://<id>/
-     src/mission-control/index.html
-  2. Sidebar visible on left, Overview view.
-  3. Screenshot the whole Chrome window (1280×800).
-Composition: sidebar + Overview cards (activity, top domains,
-  saved snapshots count, etc.)
+  1. Open Pack (Mission Control) from popup grid icon.
+  2. Sidebar visible on left, Overview view centered.
+  3. Screenshot the whole Chrome window.
+Composition: sidebar with counts + Overview cards — Windows /
+  Open (~90) / Inactive stats at top, Collections tiles (Pinned,
+  Pawed, Audible, Tagged), Top domains chart, timeline.
 
 --- Screenshot 3: Mission Control → Windows view ---
-Purpose: shows window naming + color theming + grouped tabs.
+Purpose: shows window naming + color theming + per-window tabs.
 Steps:
   1. Sidebar → Collections → Windows
-  2. Columns: 2 or 3
-  3. Ensure at least three windows have color + name.
+  2. Columns: 2 or 3 (top-right of toolbar)
+  3. All 6 demo windows are already named+colored.
   4. Capture the Chrome window.
-Composition: named window cards with colored borders/headers,
-  compact tab rows inside.
+Composition: named window cards with subtle colored borders,
+  header ribbons in each color, compact tab rows with state
+  icons + tag/note counts inside.
 
 --- Screenshot 4: Tab details modal ---
-Purpose: shows the depth per tab (tags, notes, move, colors).
+Purpose: shows the depth per tab (state, paw, pin, tags, notes,
+  window, move-to-window).
 Steps:
-  1. In popup, click any tab row (not the Jump icon).
-  2. Modal opens with window subtitle, hero card, URL bar, tags,
-     notes, and Move-to-window section.
-  3. Open the "Pick destination window" dropdown so the colored
-     window entries are visible.
+  1. In popup, click any tab row (NOT the ListBullets info
+     button — that opens the same modal but with clicked-row
+     targeting).
+  2. Modal opens with subtitle showing window name.
+  3. In the "Move to window" section, click the dropdown so the
+     colored window entries are visible.
   4. Capture the whole popup.
+Composition: header actions row (Paw / Pin / Mute? / Jump /
+  Close-X), URL bar with copy, Tags section (purple), Notes
+  (cyan card), Move-to-window dropdown with color dots.
 
---- Screenshot 5: Tags view OR Sessions view ---
-Purpose: shows persistent lists that survive tab close.
-Steps A (Tags):
+--- Screenshot 5: Tags view ---
+Purpose: shows persistent lists (Reading / Research / Work /
+  Learning / Watch later / Music / Social / Finance / Travel).
+Steps:
   1. Mission Control → Collections → Tags
-  2. Click the "Reading" or "Work" tag in the sidebar.
-  3. Right panel shows tagged URLs (CNN, BBC, NYT for Reading).
+  2. Click the "Work" tag in the sidebar (fullest with demo
+     data — has 20+ URLs including all the Notion/GitHub/Figma
+     tabs).
+  3. Right panel shows tagged URLs with state icons + paw/pin +
+     window chip (colored).
   4. Capture.
-
-OR Steps B (Sessions):
-  1. Mission Control → Saved → Snapshots
-  2. Expand "Monday work start" so tabs are visible.
-  3. Capture.
-
-Pick whichever looks fuller (probably Tags — Reading has 5 sites).
+Composition: sidebar with tag list (each with count badge) +
+  right panel with tagged URLs, each row showing state icon,
+  paw/pin/tag/note icons, and window chip in matching color.
 
 ================================================================
 POST-SHOOT
 ================================================================
 
 After screenshots done:
-  [ ] Settings → "Clear all" to remove demo data (if using your
-      personal Chrome profile). Skip if this is a dedicated demo
-      profile.
-  [ ] Rename PNGs: 01-popup.png, 02-overview.png,
-      03-windows.png, 04-details.png, 05-tags.png
-  [ ] Verify each is exactly 1280×800 (crop/resize if needed)
-  [ ] Upload in Chrome Web Store dashboard in order.
+  [ ] Mission Control → Overview → Demo card →
+      "Exit demo & restore session" — closes demo windows and
+      restores your original tabs from the Pre-demo backup.
+  [ ] (Optional) "Clear all data" in the same Demo card resets
+      storage to a fresh state.
+  [ ] Rename PNGs (recommended):
+      01-popup.png, 02-overview.png, 03-windows.png,
+      04-details.png, 05-tags.png
+  [ ] Verify each PNG is exactly 1280×800 (crop or downscale if
+      Chrome captured retina 2x resolution — most Cmd+Shift+4
+      shots are 2x on Retina; use Preview.app → Tools → Adjust
+      Size → 1280×800 → Save).
+  [ ] Upload in order in Chrome Web Store dashboard →
+      Store listing → Screenshots.
+
+================================================================
+OPTIONAL 6TH: Recently Closed with rich data
+================================================================
+
+If you want a bonus shot:
+  1. Close ~5 tabs from your demo windows (Cmd+W on tabs like
+     Amazon, GitHub PR, CNN article).
+  2. Mission Control → Browser history → Recently closed
+  3. Each closed URL now shows Prohibit red state icon +
+     PawPrint (if pawed) + tag count (purple) + note count
+     (cyan) — the closed-URL detail modal is fully featured too.
+  4. Capture.
+
+Chrome Web Store accepts up to 5 screenshots so pick your best 5.
 
 ================================================================
