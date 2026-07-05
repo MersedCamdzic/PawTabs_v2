@@ -26,28 +26,6 @@ export function SettingsModal({ open, onClose }: Props) {
   );
   const [confirmFirstSnapshotOpen, setConfirmFirstSnapshotOpen] =
     useState(false);
-  const [saveStatus, setSaveStatus] = useState<{
-    ok: boolean;
-    text: string;
-  } | null>(null);
-  const [alarmInfo, setAlarmInfo] = useState<string>("");
-
-  useEffect(() => {
-    if (!open) return;
-    if (!chrome?.alarms?.get) {
-      setAlarmInfo("no alarms API");
-      return;
-    }
-    chrome.alarms.get("pawtabs_auto_session").then((a) => {
-      if (!a) {
-        setAlarmInfo("alarm NOT registered — reload extension");
-      } else {
-        setAlarmInfo(
-          `alarm ticks every ${a.periodInMinutes ?? "?"} min, next at ${new Date(a.scheduledTime).toLocaleTimeString()}`,
-        );
-      }
-    });
-  }, [open, saveStatus]);
 
   useEffect(() => {
     if (!open) return;
@@ -203,51 +181,7 @@ export function SettingsModal({ open, onClose }: Props) {
                 ? formatRelative(autoSession.lastRunAt)
                 : "never"}
             </span>
-            {autoSession.enabled && (
-              <span class="inline-flex items-center h-6 px-2 rounded-full text-[11px] font-medium bg-accent-subtle text-accent">
-                Next in {nextRunLabel(autoSession)}
-              </span>
-            )}
-            <button
-              type="button"
-              onClick={async () => {
-                setSaveStatus(null);
-                try {
-                  const stamp = new Date().toLocaleString();
-                  const s = await saveSession(
-                    `Auto: ${stamp}`,
-                    true,
-                    "Manual snapshot from Settings",
-                  );
-                  await updateAutoSession({ lastRunAt: Date.now() });
-                  setSaveStatus({
-                    ok: true,
-                    text: `Saved: ${s.tabs.length} tabs`,
-                  });
-                } catch (e) {
-                  setSaveStatus({
-                    ok: false,
-                    text: `Failed: ${(e as Error).message}`,
-                  });
-                }
-              }}
-              class="inline-flex items-center gap-1 h-6 px-2 rounded-full text-[11px] font-medium bg-accent text-white hover:bg-accent-hover transition-colors ml-auto"
-            >
-              Save snapshot now
-            </button>
           </div>
-          {saveStatus && (
-            <div
-              class={`mt-2 text-[10px] ${saveStatus.ok ? "text-success" : "text-danger"}`}
-            >
-              {saveStatus.text}
-            </div>
-          )}
-          {alarmInfo && (
-            <div class="mt-1 text-[10px] text-fg-subtle font-mono">
-              {alarmInfo}
-            </div>
-          )}
         </Section>
 
         <Section title="Wizard defaults">
@@ -316,16 +250,6 @@ function formatRelative(ts: number): string {
   return `${Math.round(diff / 86_400_000)}d ago`;
 }
 
-function nextRunLabel(cfg: AutoSessionConfig): string {
-  const intervalMs = (cfg.intervalValue || 1) * UNIT_MS_UI[cfg.intervalUnit];
-  const nextAt = (cfg.lastRunAt || 0) + intervalMs;
-  const diff = nextAt - Date.now();
-  if (diff <= 0) return "any moment";
-  if (diff < 60_000) return `${Math.max(1, Math.round(diff / 1000))}s`;
-  if (diff < 3_600_000) return `${Math.round(diff / 60_000)}m`;
-  if (diff < 86_400_000) return `${Math.round(diff / 3_600_000)}h`;
-  return `${Math.round(diff / 86_400_000)}d`;
-}
 
 function Section(props: {
   title: string;
