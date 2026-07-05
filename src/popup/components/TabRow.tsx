@@ -149,28 +149,28 @@ export function TabRow({
               <Broadcast size={11} weight="bold" />
             </span>
           )}
-          <span class="truncate">{tab.title || domain || "Untitled"}</span>
-        </div>
-        <div class="text-[11px] text-fg-subtle truncate leading-tight mt-0.5 flex items-center gap-1.5">
-          <span class="truncate">{domain}</span>
           {tab.tags.length > 0 && (
             <span
               title={tab.tags.join(", ")}
-              class="inline-flex items-center gap-0.5 text-purple-600 shrink-0"
+              class="shrink-0 inline-flex items-center gap-0.5 text-purple-600 text-[11px] font-semibold"
             >
-              <Tag size={10} weight="fill" />
+              <Tag size={11} weight="fill" />
               {tab.tags.length}
             </span>
           )}
           {tab.notes.length > 0 && (
             <span
               title={`${tab.notes.length} note${tab.notes.length === 1 ? "" : "s"}`}
-              class="inline-flex items-center gap-0.5 text-cyan-600 shrink-0"
+              class="shrink-0 inline-flex items-center gap-0.5 text-cyan-600 text-[11px] font-semibold"
             >
-              <NotePencil size={10} weight="fill" />
+              <NotePencil size={11} weight="fill" />
               {tab.notes.length}
             </span>
           )}
+          <span class="truncate">{tab.title || domain || "Untitled"}</span>
+        </div>
+        <div class="text-[11px] text-fg-subtle truncate leading-tight mt-0.5">
+          {domain}
         </div>
       </div>
 
