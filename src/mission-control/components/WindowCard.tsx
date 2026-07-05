@@ -766,7 +766,7 @@ function CompactTabRow(props: {
               {props.tab.notes.length}
             </span>
           )}
-          <span class="min-w-0">{props.tab.title || domain || "Untitled"}</span>
+          <span class="min-w-0">{props.tab.title || domain || (props.tab.discarded ? "Restoring…" : "Untitled")}</span>
         </div>
         <div class="text-[11px] text-fg-subtle leading-tight mt-1 break-all line-clamp-2">
           {props.tab.url}

@@ -19,11 +19,19 @@ export async function fetchAllTabs(): Promise<TabSnapshot> {
   const tabs: PawTab[] = allTabs
     .filter((t): t is chrome.tabs.Tab & { id: number } => t.id !== undefined)
     .map((t) => {
-      const url = t.url ?? "";
+      // pendingUrl covers freshly-created tabs (especially ones we
+      // immediately discard during restore) where Chrome hasn't
+      // committed the navigation yet.
+      const rawUrl =
+        (t.url && t.url !== "" && t.url !== "chrome://newtab/"
+          ? t.url
+          : (t as chrome.tabs.Tab & { pendingUrl?: string }).pendingUrl) ??
+        t.url ??
+        "";
       return {
         id: t.id,
         windowId: t.windowId ?? 0,
-        url,
+        url: rawUrl,
         title: t.title ?? "",
         favIconUrl: t.favIconUrl ?? "",
         audible: t.audible ?? false,

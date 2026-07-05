@@ -480,7 +480,7 @@ export function TabDetailsModal({
           </div>
           <div class="flex-1 min-w-0">
             <div class="text-[15px] font-semibold text-fg leading-snug line-clamp-2">
-              {tab.title || domain || "Untitled"}
+              {tab.title || domain || (tab.discarded ? "Restoring…" : "Untitled")}
             </div>
             <div class="text-[11px] mt-1.5 flex items-center gap-1.5 flex-wrap">
               <span class="font-medium text-fg-muted">{domain}</span>

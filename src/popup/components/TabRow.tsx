@@ -167,7 +167,7 @@ export function TabRow({
               {tab.notes.length}
             </span>
           )}
-          <span class="truncate">{tab.title || domain || "Untitled"}</span>
+          <span class="truncate">{tab.title || domain || (tab.discarded ? "Restoring…" : "Untitled")}</span>
         </div>
         <div class="text-[11px] text-fg-subtle truncate leading-tight mt-0.5">
           {domain}

@@ -121,7 +121,7 @@ export function MCTabRow({
               {tab.notes.length}
             </span>
           )}
-          <span class="min-w-0">{tab.title || domain || "Untitled"}</span>
+          <span class="min-w-0">{tab.title || domain || (tab.discarded ? "Restoring…" : "Untitled")}</span>
         </div>
         <div class="text-[11px] text-fg-subtle leading-tight mt-1 break-all line-clamp-2">
           {tab.url}
