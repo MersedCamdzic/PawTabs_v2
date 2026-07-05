@@ -7,6 +7,9 @@ import {
   Trash,
   PawPrint,
   PushPin,
+  Circle,
+  Moon,
+  Prohibit,
 } from "@phosphor-icons/react";
 import {
   listTags,
@@ -302,6 +305,9 @@ function TaggedRow(props: {
     dot: string;
     text: string;
     bg: string;
+    icon: preact.ComponentChildren;
+    iconColor: string;
+    tooltip: string;
   };
   if (!isOpen) {
     stateChip = {
@@ -309,6 +315,9 @@ function TaggedRow(props: {
       dot: "bg-danger",
       text: "text-danger",
       bg: "bg-danger-subtle",
+      icon: <Prohibit size={12} weight="bold" />,
+      iconColor: "text-danger",
+      tooltip: "Closed — tab is gone, click to reopen URL",
     };
   } else if (isInactive) {
     stateChip = {
@@ -316,6 +325,9 @@ function TaggedRow(props: {
       dot: "bg-fg-subtle",
       text: "text-fg-muted",
       bg: "bg-surface",
+      icon: <Moon size={12} weight="fill" />,
+      iconColor: "text-fg-subtle",
+      tooltip: "Open but inactive (discarded from memory)",
     };
   } else {
     stateChip = {
@@ -323,6 +335,9 @@ function TaggedRow(props: {
       dot: "bg-success",
       text: "text-success",
       bg: "bg-success-subtle",
+      icon: <Circle size={10} weight="fill" />,
+      iconColor: "text-success",
+      tooltip: "Open and active",
     };
   }
 
@@ -350,7 +365,7 @@ function TaggedRow(props: {
       )}
       <div class="flex-1 min-w-0">
         <div
-          class={`text-[13px] leading-snug line-clamp-2 ${
+          class={`flex items-start gap-1.5 text-[13px] leading-snug line-clamp-2 ${
             isOpen && !isInactive
               ? "text-fg"
               : isInactive
@@ -358,7 +373,13 @@ function TaggedRow(props: {
                 : "text-fg-muted"
           }`}
         >
-          {entry.title || domain}
+          <span
+            title={stateChip.tooltip}
+            class={`shrink-0 inline-flex mt-1 ${stateChip.iconColor}`}
+          >
+            {stateChip.icon}
+          </span>
+          <span class="min-w-0">{entry.title || domain}</span>
         </div>
         <div class="text-[11px] text-fg-subtle leading-tight mt-1 break-all line-clamp-2">
           {entry.url}
