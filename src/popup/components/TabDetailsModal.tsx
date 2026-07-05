@@ -21,6 +21,7 @@ import {
   Broadcast,
   Moon,
   Prohibit,
+  ArrowUUpLeft,
 } from "@phosphor-icons/react";
 import { Modal } from "./Modal";
 import {
@@ -233,6 +234,12 @@ export function TabDetailsModal({
     onClose();
   };
 
+  const handleReopen = async () => {
+    await chrome.tabs.create({ url: tab.url });
+    onAction();
+    onClose();
+  };
+
   const handleCopyUrl = async () => {
     try {
       await navigator.clipboard.writeText(tab.url);
@@ -306,40 +313,62 @@ export function TabDetailsModal({
           >
             <PawPrint size={13} weight={tab.starred ? "fill" : "regular"} />
           </HeaderAction>
-          {!closedMode && (
+          <HeaderAction
+            title={
+              closedMode
+                ? "Pinning unavailable — tab is closed"
+                : tab.pinned
+                  ? "Unpin this tab"
+                  : "Pin this tab"
+            }
+            active={!closedMode && tab.pinned}
+            disabled={closedMode}
+            tone="warning"
+            onClick={handlePin}
+          >
+            <PushPin
+              size={13}
+              weight={!closedMode && tab.pinned ? "fill" : "regular"}
+            />
+          </HeaderAction>
+          <HeaderAction
+            title={
+              closedMode
+                ? "Mute unavailable — tab is closed"
+                : tab.muted
+                  ? "Unmute this tab"
+                  : "Mute this tab"
+            }
+            active={!closedMode && (tab.muted || tab.audible)}
+            disabled={closedMode}
+            tone={tab.muted ? "danger" : "success"}
+            onClick={handleMute}
+          >
+            {!closedMode && tab.muted ? (
+              <SpeakerSlash size={13} />
+            ) : (
+              <SpeakerHigh size={13} />
+            )}
+          </HeaderAction>
+          <HeaderAction
+            title={
+              closedMode ? "Jump unavailable — tab is closed" : "Jump to this tab"
+            }
+            disabled={closedMode}
+            tone="accent"
+            onClick={handleJump}
+          >
+            <ArrowSquareOut size={13} />
+          </HeaderAction>
+          {closedMode ? (
             <HeaderAction
-              title={tab.pinned ? "Unpin this tab" : "Pin this tab"}
-              active={tab.pinned}
-              tone="warning"
-              onClick={handlePin}
-            >
-              <PushPin size={13} weight={tab.pinned ? "fill" : "regular"} />
-            </HeaderAction>
-          )}
-          {!closedMode && (tab.audible || tab.muted) && (
-            <HeaderAction
-              title={tab.muted ? "Unmute this tab" : "Mute this tab"}
-              active={tab.muted ? true : tab.audible}
-              tone={tab.muted ? "danger" : "success"}
-              onClick={handleMute}
-            >
-              {tab.muted ? (
-                <SpeakerSlash size={13} />
-              ) : (
-                <SpeakerHigh size={13} />
-              )}
-            </HeaderAction>
-          )}
-          {!closedMode && (
-            <HeaderAction
-              title="Jump to this tab"
+              title="Reopen this URL"
               tone="accent"
-              onClick={handleJump}
+              onClick={handleReopen}
             >
-              <ArrowSquareOut size={13} />
+              <ArrowUUpLeft size={13} weight="bold" />
             </HeaderAction>
-          )}
-          {!closedMode && (
+          ) : (
             <HeaderAction
               title="Close this tab"
               tone="danger"
@@ -691,15 +720,21 @@ function HeaderAction(props: {
   title: string;
   tone: keyof typeof HEADER_TONE;
   active?: boolean;
+  disabled?: boolean;
   onClick: () => void;
   children: preact.ComponentChildren;
 }) {
   const t = HEADER_TONE[props.tone];
-  const cls = props.active ? t.active : `text-fg-muted ${t.hover}`;
+  const cls = props.disabled
+    ? "text-fg-subtle/50 cursor-not-allowed"
+    : props.active
+      ? t.active
+      : `text-fg-muted ${t.hover}`;
   return (
     <button
       type="button"
-      onClick={props.onClick}
+      onClick={props.disabled ? undefined : props.onClick}
+      disabled={props.disabled}
       data-tooltip={props.title}
       data-tooltip-pos="below"
       aria-label={props.title}
