@@ -81,7 +81,7 @@ export function RestorePromptModal({ open, session, onClose, onConfirm }: Props)
             setInfoOpen((s) => ({ ...s, "per-window": !s["per-window"] }))
           }
           detail={
-            "Each tab remembers which Chrome window it came from at save time. Choosing this recreates that split — good for restoring workspaces where windows meant different contexts (e.g., Posao / Vikend)."
+            "Each tab remembers which Chrome window it came from at save time. Choosing this recreates that split — good for restoring workspaces where windows meant different contexts (e.g., Work / Weekend)."
           }
         />
         <RestoreOption

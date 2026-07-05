@@ -55,7 +55,7 @@ export function DemoDataPanel({ onDone }: { onDone?: () => void }) {
     wrap(async () => {
       if (
         !confirm(
-          "Enter demo mode? A backup session of your current tabs will be saved, then your windows will close and demo windows (Posao / Research / Vikend) will open for screenshots.",
+          "Enter demo mode? A backup session of your current tabs will be saved, then your windows will close and demo windows (Work / Research / Weekend) will open for screenshots.",
         )
       )
         return;
@@ -108,7 +108,7 @@ export function DemoDataPanel({ onDone }: { onDone?: () => void }) {
         <div class="text-[11px] font-semibold text-fg mb-1">Demo mode</div>
         <div class="text-[10px] text-fg-subtle mb-2">
           Saves your current session, closes your windows, opens
-          screenshot-ready demo windows (Posao / Research / Vikend).
+          screenshot-ready demo windows (Work / Research / Weekend).
           One click restores everything.
         </div>
         {demoActive ? (

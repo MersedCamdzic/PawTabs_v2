@@ -16,11 +16,11 @@ Setup (fully automated now — no manual tab opening needed)
 5. Click "Enter demo mode" — saves your current session as
    "Pre-demo backup", closes all your open windows, then opens
    6 named+colored demo windows (~90 tabs total):
-     - Posao (blue) — Gmail, Calendar, GitHub, Linear, Notion,
+     - Work (blue) — Gmail, Calendar, GitHub, Linear, Notion,
        Figma, Vercel, Slack, Jira, ClickUp, Trello, Meet, Drive
      - Research (green) — arXiv, Wikipedia, MDN, StackOverflow,
        Hacker News, Medium, ChatGPT, Claude, Perplexity
-     - Vikend (amber) — Amazon, CNN, BBC, NYT, YouTube, Netflix,
+     - Weekend (amber) — Amazon, CNN, BBC, NYT, YouTube, Netflix,
        Reddit, Instagram, X, LinkedIn, Pinterest, Airbnb
      - Learning (purple) — Coursera, Udemy, freeCodeCamp,
        egghead
@@ -41,13 +41,13 @@ Recommended macOS tool: Cmd+Shift+4 → Space → click window
 --- Screenshot 1: Popup with grouped-by-window view ---
 Purpose: shows the everyday interface + window color theming.
 Steps:
-  1. Focus the Vikend (amber) demo window so it becomes "current".
+  1. Focus the Weekend (amber) demo window so it becomes "current".
   2. Click PawTabs icon.
   3. Grouping: Window. Search: empty.
   4. Hover over the "POSAO (13)" group header so the group
      actions (Tag / Note / Move / Save-snapshot / X) fade in.
   5. Capture the popup only (Cmd+Shift+4 → Space → click popup).
-Composition: colored group headers stacked (Posao blue / Vikend
+Composition: colored group headers stacked (Work blue / Weekend
   amber / Research green / etc), inline actions visible, current
   tab card at top with pulsing green dot.
 

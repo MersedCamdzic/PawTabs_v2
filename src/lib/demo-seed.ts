@@ -46,7 +46,7 @@ const U = {
   vercel: mk("https://vercel.com/mersedca/pawtabs-web/deployments", "Deployments — pawtabs-web — Vercel", "vercel.com"),
   vercelLogs: mk("https://vercel.com/mersedca/pawtabs-web/logs", "Runtime logs — Vercel", "vercel.com"),
   slack: mk("https://pawtabs.slack.com/archives/C01ABC", "#general — PawTabs Slack", "slack.com"),
-  slackDm: mk("https://pawtabs.slack.com/archives/D02DEF", "Anja Kordić — direct message", "slack.com"),
+  slackDm: mk("https://pawtabs.slack.com/archives/D02DEF", "Anna Miller — direct message", "slack.com"),
   jira: mk("https://mersedca.atlassian.net/jira/software/projects/PAW/boards/1", "Sprint board — Jira", "atlassian.net"),
   clickup: mk("https://app.clickup.com/2/v/l/li/93kA", "Marketing tasks — ClickUp", "clickup.com"),
   trello: mk("https://trello.com/b/xyz/product", "Product roadmap — Trello", "trello.com"),
@@ -225,7 +225,7 @@ export async function seedDemoData(): Promise<void> {
     text,
     createdAt: now - ageHours * HOUR,
   });
-  notesMap[U.github.url] = [mkNote("Waiting on review from Anja — pinged in Slack")];
+  notesMap[U.github.url] = [mkNote("Waiting on review from Anna — pinged in Slack")];
   notesMap[U.linear.url] = [mkNote("Blocked by PAW-127; check migration next Monday")];
   notesMap[U.notion.url] = [
     mkNote("Legal signoff needed for Q3 launch (RFC-2026-14)"),
@@ -274,7 +274,7 @@ export async function seedDemoData(): Promise<void> {
       "slack",
       "vercel",
     ].map((k, i) => mkSessionTab(k as keyof typeof U, i + 1)),
-    windows: [{ id: 1000, title: "Posao" }],
+    windows: [{ id: 1000, title: "Work" }],
   };
 
   const researchAI: SavedSession = {
@@ -306,7 +306,7 @@ export async function seedDemoData(): Promise<void> {
       "amazonWishlist",
       "amazonOrders",
     ].map((k, i) => mkSessionTab(k as keyof typeof U, i + 30)),
-    windows: [{ id: 1000, title: "Vikend" }],
+    windows: [{ id: 1000, title: "Weekend" }],
   };
 
   const musicSession: SavedSession = {
@@ -317,7 +317,7 @@ export async function seedDemoData(): Promise<void> {
     tabs: ["spotify", "youtubeMusic", "soundcloud", "bandcamp"].map((k, i) =>
       mkSessionTab(k as keyof typeof U, i + 40),
     ),
-    windows: [{ id: 1000, title: "Vikend" }],
+    windows: [{ id: 1000, title: "Weekend" }],
   };
 
   const learningSession: SavedSession = {
@@ -396,9 +396,9 @@ export async function seedDemoData(): Promise<void> {
 
   // ---------- windows metadata ----------
   const windows: Record<number, WindowMeta> = {
-    1: { title: "Posao", color: "blue" },
+    1: { title: "Work", color: "blue" },
     2: { title: "Research", color: "green" },
-    3: { title: "Vikend", color: "amber" },
+    3: { title: "Weekend", color: "amber" },
     4: { title: "Learning", color: "purple" },
     5: { title: "Finance", color: "red" },
   };
@@ -434,7 +434,7 @@ export const SUGGESTED_TABS_TO_OPEN: {
   urls: string[];
 }[] = [
   {
-    windowName: "Posao",
+    windowName: "Work",
     color: "blue",
     urls: [
       U.gmail.url,
@@ -483,7 +483,7 @@ export const SUGGESTED_TABS_TO_OPEN: {
     ],
   },
   {
-    windowName: "Vikend",
+    windowName: "Weekend",
     color: "amber",
     urls: [
       U.amazon.url,
