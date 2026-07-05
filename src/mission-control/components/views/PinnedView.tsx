@@ -1,4 +1,4 @@
-import { useMemo } from "preact/hooks";
+import { useMemo, useState, useEffect, useCallback } from "preact/hooks";
 import {
   Globe,
   ArrowSquareOut,
@@ -9,11 +9,15 @@ import {
   Broadcast,
   Moon,
   Browsers,
+  Tag,
+  NotePencil,
 } from "@phosphor-icons/react";
 import { focusTab, closeTab, togglePinned } from "@/lib/chrome";
 import { getRootDomain } from "@/lib/utils";
 import { WINDOW_COLOR_STYLES } from "@/lib/window-colors";
-import type { PawTab, WindowColor } from "@/types";
+import { getTaggedMap } from "@/lib/tagged-urls";
+import { storage } from "@/lib/storage";
+import type { PawTab, WindowColor, Note } from "@/types";
 
 interface Props {
   tabs: PawTab[];
@@ -40,6 +44,25 @@ export function PinnedView({
   onOpenDetails,
 }: Props) {
   const rows = useMemo(() => tabs, [tabs]);
+  const [tagsByUrl, setTagsByUrl] = useState<Record<string, string[]>>({});
+  const [notesByUrl, setNotesByUrl] = useState<Record<string, Note[]>>({});
+
+  const loadMeta = useCallback(async () => {
+    const [taggedMap, notesMap] = await Promise.all([
+      getTaggedMap(),
+      storage.get("notesByUrl"),
+    ]);
+    const tagLookup: Record<string, string[]> = {};
+    for (const [url, entry] of Object.entries(taggedMap)) {
+      if (entry.tags.length > 0) tagLookup[url] = entry.tags;
+    }
+    setTagsByUrl(tagLookup);
+    setNotesByUrl(notesMap ?? {});
+  }, []);
+
+  useEffect(() => {
+    loadMeta();
+  }, [loadMeta, tabs]);
 
   if (rows.length === 0) {
     return (
@@ -60,6 +83,8 @@ export function PinnedView({
               tab={tab}
               windowName={wm?.title ?? null}
               windowColor={wm?.color ?? null}
+              tags={tagsByUrl[tab.url] ?? []}
+              noteCount={(notesByUrl[tab.url] ?? []).length}
               onOpen={() => onOpenDetails(tab)}
               onJump={async () => {
                 await focusTab(tab.id, tab.windowId);
@@ -84,12 +109,15 @@ function PinnedRow(props: {
   tab: PawTab;
   windowName: string | null;
   windowColor: WindowColor | null;
+  tags: string[];
+  noteCount: number;
   onOpen: () => void;
   onJump: () => void;
   onUnpin: () => void;
   onCloseTab: () => void;
 }) {
-  const { tab, windowName, windowColor } = props;
+  const { tab, windowName, windowColor, tags, noteCount } = props;
+  const tagCount = tags.length;
   const domain = getRootDomain(tab.url);
   const isInactive = tab.discarded;
   const windowColorStyle = windowColor ? WINDOW_COLOR_STYLES[windowColor] : null;
@@ -151,6 +179,24 @@ function PinnedRow(props: {
           >
             <PushPin size={12} weight="fill" />
           </span>
+          {tagCount > 0 && (
+            <span
+              title={tags.join(", ")}
+              class="shrink-0 inline-flex items-center gap-0.5 mt-1 text-purple-600 text-[11px] font-semibold"
+            >
+              <Tag size={11} weight="fill" />
+              {tagCount}
+            </span>
+          )}
+          {noteCount > 0 && (
+            <span
+              title={`${noteCount} note${noteCount === 1 ? "" : "s"}`}
+              class="shrink-0 inline-flex items-center gap-0.5 mt-1 text-cyan-600 text-[11px] font-semibold"
+            >
+              <NotePencil size={11} weight="fill" />
+              {noteCount}
+            </span>
+          )}
           <span class="min-w-0">{tab.title || domain}</span>
         </div>
         <div class="text-[11px] text-fg-subtle leading-tight mt-1 break-all line-clamp-2">

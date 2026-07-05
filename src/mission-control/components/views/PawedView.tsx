@@ -11,9 +11,14 @@ import {
   Prohibit,
   Browsers,
   X,
+  Tag,
+  NotePencil,
 } from "@phosphor-icons/react";
 import { listPawed, unpawTab } from "@/lib/pawed";
 import { focusTab, closeTab } from "@/lib/chrome";
+import { getTaggedMap } from "@/lib/tagged-urls";
+import { storage } from "@/lib/storage";
+import type { Note } from "@/types";
 import { getRootDomain } from "@/lib/utils";
 import { WINDOW_COLOR_STYLES } from "@/lib/window-colors";
 import type { PawTab, PawedEntry, WindowColor } from "@/types";
@@ -56,9 +61,22 @@ export function PawedView({
   refreshSignal,
 }: Props) {
   const [entries, setEntries] = useState<PawedEntry[]>([]);
+  const [tagsByUrl, setTagsByUrl] = useState<Record<string, string[]>>({});
+  const [notesByUrl, setNotesByUrl] = useState<Record<string, Note[]>>({});
 
   const refresh = useCallback(async () => {
-    setEntries(await listPawed());
+    const [list, taggedMap, notesMap] = await Promise.all([
+      listPawed(),
+      getTaggedMap(),
+      storage.get("notesByUrl"),
+    ]);
+    setEntries(list);
+    const tagLookup: Record<string, string[]> = {};
+    for (const [url, entry] of Object.entries(taggedMap)) {
+      if (entry.tags.length > 0) tagLookup[url] = entry.tags;
+    }
+    setTagsByUrl(tagLookup);
+    setNotesByUrl(notesMap ?? {});
   }, []);
 
   useEffect(() => {
@@ -185,6 +203,8 @@ export function PawedView({
               row={row}
               windowName={wm?.title ?? null}
               windowColor={wm?.color ?? null}
+              tags={tagsByUrl[row.entry.url] ?? []}
+              noteCount={(notesByUrl[row.entry.url] ?? []).length}
               onOpen={() => handleRowClick(row)}
               onJump={() => handleJump(row)}
               onUnpaw={() => handleUnpaw(row.entry)}
@@ -201,13 +221,16 @@ function PawedRow(props: {
   row: Row;
   windowName: string | null;
   windowColor: WindowColor | null;
+  tags: string[];
+  noteCount: number;
   onOpen: () => void;
   onJump: () => void;
   onUnpaw: () => void;
   onCloseTab: () => void;
 }) {
-  const { row, windowName, windowColor } = props;
+  const { row, windowName, windowColor, tags, noteCount } = props;
   const { entry, openTab } = row;
+  const tagCount = tags.length;
   const domain = getRootDomain(entry.url);
   const isOpen = openTab !== null;
   const isInactive = isOpen && openTab.discarded;
@@ -279,6 +302,24 @@ function PawedRow(props: {
               class="shrink-0 inline-flex mt-1 text-warning"
             >
               <PushPin size={12} weight="fill" />
+            </span>
+          )}
+          {tagCount > 0 && (
+            <span
+              title={tags.join(", ")}
+              class="shrink-0 inline-flex items-center gap-0.5 mt-1 text-purple-600 text-[11px] font-semibold"
+            >
+              <Tag size={11} weight="fill" />
+              {tagCount}
+            </span>
+          )}
+          {noteCount > 0 && (
+            <span
+              title={`${noteCount} note${noteCount === 1 ? "" : "s"}`}
+              class="shrink-0 inline-flex items-center gap-0.5 mt-1 text-cyan-600 text-[11px] font-semibold"
+            >
+              <NotePencil size={11} weight="fill" />
+              {noteCount}
             </span>
           )}
           <span class="min-w-0">{entry.title || domain || entry.url}</span>

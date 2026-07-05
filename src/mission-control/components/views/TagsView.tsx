@@ -12,7 +12,10 @@ import {
   Prohibit,
   Browsers,
   X,
+  NotePencil,
 } from "@phosphor-icons/react";
+import { storage } from "@/lib/storage";
+import type { Note } from "@/types";
 import {
   listTags,
   removeTagFromUrl,
@@ -71,17 +74,20 @@ export function TagsView({
     Record<number, { title?: string; color?: WindowColor }>
   >({});
   const [openWindowIds, setOpenWindowIds] = useState<Set<number>>(new Set());
+  const [notesByUrl, setNotesByUrl] = useState<Record<string, Note[]>>({});
 
   const refresh = useCallback(async () => {
-    const [tags, paws, meta, wins] = await Promise.all([
+    const [tags, paws, meta, wins, notesMap] = await Promise.all([
       listTags(),
       getPawedUrlSet(),
       getAllWindowMeta(),
       chrome.windows.getAll(),
+      storage.get("notesByUrl"),
     ]);
     setTagList(tags);
     setPawedUrls(paws);
     setWindowMeta(meta);
+    setNotesByUrl(notesMap ?? {});
     setOpenWindowIds(
       new Set(
         wins
@@ -329,6 +335,7 @@ export function TagsView({
                     windowName={wm?.title ?? null}
                     windowColor={wm?.color ?? null}
                     restoreTargetName={restoreTargetName}
+                    noteCount={(notesByUrl[entry.url] ?? []).length}
                     onOpen={() => handleRowClick(entry)}
                     onJump={() => handleJump(entry)}
                     onRemoveTag={() => handleRemoveTag(entry, selected)}
@@ -379,13 +386,22 @@ function TaggedRow(props: {
   windowName: string | null;
   windowColor: WindowColor | null;
   restoreTargetName: string | null;
+  noteCount: number;
   onOpen: () => void;
   onJump: () => void;
   onRemoveTag: () => void;
   onCloseTab: () => void;
 }) {
-  const { entry, openTab, pawed, windowName, windowColor, restoreTargetName } =
-    props;
+  const {
+    entry,
+    openTab,
+    pawed,
+    windowName,
+    windowColor,
+    restoreTargetName,
+    noteCount,
+  } = props;
+  const tagCount = entry.tags.length;
   const domain = getRootDomain(entry.url);
   const isOpen = openTab !== null;
   const isInactive = isOpen && openTab.discarded;
@@ -484,6 +500,24 @@ function TaggedRow(props: {
               class="shrink-0 inline-flex mt-1 text-warning"
             >
               <PushPin size={12} weight="fill" />
+            </span>
+          )}
+          {tagCount > 0 && (
+            <span
+              title={entry.tags.join(", ")}
+              class="shrink-0 inline-flex items-center gap-0.5 mt-1 text-purple-600 text-[11px] font-semibold"
+            >
+              <Tag size={11} weight="fill" />
+              {tagCount}
+            </span>
+          )}
+          {noteCount > 0 && (
+            <span
+              title={`${noteCount} note${noteCount === 1 ? "" : "s"}`}
+              class="shrink-0 inline-flex items-center gap-0.5 mt-1 text-cyan-600 text-[11px] font-semibold"
+            >
+              <NotePencil size={11} weight="fill" />
+              {noteCount}
             </span>
           )}
           <span class="min-w-0">{entry.title || domain}</span>
