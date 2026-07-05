@@ -8,6 +8,7 @@ import {
   Tag,
   PawPrint,
   NotePencil,
+  Prohibit,
 } from "@phosphor-icons/react";
 import {
   listRecentlyClosedDetailed,
@@ -303,35 +304,44 @@ export function RecentlyClosedView({
                 role="button"
                 tabIndex={0}
                 title="Open details"
-                class="group flex items-center gap-3 px-3 py-2.5 rounded-md hover:bg-surface cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-accent/20"
+                class="group flex items-start gap-3 px-3 py-2.5 rounded-md hover:bg-surface cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-accent/20"
               >
                 {item.favIconUrl ? (
                   <img
                     src={item.favIconUrl}
                     alt=""
-                    class="size-5 shrink-0 rounded"
+                    class="size-5 shrink-0 rounded mt-0.5 grayscale opacity-70"
                     onError={(e) => {
                       (e.currentTarget as HTMLImageElement).style.display =
                         "none";
                     }}
                   />
                 ) : (
-                  <Globe size={16} class="text-fg-subtle shrink-0" />
+                  <Globe
+                    size={16}
+                    class="text-fg-subtle shrink-0 mt-0.5 opacity-70"
+                  />
                 )}
                 <div class="flex-1 min-w-0">
-                  <div class="text-[13px] truncate flex items-center gap-1.5">
+                  <div class="flex items-start gap-1.5 text-[13px] leading-snug line-clamp-2 text-fg-muted italic">
+                    <span
+                      title="Closed — tab is gone, click to reopen URL"
+                      class="shrink-0 inline-flex mt-1 text-danger"
+                    >
+                      <Prohibit size={12} weight="bold" />
+                    </span>
                     {isPawed && (
                       <span
                         title="Pawed"
-                        class="shrink-0 inline-flex text-accent"
+                        class="shrink-0 inline-flex mt-1 text-accent"
                       >
-                        <PawPrint size={11} weight="fill" />
+                        <PawPrint size={12} weight="fill" />
                       </span>
                     )}
                     {itemTags.length > 0 && (
                       <span
                         title={itemTags.join(", ")}
-                        class="shrink-0 inline-flex items-center gap-0.5 text-purple-600 text-[11px] font-semibold"
+                        class="shrink-0 inline-flex items-center gap-0.5 mt-1 text-purple-600 text-[11px] font-semibold"
                       >
                         <Tag size={11} weight="fill" />
                         {itemTags.length}
@@ -343,52 +353,58 @@ export function RecentlyClosedView({
                           .map((n) => n.text)
                           .join("\n\n")
                           .slice(0, 300)}
-                        class="shrink-0 inline-flex items-center gap-0.5 text-cyan-600 text-[11px] font-semibold"
+                        class="shrink-0 inline-flex items-center gap-0.5 mt-1 text-cyan-600 text-[11px] font-semibold"
                       >
                         <NotePencil size={11} weight="fill" />
                         {itemNotes.length}
                       </span>
                     )}
-                    <span class="truncate">
+                    <span class="min-w-0 not-italic text-fg-muted">
                       {item.title || getRootDomain(item.url) || "Untitled"}
                     </span>
                   </div>
-                  <div class="text-[11px] text-fg-subtle truncate mt-0.5 flex items-center gap-1.5">
-                    <span class="truncate">{getRootDomain(item.url)}</span>
-                    <span>·</span>
-                    <span class="shrink-0">
-                      {formatRelativeTime(
-                        new Date(item.lastModified).toISOString(),
-                      )}
-                    </span>
+                  <div class="text-[11px] text-fg-subtle leading-tight mt-1 break-all line-clamp-2">
+                    {item.url}
+                  </div>
+                  <div class="text-[10px] text-fg-subtle/70 mt-1">
+                    {formatRelativeTime(
+                      new Date(item.lastModified).toISOString(),
+                    )}
                   </div>
                 </div>
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleReopen(item);
-                  }}
-                  disabled={!item.sessionId}
-                  aria-label="Reopen"
-                  data-tooltip="Reopen tab"
-                  data-tooltip-pos="left"
-                  class="size-8 inline-flex items-center justify-center rounded text-fg-muted opacity-0 group-hover:opacity-100 hover:bg-accent-subtle hover:text-accent disabled:opacity-20 transition-all"
-                >
-                  <ArrowUUpLeft size={14} weight="bold" />
-                </button>
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    hideOne(item);
-                  }}
-                  aria-label="Remove from list"
-                  title="Remove from list (Chrome still remembers it)"
-                  class="size-8 inline-flex items-center justify-center rounded text-fg-muted opacity-0 group-hover:opacity-100 hover:bg-danger-subtle hover:text-danger transition-all"
-                >
-                  <Trash size={13} />
-                </button>
+                <div class="flex items-center gap-0.5 shrink-0">
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      hideOne(item);
+                    }}
+                    aria-label="Remove from list"
+                    data-tooltip="Remove from list (Chrome still remembers it)"
+                    data-tooltip-pos="above"
+                    class="size-8 inline-flex items-center justify-center rounded text-fg-muted opacity-0 group-hover:opacity-100 hover:bg-danger-subtle hover:text-danger transition-all"
+                  >
+                    <Trash size={13} />
+                  </button>
+                  <span
+                    class="w-px h-4 mx-1 bg-border opacity-0 group-hover:opacity-100 transition-opacity"
+                    aria-hidden="true"
+                  />
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleReopen(item);
+                    }}
+                    disabled={!item.sessionId}
+                    aria-label="Reopen"
+                    data-tooltip="Reopen tab"
+                    data-tooltip-pos="above"
+                    class="size-8 inline-flex items-center justify-center rounded text-fg-muted opacity-0 group-hover:opacity-100 hover:bg-accent-subtle hover:text-accent disabled:opacity-20 transition-all"
+                  >
+                    <ArrowUUpLeft size={14} weight="bold" />
+                  </button>
+                </div>
               </div>
             );
           })}
