@@ -36,9 +36,11 @@ import {
   moveTabToNewWindow,
   listWindowsForMove,
 } from "@/lib/tabs";
-import { addTagToUrl, removeTagFromUrl } from "@/lib/tagged-urls";
-import { pawTab, unpawTab } from "@/lib/pawed";
+import { addTagToUrl, removeTagFromUrl, getTagsForUrl } from "@/lib/tagged-urls";
+import { pawTab, unpawTab, isPawed } from "@/lib/pawed";
 import { storage } from "@/lib/storage";
+import { getNotesForUrl } from "@/lib/tabs";
+import type { Note } from "@/types";
 import {
   focusTab,
   closeTab,
@@ -86,6 +88,20 @@ export function TabDetailsModal({
   const [renamingWindow, setRenamingWindow] = useState(false);
   const [windowNameDraft, setWindowNameDraft] = useState("");
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+  const [closedTags, setClosedTags] = useState<string[]>([]);
+  const [closedNotes, setClosedNotes] = useState<Note[]>([]);
+  const [closedStarred, setClosedStarred] = useState(false);
+
+  const refreshClosedData = async (url: string) => {
+    const [tags, notes, paw] = await Promise.all([
+      getTagsForUrl(url),
+      getNotesForUrl(url),
+      isPawed(url),
+    ]);
+    setClosedTags(tags);
+    setClosedNotes(notes);
+    setClosedStarred(paw);
+  };
 
   const refreshWindowMeta = async (tabId: number) => {
     const [list, meta] = await Promise.all([
@@ -109,7 +125,12 @@ export function TabDetailsModal({
     setCopied(false);
     setRenamingWindow(false);
     setWindowNameDraft("");
-    if (!closedMode) {
+    if (closedMode) {
+      setClosedTags(tab.tags);
+      setClosedNotes(tab.notes);
+      setClosedStarred(tab.starred);
+      refreshClosedData(tab.url);
+    } else {
       refreshWindowMeta(tab.id);
     }
   }, [open, tab?.id, closedMode]);
@@ -126,6 +147,7 @@ export function TabDetailsModal({
         favIconUrl: tab.favIconUrl,
         tag: tagInput,
       });
+      await refreshClosedData(tab.url);
     } else {
       await addTag(tab.id, tagInput);
     }
@@ -136,6 +158,7 @@ export function TabDetailsModal({
   const handleRemoveTag = async (t: string) => {
     if (closedMode) {
       await removeTagFromUrl(tab.url, t);
+      await refreshClosedData(tab.url);
     } else {
       await removeTag(tab.id, t);
     }
@@ -147,6 +170,7 @@ export function TabDetailsModal({
     if (!noteInput.trim()) return;
     if (closedMode) {
       await addNoteByUrl(tab.url, noteInput);
+      await refreshClosedData(tab.url);
     } else {
       await addNote(tab.id, noteInput);
     }
@@ -157,6 +181,7 @@ export function TabDetailsModal({
   const handleRemoveNote = async (id: string) => {
     if (closedMode) {
       await removeNoteByUrl(tab.url, id);
+      await refreshClosedData(tab.url);
     } else {
       await removeNote(tab.id, id);
     }
@@ -206,7 +231,7 @@ export function TabDetailsModal({
 
   const handlePaw = async () => {
     if (closedMode) {
-      if (tab.starred) {
+      if (closedStarred) {
         await unpawTab(tab.url);
       } else {
         await pawTab({
@@ -215,6 +240,7 @@ export function TabDetailsModal({
           favIconUrl: tab.favIconUrl,
         });
       }
+      await refreshClosedData(tab.url);
     } else {
       await toggleStarred(tab.id);
     }
@@ -333,12 +359,21 @@ export function TabDetailsModal({
       headerActions={
         <div class="flex items-center gap-0.5">
           <HeaderAction
-            title={tab.starred ? "Unpaw this tab" : "Paw this tab"}
-            active={tab.starred}
+            title={
+              (closedMode ? closedStarred : tab.starred)
+                ? "Unpaw this tab"
+                : "Paw this tab"
+            }
+            active={closedMode ? closedStarred : tab.starred}
             tone="accent"
             onClick={handlePaw}
           >
-            <PawPrint size={13} weight={tab.starred ? "fill" : "regular"} />
+            <PawPrint
+              size={13}
+              weight={
+                (closedMode ? closedStarred : tab.starred) ? "fill" : "regular"
+              }
+            />
           </HeaderAction>
           <HeaderAction
             title={
@@ -469,17 +504,17 @@ export function TabDetailsModal({
         <Section
           icon={<Tag size={11} weight="fill" />}
           title="Tags"
-          count={tab.tags.length}
+          count={(closedMode ? closedTags : tab.tags).length}
           color="text-purple-600"
         >
-          {tab.tags.length === 0 && (
+          {(closedMode ? closedTags : tab.tags).length === 0 && (
             <div class="text-[11px] text-fg-subtle italic mb-1.5">
               No tags yet
             </div>
           )}
-          {tab.tags.length > 0 && (
+          {(closedMode ? closedTags : tab.tags).length > 0 && (
             <div class="flex flex-wrap gap-1 mb-2">
-              {tab.tags.map((t) => (
+              {(closedMode ? closedTags : tab.tags).map((t) => (
                 <TagChip
                   key={t}
                   label={t}
@@ -512,17 +547,17 @@ export function TabDetailsModal({
         <Section
           icon={<NotePencil size={11} weight="fill" />}
           title="Notes"
-          count={tab.notes.length}
+          count={(closedMode ? closedNotes : tab.notes).length}
           color="text-cyan-600"
         >
-          {tab.notes.length === 0 && (
+          {(closedMode ? closedNotes : tab.notes).length === 0 && (
             <div class="text-[11px] text-fg-subtle italic mb-1.5">
               No notes yet
             </div>
           )}
-          {tab.notes.length > 0 && (
+          {(closedMode ? closedNotes : tab.notes).length > 0 && (
             <div class="space-y-1.5 mb-3 max-h-[140px] overflow-y-auto pr-0.5">
-              {tab.notes.map((n) => (
+              {(closedMode ? closedNotes : tab.notes).map((n) => (
                 <div
                   key={n.id}
                   class="group relative flex items-start gap-2 pl-3 pr-2 py-2 bg-cyan-500/10 rounded-r-md border-l-2 border-cyan-500/60"
