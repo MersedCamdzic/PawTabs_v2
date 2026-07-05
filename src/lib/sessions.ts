@@ -49,8 +49,89 @@ export async function saveSession(
 
 export type RestoreMode = "per-window" | "single-window" | "reuse-if-exists";
 
+export interface RestoreProgress {
+  done: number;
+  total: number;
+  currentUrl?: string;
+}
+
 export interface RestoreOptions {
   mode?: RestoreMode;
+  batchSize?: number;
+  delayMs?: number;
+  onProgress?: (p: RestoreProgress) => void;
+  signal?: AbortSignal;
+  discardAfterCreate?: boolean;
+}
+
+async function pause(ms: number, signal?: AbortSignal): Promise<void> {
+  await new Promise<void>((resolve, reject) => {
+    if (signal?.aborted) return reject(new DOMException("aborted", "AbortError"));
+    const t = setTimeout(resolve, ms);
+    signal?.addEventListener("abort", () => {
+      clearTimeout(t);
+      reject(new DOMException("aborted", "AbortError"));
+    });
+  });
+}
+
+async function createAndDiscard(
+  windowId: number | undefined,
+  tab: SessionTab,
+  discardAfter: boolean,
+): Promise<void> {
+  const created = await chrome.tabs.create({
+    windowId,
+    url: tab.url,
+    active: false,
+    pinned: Boolean(tab.pinned),
+  });
+  if (!created?.id) return;
+  if (tab.pinned) {
+    try {
+      await chrome.tabs.update(created.id, { pinned: true });
+    } catch {
+      // ignore
+    }
+  }
+  if (discardAfter) {
+    // Give the tab a beat to register with Chrome, then ask it to be
+    // discarded so it doesn't sit in memory rendered.
+    setTimeout(() => {
+      chrome.tabs.discard(created.id!).catch(() => undefined);
+    }, 250);
+  }
+}
+
+async function createBatched(
+  windowId: number | undefined,
+  tabs: SessionTab[],
+  options: RestoreOptions,
+  progressBase: { done: number; total: number },
+): Promise<void> {
+  const batchSize = Math.max(1, options.batchSize ?? 5);
+  const delayMs = Math.max(0, options.delayMs ?? 300);
+  const discardAfter = options.discardAfterCreate ?? true;
+  for (let i = 0; i < tabs.length; i += batchSize) {
+    if (options.signal?.aborted) {
+      throw new DOMException("aborted", "AbortError");
+    }
+    const chunk = tabs.slice(i, i + batchSize);
+    await Promise.all(
+      chunk.map((t) =>
+        createAndDiscard(windowId, t, discardAfter).catch(() => undefined),
+      ),
+    );
+    progressBase.done += chunk.length;
+    options.onProgress?.({
+      done: progressBase.done,
+      total: progressBase.total,
+      currentUrl: chunk[chunk.length - 1]?.url,
+    });
+    if (i + batchSize < tabs.length) {
+      await pause(delayMs, options.signal);
+    }
+  }
 }
 
 export async function restoreSession(
@@ -60,17 +141,28 @@ export async function restoreSession(
   const mode: RestoreMode = options.mode ?? "per-window";
   const restorable = session.tabs.filter((t) => isRestorable(t.url));
   if (restorable.length === 0) return;
+  const progressBase = { done: 0, total: restorable.length };
+  options.onProgress?.({ done: 0, total: restorable.length });
 
   if (mode === "single-window") {
-    const urls = restorable.map((t) => t.url);
-    const win = await chrome.windows.create({ url: urls, focused: false });
+    // Create a shell window with a placeholder tab first, then batch
+    // the rest into it. Prevents Chrome from trying to load 90 URLs at
+    // once.
+    const win = await chrome.windows.create({
+      url: "about:blank",
+      focused: false,
+    });
     if (!win?.id) return;
-    const created = await chrome.tabs.query({ windowId: win.id });
-    for (let i = 0; i < restorable.length; i += 1) {
-      const tab = restorable[i]!;
-      const actual = created[i];
-      if (tab.pinned && actual?.id !== undefined) {
-        await chrome.tabs.update(actual.id, { pinned: true });
+    const shellTabs = await chrome.tabs.query({ windowId: win.id });
+    await createBatched(win.id, restorable, options, progressBase);
+    // Clean up the placeholder blank tab
+    for (const t of shellTabs) {
+      if (t.id !== undefined) {
+        try {
+          await chrome.tabs.remove(t.id);
+        } catch {
+          // ignore
+        }
       }
     }
     return;
@@ -92,33 +184,29 @@ export async function restoreSession(
 
   for (const [sourceWid, tabs] of byWindow.entries()) {
     if (tabs.length === 0) continue;
+    if (options.signal?.aborted) {
+      throw new DOMException("aborted", "AbortError");
+    }
 
     if (mode === "reuse-if-exists" && openIds.has(sourceWid)) {
-      for (const tab of tabs) {
-        const created = await chrome.tabs.create({
-          windowId: sourceWid,
-          url: tab.url,
-          active: false,
-          pinned: Boolean(tab.pinned),
-        });
-        // Chrome ignores `pinned` in some versions on create; ensure it.
-        if (tab.pinned && created?.id !== undefined) {
-          await chrome.tabs.update(created.id, { pinned: true });
-        }
-      }
+      await createBatched(sourceWid, tabs, options, progressBase);
       continue;
     }
 
-    const urls = tabs.map((t) => t.url);
-    const win = await chrome.windows.create({ url: urls, focused: false });
-    if (!win || win.id === undefined) continue;
-
-    const created = await chrome.tabs.query({ windowId: win.id });
-    for (let i = 0; i < tabs.length; i += 1) {
-      const tab = tabs[i]!;
-      const actual = created[i];
-      if (tab.pinned && actual?.id !== undefined) {
-        await chrome.tabs.update(actual.id, { pinned: true });
+    const win = await chrome.windows.create({
+      url: "about:blank",
+      focused: false,
+    });
+    if (!win?.id) continue;
+    const shellTabs = await chrome.tabs.query({ windowId: win.id });
+    await createBatched(win.id, tabs, options, progressBase);
+    for (const t of shellTabs) {
+      if (t.id !== undefined) {
+        try {
+          await chrome.tabs.remove(t.id);
+        } catch {
+          // ignore
+        }
       }
     }
   }

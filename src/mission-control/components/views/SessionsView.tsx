@@ -10,7 +10,6 @@ import {
 } from "@phosphor-icons/react";
 import {
   listSessions,
-  restoreSession,
   deleteSession,
   formatRelativeTime,
   formatAbsoluteDateTime,
@@ -194,15 +193,6 @@ export function SessionsView({
         open={restorePrompt !== null}
         session={restorePrompt?.kind === "session" ? restorePrompt.data : null}
         onClose={() => setRestorePrompt(null)}
-        onConfirm={async (mode) => {
-          if (restorePrompt?.kind !== "session") return;
-          setBusyId(itemId(restorePrompt));
-          try {
-            await restoreSession(restorePrompt.data, { mode });
-          } finally {
-            setBusyId(null);
-          }
-        }}
       />
     </div>
   );

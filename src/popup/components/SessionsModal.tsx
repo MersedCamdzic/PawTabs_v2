@@ -14,7 +14,6 @@ import { RestorePromptModal } from "./RestorePromptModal";
 import {
   listSessions,
   saveSession,
-  restoreSession,
   deleteSession,
   formatRelativeTime,
   formatAbsoluteDateTime,
@@ -238,15 +237,6 @@ export function SessionsModal({ open, onClose, currentStats }: Props) {
         open={restorePrompt !== null}
         session={restorePrompt?.kind === "session" ? restorePrompt.data : null}
         onClose={() => setRestorePrompt(null)}
-        onConfirm={async (mode) => {
-          if (restorePrompt?.kind !== "session") return;
-          setBusyId(itemId(restorePrompt));
-          try {
-            await restoreSession(restorePrompt.data, { mode });
-          } finally {
-            setBusyId(null);
-          }
-        }}
       />
     </Modal>
   );

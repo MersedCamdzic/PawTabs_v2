@@ -1,24 +1,36 @@
-import { useState } from "preact/hooks";
+import { useState, useEffect, useRef } from "preact/hooks";
 import { Info, Browsers, ArrowsIn, ArrowsClockwise } from "@phosphor-icons/react";
 import { Modal } from "./Modal";
+import { restoreSession } from "@/lib/sessions";
 import type { SavedSession } from "@/types";
-import type { RestoreMode } from "@/lib/sessions";
+import type { RestoreMode, RestoreProgress } from "@/lib/sessions";
 
 interface Props {
   open: boolean;
   session: SavedSession | null;
   onClose: () => void;
-  onConfirm: (mode: RestoreMode) => Promise<void> | void;
+  onDone?: () => void;
 }
 
-export function RestorePromptModal({ open, session, onClose, onConfirm }: Props) {
+export function RestorePromptModal({ open, session, onClose, onDone }: Props) {
   const [mode, setMode] = useState<RestoreMode>("per-window");
   const [infoOpen, setInfoOpen] = useState<Record<RestoreMode, boolean>>({
     "per-window": false,
     "single-window": false,
     "reuse-if-exists": false,
   });
-  const [saving, setSaving] = useState(false);
+  const [progress, setProgress] = useState<RestoreProgress | null>(null);
+  const [running, setRunning] = useState(false);
+  const abortRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    if (!open) {
+      setProgress(null);
+      setRunning(false);
+      abortRef.current?.abort();
+      abortRef.current = null;
+    }
+  }, [open]);
 
   if (!session) return null;
 
@@ -27,13 +39,35 @@ export function RestorePromptModal({ open, session, onClose, onConfirm }: Props)
   ).size;
 
   const handleGo = async () => {
-    setSaving(true);
+    const controller = new AbortController();
+    abortRef.current = controller;
+    setRunning(true);
+    setProgress({ done: 0, total: session.tabs.length });
     try {
-      await onConfirm(mode);
+      await restoreSession(session, {
+        mode,
+        signal: controller.signal,
+        onProgress: (p) => setProgress(p),
+        discardAfterCreate: true,
+        batchSize: 5,
+        delayMs: 350,
+      });
+      onDone?.();
       onClose();
+    } catch (err) {
+      if ((err as Error).name !== "AbortError") console.error(err);
     } finally {
-      setSaving(false);
+      setRunning(false);
     }
+  };
+
+  const handleCancel = () => {
+    if (running) {
+      abortRef.current?.abort();
+      setRunning(false);
+      return;
+    }
+    onClose();
   };
 
   return (
@@ -44,22 +78,30 @@ export function RestorePromptModal({ open, session, onClose, onConfirm }: Props)
       subtitle={session.sessionName}
       closeOnBackdrop={false}
       footer={
-        <div class="flex items-center justify-end gap-2">
-          <button
-            type="button"
-            onClick={onClose}
-            class="h-8 px-3 text-[12px] font-medium rounded-md text-fg-muted hover:bg-surface hover:text-fg transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            onClick={handleGo}
-            disabled={saving}
-            class="h-8 px-3 text-[12px] font-medium rounded-md bg-accent text-white hover:bg-accent-hover disabled:opacity-40 transition-colors"
-          >
-            {saving ? "Restoring…" : "Restore"}
-          </button>
+        <div class="flex items-center justify-between gap-2">
+          <div class="text-[11px] text-fg-subtle">
+            {running && progress
+              ? `${progress.done} of ${progress.total} tabs opened`
+              : "Tabs open in chunks (5 at a time, 350 ms apart) so Chrome stays responsive."}
+          </div>
+          <div class="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleCancel}
+              class="h-8 px-3 text-[12px] font-medium rounded-md text-fg-muted hover:bg-surface hover:text-fg transition-colors"
+            >
+              {running ? "Stop" : "Cancel"}
+            </button>
+            {!running && (
+              <button
+                type="button"
+                onClick={handleGo}
+                class="h-8 px-3 text-[12px] font-medium rounded-md bg-accent text-white hover:bg-accent-hover transition-colors"
+              >
+                Restore
+              </button>
+            )}
+          </div>
         </div>
       }
     >
@@ -67,6 +109,38 @@ export function RestorePromptModal({ open, session, onClose, onConfirm }: Props)
         {session.tabs.length} tabs from {windowCount} window
         {windowCount === 1 ? "" : "s"}. How should they open?
       </div>
+
+      {running && progress && (
+        <div class="mb-3 p-3 bg-accent-subtle/40 border border-accent/30 rounded-md">
+          <div class="flex items-center justify-between text-[12px] font-medium text-accent mb-2">
+            <span>Restoring…</span>
+            <span>
+              {progress.done} / {progress.total}
+            </span>
+          </div>
+          <div class="h-1.5 bg-bg rounded-full overflow-hidden">
+            <div
+              class="h-full bg-accent transition-all"
+              style={{
+                width: `${
+                  progress.total > 0
+                    ? Math.round((progress.done / progress.total) * 100)
+                    : 0
+                }%`,
+              }}
+            />
+          </div>
+          {progress.currentUrl && (
+            <div class="text-[10px] text-fg-subtle mt-1.5 truncate font-mono">
+              {progress.currentUrl}
+            </div>
+          )}
+          <div class="text-[10px] text-fg-subtle mt-1.5">
+            Tabs open unloaded (discarded) to save memory — they render
+            when you click them.
+          </div>
+        </div>
+      )}
 
       <div class="space-y-2">
         <RestoreOption
