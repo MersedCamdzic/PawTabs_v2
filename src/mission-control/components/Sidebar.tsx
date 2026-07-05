@@ -7,7 +7,6 @@ import {
   Tag,
   BookmarkSimple,
   ClockCounterClockwise,
-  Gear,
   Broom,
 } from "@phosphor-icons/react";
 import type { ComponentChildren, JSX } from "preact";
@@ -124,12 +123,6 @@ export function Sidebar({ view, onChange, onOpenCleanup, counts }: Props) {
           label="Cleanup tabs…"
           active={false}
           onClick={onOpenCleanup}
-        />
-        <NavItem
-          icon={<Gear size={14} />}
-          label="Settings"
-          active={view === "settings"}
-          onClick={() => onChange("settings")}
         />
       </div>
     </aside>
