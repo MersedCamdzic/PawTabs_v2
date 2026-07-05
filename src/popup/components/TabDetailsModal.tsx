@@ -22,7 +22,6 @@ import {
   Moon,
   Prohibit,
   ArrowUUpLeft,
-  Trash,
 } from "@phosphor-icons/react";
 import { Modal } from "./Modal";
 import { ConfirmModal } from "./ConfirmModal";
