@@ -217,26 +217,44 @@
           </div>
           <h2 class="mt-2 text-3xl font-bold tracking-tight">Screenshots</h2>
         </div>
-        <div class="grid gap-6 md:grid-cols-2">
+        <!-- Popup group — narrow, tall aspect ratios -->
+        <div class="mb-4 text-[10px] uppercase tracking-wider text-paw-subtle font-semibold">Popup</div>
+        <div class="grid gap-6 sm:grid-cols-2 max-w-4xl mx-auto mb-14">
           <figure class="border border-paw-border rounded-xl overflow-hidden bg-white">
             <img
               src="screenshots/01-popup.png"
               alt="PawTabs popup with grouped tabs, colored windows, tag/note counts"
-              class="w-full"
+              class="w-full block"
             />
             <figcaption class="px-4 py-3 text-[12px] text-paw-muted border-t border-paw-border">
-              <span class="font-semibold text-paw-fg">Popup.</span>
-              Group by window, tag/note counts inline, colored group headers.
+              <span class="font-semibold text-paw-fg">Group by window.</span>
+              Tag/note counts inline, colored group headers, current-tab card at top.
             </figcaption>
           </figure>
           <figure class="border border-paw-border rounded-xl overflow-hidden bg-white">
             <img
-              src="screenshots/02-overview.png"
-              alt="Mission Control Overview with browser state, top domains, timeline, tag cloud"
-              class="w-full"
+              src="screenshots/04-details.png"
+              alt="Tab details modal with paw active, 3 tags (Research, Reading, AI), 1 note, move-to-window picker"
+              class="w-full block"
             />
             <figcaption class="px-4 py-3 text-[12px] text-paw-muted border-t border-paw-border">
-              <span class="font-semibold text-paw-fg">Mission Control · Overview.</span>
+              <span class="font-semibold text-paw-fg">Tab details.</span>
+              Pawed, 3 stacked tags (Research · Reading · AI), an existing note, move-to-window picker.
+            </figcaption>
+          </figure>
+        </div>
+
+        <!-- Mission Control group — wide aspect ratios -->
+        <div class="mb-4 text-[10px] uppercase tracking-wider text-paw-subtle font-semibold">Mission Control (Pack)</div>
+        <div class="space-y-6">
+          <figure class="border border-paw-border rounded-xl overflow-hidden bg-white">
+            <img
+              src="screenshots/02-overview.png"
+              alt="Mission Control Overview with browser state, top domains, timeline, tag cloud"
+              class="w-full block"
+            />
+            <figcaption class="px-4 py-3 text-[12px] text-paw-muted border-t border-paw-border">
+              <span class="font-semibold text-paw-fg">Overview.</span>
               84 tabs across 6 windows, top domains, timeline, 23 tags, 39 tabs with notes — at a glance.
             </figcaption>
           </figure>
@@ -244,33 +262,22 @@
             <img
               src="screenshots/03-windows.png"
               alt="Windows view with 6 named + colored windows in a grid"
-              class="w-full"
+              class="w-full block"
             />
             <figcaption class="px-4 py-3 text-[12px] text-paw-muted border-t border-paw-border">
-              <span class="font-semibold text-paw-fg">Windows view.</span>
-              Named + colored windows (Work · Research · Weekend · Learning · Finance · Music) with compact tab rows inside.
+              <span class="font-semibold text-paw-fg">Windows.</span>
+              Named + colored (Work · Research · Weekend · Learning · Finance · Music) with compact tab rows inside.
             </figcaption>
           </figure>
           <figure class="border border-paw-border rounded-xl overflow-hidden bg-white">
             <img
-              src="screenshots/04-details.png"
-              alt="Tab details modal with paw active, 3 tags (Research, Reading, AI), 1 note, move-to-window picker"
-              class="w-full"
-            />
-            <figcaption class="px-4 py-3 text-[12px] text-paw-muted border-t border-paw-border">
-              <span class="font-semibold text-paw-fg">Tab details.</span>
-              Pawed (accent), 3 stacked tags (Research · Reading · AI), an existing note, and a move-to-window picker — everything about one tab, one screen.
-            </figcaption>
-          </figure>
-          <figure class="border border-paw-border rounded-xl overflow-hidden bg-white md:col-span-2">
-            <img
               src="screenshots/05-tags.png"
               alt="Tags view with 25 custom tags in sidebar and Work tag's URLs on the right"
-              class="w-full"
+              class="w-full block"
             />
             <figcaption class="px-4 py-3 text-[12px] text-paw-muted border-t border-paw-border">
-              <span class="font-semibold text-paw-fg">Tags view.</span>
-              25 custom labels — Work · Reading · Research · Learning · AI · Finance · Travel · Music. Every URL keeps its labels even after the tab closes.
+              <span class="font-semibold text-paw-fg">Tags.</span>
+              25 custom labels. Every URL keeps its labels even after the tab closes.
             </figcaption>
           </figure>
         </div>
