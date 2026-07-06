@@ -232,6 +232,43 @@ export async function seedDemoData(): Promise<void> {
   addTag("rottentomatoes", ["Watch later"], 0);
   addTag("goodreads", ["Reading"], 0);
   addTag("strava", ["Social"], 0);
+  // Multi-tag overlays — real users often stack labels; show the UI
+  // handles it (Tag N badge shows the count, chips wrap nicely).
+  addTag("github", ["Work", "Learning", "Research"], 1);
+  addTag("linear", ["Work", "Planning"], 2);
+  addTag("notion", ["Work", "Reading", "Planning"], 1);
+  addTag("figma", ["Work", "Design"], 1);
+  addTag("chatgpt", ["Research", "Learning", "AI"], 0);
+  addTag("claude", ["Research", "Learning", "AI"], 0);
+  addTag("perplexity", ["Research", "AI"], 0);
+  addTag("arxiv", ["Research", "Reading", "AI"], 2);
+  addTag("hackerNews", ["Reading", "Tech", "Community"], 1);
+  addTag("medium", ["Reading", "Tech"], 3);
+  addTag("substack", ["Reading", "Tech"], 4);
+  addTag("wsj", ["Finance", "Reading"], 1);
+  addTag("bloomberg", ["Finance", "Reading", "Markets"], 0);
+  addTag("coingecko", ["Finance", "Markets", "Crypto"], 0);
+  addTag("stackoverflow", ["Research", "Learning", "Tech"], 0);
+  addTag("mdn", ["Research", "Learning", "Tech"], 1);
+  addTag("mdnCss", ["Learning", "Tech", "Design"], 2);
+  addTag("figmaComments", ["Work", "Design"], 3);
+  addTag("linkedin", ["Social", "Networking", "Work"], 1);
+  addTag("twitter", ["Social", "News"], 2);
+  addTag("reddit", ["Social", "Reading", "Community"], 0);
+  addTag("amazon", ["Shopping", "Wishlist"], 3);
+  addTag("amazonCart", ["Shopping", "Wishlist"], 0);
+  addTag("amazonWishlist", ["Shopping", "Wishlist"], 4);
+  addTag("airbnb", ["Travel", "Planning"], 1);
+  addTag("booking", ["Travel", "Planning"], 2);
+  addTag("maps", ["Travel", "Reference"], 3);
+  addTag("coursera", ["Learning", "Career"], 1);
+  addTag("udemy", ["Learning", "Career"], 2);
+  addTag("freecodecamp", ["Learning", "Tech", "Career"], 3);
+  addTag("egghead", ["Learning", "Tech"], 4);
+  addTag("spotify", ["Music", "Focus"], 0);
+  addTag("spotifyLikes", ["Music", "Favorites"], 1);
+  addTag("youtube", ["Watch later", "Learning"], 0);
+  addTag("netflix", ["Watch later", "Entertainment"], 2);
 
   // ---------- notesByUrl ----------
   const notesMap: Record<string, Note[]> = {};

@@ -6,11 +6,16 @@ import {
   enterDemoMode,
   exitDemoMode,
 } from "@/lib/demo-mode";
+import { ConfirmModal } from "@/popup/components/ConfirmModal";
+
+type PendingAction = null | "seed" | "clear" | "enter" | "exit";
 
 export function DemoDataPanel({ onDone }: { onDone?: () => void }) {
   const [busy, setBusy] = useState(false);
   const [demoActive, setDemoActive] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
+  const [pending, setPending] = useState<PendingAction>(null);
+  const [saveStatus, setSaveStatus] = useState<string | null>(null);
 
   useEffect(() => {
     isDemoModeActive().then(setDemoActive);
@@ -29,49 +34,30 @@ export function DemoDataPanel({ onDone }: { onDone?: () => void }) {
     }
   };
 
-  const handleSeed = () =>
-    wrap(async () => {
-      if (
-        !confirm(
-          "Load demo data? This REPLACES pawed URLs, tags, snapshots, backups and window names with a realistic sample. Existing open tabs stay open.",
-        )
-      )
-        return;
-      await seedDemoData();
-    }, "Loading data…");
-
-  const handleClear = () =>
-    wrap(async () => {
-      if (
-        !confirm(
-          "Clear ALL stored data (paw, tags, notes, snapshots, backups, window names)? Cannot be undone. Open tabs stay open.",
-        )
-      )
-        return;
-      await clearDemoData();
-    }, "Clearing…");
-
-  const handleEnterDemo = () =>
-    wrap(async () => {
-      if (
-        !confirm(
-          "Enter demo mode? A backup session of your current tabs will be saved, then your windows will close and demo windows (Work / Research / Weekend) will open for screenshots.",
-        )
-      )
-        return;
-      await enterDemoMode();
-    }, "Entering demo…");
-
-  const handleExitDemo = () =>
-    wrap(async () => {
-      if (
-        !confirm(
-          "Exit demo mode? Demo windows will close and your original tabs will restore from the backup session.",
-        )
-      )
-        return;
-      await exitDemoMode();
-    }, "Restoring…");
+  const runPending = async () => {
+    const action = pending;
+    setPending(null);
+    setSaveStatus(null);
+    if (!action) return;
+    const config = {
+      seed: { fn: seedDemoData, label: "Loading data…" },
+      clear: { fn: clearDemoData, label: "Clearing…" },
+      enter: { fn: enterDemoMode, label: "Entering demo…" },
+      exit: { fn: exitDemoMode, label: "Restoring…" },
+    }[action];
+    await wrap(async () => {
+      await config.fn();
+      setSaveStatus(
+        action === "seed"
+          ? "Demo data loaded ✓"
+          : action === "clear"
+            ? "All data cleared"
+            : action === "enter"
+              ? "Demo mode active"
+              : "Session restored",
+      );
+    }, config.label);
+  };
 
   return (
     <div class="border border-border rounded-md p-4 space-y-3 bg-surface/40">
@@ -86,7 +72,7 @@ export function DemoDataPanel({ onDone }: { onDone?: () => void }) {
       <div class="grid grid-cols-2 gap-2">
         <button
           type="button"
-          onClick={handleSeed}
+          onClick={() => setPending("seed")}
           disabled={busy}
           class="h-9 px-3 inline-flex items-center justify-center gap-1.5 text-[12px] font-medium rounded-md border border-accent/40 text-accent bg-accent-subtle hover:bg-accent-subtle/70 disabled:opacity-40 transition-colors"
         >
@@ -95,7 +81,7 @@ export function DemoDataPanel({ onDone }: { onDone?: () => void }) {
         </button>
         <button
           type="button"
-          onClick={handleClear}
+          onClick={() => setPending("clear")}
           disabled={busy}
           class="h-9 px-3 inline-flex items-center justify-center gap-1.5 text-[12px] font-medium rounded-md border border-danger/30 text-danger bg-danger-subtle hover:bg-danger disabled:opacity-40 hover:text-white transition-colors"
         >
@@ -103,6 +89,9 @@ export function DemoDataPanel({ onDone }: { onDone?: () => void }) {
           Clear all data
         </button>
       </div>
+      {saveStatus && (
+        <div class="text-[10px] text-success">{saveStatus}</div>
+      )}
 
       <div class="border-t border-border pt-3">
         <div class="text-[11px] font-semibold text-fg mb-1">Demo mode</div>
@@ -114,7 +103,7 @@ export function DemoDataPanel({ onDone }: { onDone?: () => void }) {
         {demoActive ? (
           <button
             type="button"
-            onClick={handleExitDemo}
+            onClick={() => setPending("exit")}
             disabled={busy}
             class="w-full h-9 px-3 inline-flex items-center justify-center gap-1.5 text-[12px] font-medium rounded-md border border-accent/40 text-accent bg-accent-subtle hover:bg-accent hover:text-white disabled:opacity-40 transition-colors"
           >
@@ -124,7 +113,7 @@ export function DemoDataPanel({ onDone }: { onDone?: () => void }) {
         ) : (
           <button
             type="button"
-            onClick={handleEnterDemo}
+            onClick={() => setPending("enter")}
             disabled={busy}
             class="w-full h-9 px-3 inline-flex items-center justify-center gap-1.5 text-[12px] font-medium rounded-md border border-accent/40 text-accent bg-accent-subtle hover:bg-accent hover:text-white disabled:opacity-40 transition-colors"
           >
@@ -137,6 +126,61 @@ export function DemoDataPanel({ onDone }: { onDone?: () => void }) {
       {status && (
         <div class="text-[10px] text-accent mt-1">{status}</div>
       )}
+
+      <ConfirmModal
+        open={pending !== null}
+        title={
+          pending === "seed"
+            ? "Load demo data?"
+            : pending === "clear"
+              ? "Clear all data?"
+              : pending === "enter"
+                ? "Enter demo mode?"
+                : "Exit demo mode?"
+        }
+        message={
+          pending === "seed" ? (
+            <>
+              Replaces your current pawed URLs, tags, notes, snapshots,
+              backups and window colors with a realistic sample set
+              (Amazon, Google, CNN, GitHub, Notion, Figma, Linear,
+              Spotify, arXiv…). Open Chrome tabs stay open.
+            </>
+          ) : pending === "clear" ? (
+            <>
+              Removes <span class="font-semibold text-fg">all</span>{" "}
+              PawTabs data — pawed URLs, tags, notes, snapshots,
+              backups, window names/colors. This cannot be undone. Open
+              Chrome tabs stay open.
+            </>
+          ) : pending === "enter" ? (
+            <>
+              Saves your current tabs as a{" "}
+              <span class="font-semibold text-fg">Pre-demo backup</span>{" "}
+              session, then closes your windows and opens 6 demo
+              windows (Work · Research · Weekend · Learning · Finance ·
+              Music) for screenshots.
+            </>
+          ) : (
+            <>
+              Closes the demo windows and restores your original tabs
+              from the Pre-demo backup session.
+            </>
+          )
+        }
+        confirmLabel={
+          pending === "clear"
+            ? "Clear everything"
+            : pending === "seed"
+              ? "Load demo data"
+              : pending === "enter"
+                ? "Enter demo"
+                : "Restore session"
+        }
+        tone={pending === "clear" ? "danger" : "accent"}
+        onConfirm={runPending}
+        onCancel={() => setPending(null)}
+      />
     </div>
   );
 }
