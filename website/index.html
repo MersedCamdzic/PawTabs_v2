@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>PawTabs — Tab manager for people with too many tabs</title>
+    <meta
+      name="description"
+      content="Chrome tab manager: name and color your windows, tag tabs, attach notes, snapshot and restore sessions, cleanup wizard. All local, no telemetry."
+    />
+    <link rel="icon" type="image/png" href="logo.png" />
+    <meta property="og:title" content="PawTabs — Chrome tab manager" />
+    <meta property="og:description" content="Name and color your windows, tag tabs, attach notes, snapshot and restore sessions." />
+    <meta property="og:image" content="logo.png" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: [
+                "Inter",
+                "ui-sans-serif",
+                "system-ui",
+                "-apple-system",
+                "sans-serif",
+              ],
+            },
+            colors: {
+              paw: {
+                bg: "#FAFAF7",
+                surface: "#F4F4EF",
+                border: "#E5E5DE",
+                fg: "#18181B",
+                muted: "#52525B",
+                subtle: "#A1A1AA",
+                accent: "#2563EB",
+                "accent-hover": "#1D4ED8",
+                "accent-subtle": "#EFF6FF",
+              },
+            },
+          },
+        },
+      };
+    </script>
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+    />
+    <style>
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        background: #fafaf7;
+        color: #18181b;
+      }
+    </style>
+  </head>
+  <body class="font-sans antialiased">
+    <!-- Nav -->
+    <header class="border-b border-paw-border/60 bg-paw-bg/80 backdrop-blur sticky top-0 z-40">
+      <div class="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
+        <a href="#" class="flex items-center gap-2 font-semibold tracking-tight">
+          <img src="logo.png" alt="" class="size-6" />
+          PawTabs
+        </a>
+        <nav class="flex items-center gap-6 text-[13px] text-paw-muted">
+          <a href="#features" class="hover:text-paw-fg transition-colors">Features</a>
+          <a href="#screenshots" class="hover:text-paw-fg transition-colors">Screenshots</a>
+          <a href="#privacy" class="hover:text-paw-fg transition-colors">Privacy</a>
+          <a
+            href="#"
+            class="h-8 px-3 inline-flex items-center rounded-md bg-paw-accent text-white hover:bg-paw-accent-hover transition-colors font-medium"
+            >Install</a
+          >
+        </nav>
+      </div>
+    </header>
+
+    <!-- Hero -->
+    <section class="relative overflow-hidden">
+      <div
+        aria-hidden="true"
+        class="absolute inset-0 -z-10 bg-gradient-to-b from-paw-accent-subtle/60 via-paw-bg to-paw-bg"
+      ></div>
+      <div class="max-w-6xl mx-auto px-6 pt-20 pb-24 text-center">
+        <img src="logo.png" alt="" class="mx-auto size-20 mb-6" />
+        <h1 class="text-4xl sm:text-5xl font-bold tracking-tight">
+          Tabs for people with
+          <span class="text-paw-accent">too many tabs.</span>
+        </h1>
+        <p class="mt-5 max-w-2xl mx-auto text-[15px] leading-relaxed text-paw-muted">
+          PawTabs is a Chrome tab manager that names and colors your
+          windows, tags and annotates any URL, snapshots your sessions
+          for safe restore, and helps you clean up without losing your
+          place. Everything is local — no telemetry, no accounts, no
+          cloud.
+        </p>
+        <div class="mt-8 flex items-center justify-center gap-3">
+          <a
+            href="#"
+            class="h-11 px-6 inline-flex items-center gap-2 rounded-md bg-paw-accent text-white hover:bg-paw-accent-hover transition-colors font-semibold text-[14px]"
+          >
+            Install from Chrome Web Store
+          </a>
+          <a
+            href="#features"
+            class="h-11 px-6 inline-flex items-center rounded-md border border-paw-border hover:border-paw-fg/40 transition-colors font-medium text-[14px] text-paw-muted hover:text-paw-fg"
+          >
+            See what it does
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features -->
+    <section id="features" class="py-20 border-t border-paw-border">
+      <div class="max-w-6xl mx-auto px-6">
+        <div class="text-center max-w-2xl mx-auto mb-14">
+          <div class="text-[11px] uppercase tracking-wider text-paw-accent font-semibold">
+            What it does
+          </div>
+          <h2 class="mt-2 text-3xl font-bold tracking-tight">Nine ways PawTabs helps</h2>
+        </div>
+        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <!-- Paw -->
+          <div class="rounded-xl border border-paw-border bg-white p-5 hover:border-paw-accent/40 transition-colors">
+            <div class="size-10 rounded-lg bg-paw-accent-subtle text-paw-accent inline-flex items-center justify-center mb-3">
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 256 256"><path fill="currentColor" d="M212 108a44 44 0 1 0-44-44a44 44 0 0 0 44 44m0-72a28 28 0 1 1-28 28a28 28 0 0 1 28-28M44 108a44 44 0 1 0-44-44a44 44 0 0 0 44 44m0-72a28 28 0 1 1-28 28a28 28 0 0 1 28-28m112 40a44 44 0 1 0-44-44a44 44 0 0 0 44 44m0-72a28 28 0 1 1-28 28a28 28 0 0 1 28-28m48 172a48 48 0 0 1-8 27a52 52 0 0 1-40 21a52 52 0 0 1-40-21a48 48 0 0 1-8-27a48 48 0 0 1 96 0m-16 0a32 32 0 0 0-64 0a32 32 0 0 0 5.4 18a36 36 0 0 0 26.6 14a36 36 0 0 0 26.6-14a32 32 0 0 0 5.4-18"/></svg>
+            </div>
+            <h3 class="font-semibold text-[15px]">Paw the URL</h3>
+            <p class="mt-1 text-[13px] text-paw-muted leading-snug">Save any URL persistently. Even after you close the tab it's still there in the Pawed list.</p>
+          </div>
+
+          <!-- Tags -->
+          <div class="rounded-xl border border-paw-border bg-white p-5 hover:border-purple-400/40 transition-colors">
+            <div class="size-10 rounded-lg bg-purple-500/15 text-purple-600 inline-flex items-center justify-center mb-3">
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 256 256"><path fill="currentColor" d="M243.31 136L144 36.69A15.86 15.86 0 0 0 132.69 32H40a8 8 0 0 0-8 8v92.69A15.86 15.86 0 0 0 36.69 144L136 243.31a16 16 0 0 0 22.63 0l84.68-84.68a16 16 0 0 0 0-22.63M84 96a12 12 0 1 1 12-12a12 12 0 0 1-12 12"/></svg>
+            </div>
+            <h3 class="font-semibold text-[15px]">Custom tags</h3>
+            <p class="mt-1 text-[13px] text-paw-muted leading-snug">Stack multiple tags per URL (Work, Reading, AI…). Browse tabs by tag in Mission Control.</p>
+          </div>
+
+          <!-- Notes -->
+          <div class="rounded-xl border border-paw-border bg-white p-5 hover:border-cyan-400/40 transition-colors">
+            <div class="size-10 rounded-lg bg-cyan-500/15 text-cyan-600 inline-flex items-center justify-center mb-3">
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 256 256"><path fill="currentColor" d="m227.32 73.37l-44.69-44.68a16 16 0 0 0-22.63 0L36.69 152A15.86 15.86 0 0 0 32 163.31V208a16 16 0 0 0 16 16h44.69a15.86 15.86 0 0 0 11.31-4.69L227.32 96a16 16 0 0 0 0-22.63M92.69 208H48v-44.69l88-88L180.69 120ZM192 108.68L147.31 64l24-24L216 84.68Z"/></svg>
+            </div>
+            <h3 class="font-semibold text-[15px]">Attach notes</h3>
+            <p class="mt-1 text-[13px] text-paw-muted leading-snug">Add reminders, review comments, next steps. Notes persist by URL — outlive the tab.</p>
+          </div>
+
+          <!-- Windows -->
+          <div class="rounded-xl border border-paw-border bg-white p-5 hover:border-paw-accent/40 transition-colors">
+            <div class="size-10 rounded-lg bg-paw-accent-subtle text-paw-accent inline-flex items-center justify-center mb-3">
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 256 256"><path fill="currentColor" d="M216 40H72a16 16 0 0 0-16 16v16H40a16 16 0 0 0-16 16v128a16 16 0 0 0 16 16h144a16 16 0 0 0 16-16v-16h16a16 16 0 0 0 16-16V56a16 16 0 0 0-16-16M40 88h144v128H40Zm176 112h-16V88a16 16 0 0 0-16-16H72V56h144Z"/></svg>
+            </div>
+            <h3 class="font-semibold text-[15px]">Name + color windows</h3>
+            <p class="mt-1 text-[13px] text-paw-muted leading-snug">"Work" blue, "Weekend" amber. Colors ripple through the popup, group headers, and window chips.</p>
+          </div>
+
+          <!-- Snapshots -->
+          <div class="rounded-xl border border-paw-border bg-white p-5 hover:border-paw-accent/40 transition-colors">
+            <div class="size-10 rounded-lg bg-paw-accent-subtle text-paw-accent inline-flex items-center justify-center mb-3">
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 256 256"><path fill="currentColor" d="M208 32H72a16 16 0 0 0-16 16v144a16 16 0 0 0 16 16h136a16 16 0 0 0 16-16V48a16 16 0 0 0-16-16M72 48h136v144H72Zm-32 32a8 8 0 0 1-8 8H8a8 8 0 0 1 0-16h24a8 8 0 0 1 8 8m0 48a8 8 0 0 1-8 8H8a8 8 0 0 1 0-16h24a8 8 0 0 1 8 8m0 48a8 8 0 0 1-8 8H8a8 8 0 0 1 0-16h24a8 8 0 0 1 8 8"/></svg>
+            </div>
+            <h3 class="font-semibold text-[15px]">Snapshots &amp; auto-save</h3>
+            <p class="mt-1 text-[13px] text-paw-muted leading-snug">Save current tabs on a schedule (or manually). Restore any snapshot per-window or as one flat list.</p>
+          </div>
+
+          <!-- Smart restore -->
+          <div class="rounded-xl border border-paw-border bg-white p-5 hover:border-paw-accent/40 transition-colors">
+            <div class="size-10 rounded-lg bg-paw-accent-subtle text-paw-accent inline-flex items-center justify-center mb-3">
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 256 256"><path fill="currentColor" d="M240 56v48a8 8 0 0 1-8 8h-48a8 8 0 0 1 0-16h27.42a80 80 0 1 0 5.13 91.44a8 8 0 0 1 13.4 8.72A96 96 0 1 1 224 60.4V56a8 8 0 0 1 16 0"/></svg>
+            </div>
+            <h3 class="font-semibold text-[15px]">Smart restore</h3>
+            <p class="mt-1 text-[13px] text-paw-muted leading-snug">Restores 90 tabs in ~1s. Each opens as an inert placeholder — no network hit until you click it.</p>
+          </div>
+
+          <!-- Cleanup Wizard -->
+          <div class="rounded-xl border border-paw-border bg-white p-5 hover:border-paw-accent/40 transition-colors">
+            <div class="size-10 rounded-lg bg-paw-accent-subtle text-paw-accent inline-flex items-center justify-center mb-3">
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 256 256"><path fill="currentColor" d="M158.84 21.06a8 8 0 0 0-11.19 1.34c-13.62 17.24-21.91 30.05-27.72 40.75c-7.17-6.79-15.66-11.15-25-14.85a8 8 0 0 0-10.9 9.14c8.05 34.09-4.11 43.18-19.28 54.35C57.44 118.51 48 125.61 48 138.11c0 25 20.34 55.9 89.31 79.31A184 184 0 0 0 168 224v8a8 8 0 0 0 16 0v-8c46.72-8.36 64-45.66 64-64c0-70.94-73-119.53-89.16-138.94"/></svg>
+            </div>
+            <h3 class="font-semibold text-[15px]">Cleanup Wizard</h3>
+            <p class="mt-1 text-[13px] text-paw-muted leading-snug">Guided walkthrough that closes stale tabs safely. Every step auto-backs up before touching Chrome.</p>
+          </div>
+
+          <!-- Command palette -->
+          <div class="rounded-xl border border-paw-border bg-white p-5 hover:border-paw-accent/40 transition-colors">
+            <div class="size-10 rounded-lg bg-paw-accent-subtle text-paw-accent inline-flex items-center justify-center mb-3">
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 256 256"><path fill="currentColor" d="M215.79 118.17a8 8 0 0 0-5-5.66L153.18 90.9l14.66-73.33a8 8 0 0 0-13.69-7l-112 120a8 8 0 0 0 3 13l57.63 21.61l-14.62 73.25a8 8 0 0 0 13.69 7l112-120a8 8 0 0 0 1.94-7.26"/></svg>
+            </div>
+            <h3 class="font-semibold text-[15px]">Command palette (⌘K)</h3>
+            <p class="mt-1 text-[13px] text-paw-muted leading-snug">Fast jump to any tab, tag, or snapshot without leaving the keyboard.</p>
+          </div>
+
+          <!-- Local first -->
+          <div class="rounded-xl border border-paw-border bg-white p-5 hover:border-paw-accent/40 transition-colors">
+            <div class="size-10 rounded-lg bg-paw-accent-subtle text-paw-accent inline-flex items-center justify-center mb-3">
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 256 256"><path fill="currentColor" d="M208 80h-28V56a52 52 0 1 0-104 0v24H48a16 16 0 0 0-16 16v112a16 16 0 0 0 16 16h160a16 16 0 0 0 16-16V96a16 16 0 0 0-16-16m-72 87.63V184a8 8 0 0 1-16 0v-16.37a24 24 0 1 1 16 0M164 80H92V56a36 36 0 1 1 72 0Z"/></svg>
+            </div>
+            <h3 class="font-semibold text-[15px]">Local-only, no telemetry</h3>
+            <p class="mt-1 text-[13px] text-paw-muted leading-snug">No accounts. No servers. No analytics SDKs. Uninstall removes everything.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Screenshots -->
+    <section id="screenshots" class="py-20 border-t border-paw-border">
+      <div class="max-w-6xl mx-auto px-6">
+        <div class="text-center max-w-2xl mx-auto mb-14">
+          <div class="text-[11px] uppercase tracking-wider text-paw-accent font-semibold">
+            See it in action
+          </div>
+          <h2 class="mt-2 text-3xl font-bold tracking-tight">Screenshots</h2>
+        </div>
+        <div class="grid gap-6 md:grid-cols-2">
+          <figure class="border border-paw-border rounded-xl overflow-hidden bg-white">
+            <img
+              src="screenshots/01-popup.png"
+              alt="PawTabs popup with grouped tabs, colored windows, tag/note counts"
+              class="w-full"
+            />
+            <figcaption class="px-4 py-3 text-[12px] text-paw-muted border-t border-paw-border">
+              <span class="font-semibold text-paw-fg">Popup.</span>
+              Group by window, tag/note counts inline, colored group headers.
+            </figcaption>
+          </figure>
+          <figure class="border border-paw-border rounded-xl overflow-hidden bg-paw-surface flex items-center justify-center min-h-[300px]">
+            <div class="text-[13px] text-paw-subtle p-8 text-center">
+              Screenshot 02 — Mission Control Overview
+            </div>
+          </figure>
+          <figure class="border border-paw-border rounded-xl overflow-hidden bg-paw-surface flex items-center justify-center min-h-[300px]">
+            <div class="text-[13px] text-paw-subtle p-8 text-center">
+              Screenshot 03 — Windows view with colors
+            </div>
+          </figure>
+          <figure class="border border-paw-border rounded-xl overflow-hidden bg-paw-surface flex items-center justify-center min-h-[300px]">
+            <div class="text-[13px] text-paw-subtle p-8 text-center">
+              Screenshot 04 — Tab details modal
+            </div>
+          </figure>
+          <figure class="border border-paw-border rounded-xl overflow-hidden bg-paw-surface flex items-center justify-center min-h-[300px] md:col-span-2">
+            <div class="text-[13px] text-paw-subtle p-8 text-center">
+              Screenshot 05 — Tags view
+            </div>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <!-- Privacy -->
+    <section id="privacy" class="py-20 border-t border-paw-border bg-paw-surface/50">
+      <div class="max-w-3xl mx-auto px-6">
+        <div class="text-center mb-10">
+          <div class="text-[11px] uppercase tracking-wider text-paw-accent font-semibold">
+            Yours, not ours
+          </div>
+          <h2 class="mt-2 text-3xl font-bold tracking-tight">Privacy</h2>
+        </div>
+        <div class="prose prose-sm max-w-none text-[14px] text-paw-muted leading-relaxed space-y-4">
+          <p>
+            PawTabs is a fully local Chrome extension. It does not
+            collect, transmit, store on remote servers, or share any of
+            your data. There is no analytics, no telemetry, no
+            third-party SDKs, and no account system.
+          </p>
+          <p>
+            <strong class="text-paw-fg">What it stores locally:</strong>
+            tags, notes, snapshots, wizard backups, window
+            names/colors, and preferences — all in
+            <code class="bg-paw-surface px-1 py-0.5 rounded text-[12px]">chrome.storage.local</code>
+            on your device.
+          </p>
+          <p>
+            <strong class="text-paw-fg">What it does not do:</strong>
+            it does not send any data over the network, does not use
+            cookies, does not track you across sites, does not sync
+            between devices, and does not include analytics SDKs.
+          </p>
+          <p>
+            Uninstalling the extension removes all PawTabs storage —
+            Chrome guarantees full cleanup.
+          </p>
+          <p class="pt-4">
+            <a
+              href="privacy.html"
+              class="inline-flex items-center gap-1.5 text-paw-accent font-semibold hover:underline"
+              >Read the full policy →</a
+            >
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-12 border-t border-paw-border">
+      <div
+        class="max-w-6xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-[12px] text-paw-subtle"
+      >
+        <div class="flex items-center gap-2">
+          <img src="logo.png" alt="" class="size-5" />
+          <span>PawTabs — a local-first Chrome tab manager.</span>
+        </div>
+        <div class="flex items-center gap-5">
+          <a href="privacy.html" class="hover:text-paw-fg transition-colors">Privacy</a>
+          <a href="#" class="hover:text-paw-fg transition-colors">GitHub</a>
+          <a
+            href="#"
+            class="hover:text-paw-fg transition-colors"
+            >Chrome Web Store</a
+          >
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

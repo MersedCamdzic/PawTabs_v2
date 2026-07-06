@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Privacy Policy — PawTabs</title>
+    <meta name="description" content="Privacy policy for the PawTabs Chrome extension." />
+    <link rel="icon" type="image/png" href="logo.png" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              paw: {
+                bg: "#FAFAF7",
+                surface: "#F4F4EF",
+                border: "#E5E5DE",
+                fg: "#18181B",
+                muted: "#52525B",
+                subtle: "#A1A1AA",
+                accent: "#2563EB",
+                "accent-hover": "#1D4ED8",
+                "accent-subtle": "#EFF6FF",
+              },
+            },
+          },
+        },
+      };
+    </script>
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+    />
+    <style>
+      body {
+        background: #fafaf7;
+        color: #18181b;
+        font-family: Inter, system-ui, sans-serif;
+      }
+      h1, h2, h3 { color: #18181b; }
+      table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+      th, td { padding: 0.5rem 0.75rem; border-bottom: 1px solid #e5e5de; text-align: left; font-size: 13px; }
+      th { background: #f4f4ef; font-weight: 600; }
+      code { background: #f4f4ef; padding: 0.15rem 0.35rem; border-radius: 4px; font-size: 12px; }
+    </style>
+  </head>
+  <body class="antialiased">
+    <header class="border-b border-paw-border/60">
+      <div class="max-w-3xl mx-auto px-6 h-14 flex items-center justify-between">
+        <a href="index.html" class="flex items-center gap-2 font-semibold tracking-tight">
+          <img src="logo.png" alt="" class="size-6" />
+          PawTabs
+        </a>
+        <a href="index.html" class="text-[13px] text-paw-muted hover:text-paw-fg transition-colors">← Back to homepage</a>
+      </div>
+    </header>
+
+    <main class="max-w-3xl mx-auto px-6 py-14">
+      <h1 class="text-3xl font-bold tracking-tight">Privacy Policy — PawTabs</h1>
+      <p class="mt-2 text-[13px] text-paw-subtle">Last updated: 2026-06-22</p>
+
+      <div class="mt-10 space-y-8 text-[14px] text-paw-muted leading-relaxed">
+        <section>
+          <h2 class="text-[18px] font-semibold text-paw-fg mb-2">Summary</h2>
+          <p>
+            PawTabs is a fully local browser extension. It does not
+            collect, transmit, store on remote servers, or share any of
+            your data. There is no analytics, no telemetry, no
+            third-party SDKs, and no account system.
+          </p>
+        </section>
+
+        <section>
+          <h2 class="text-[18px] font-semibold text-paw-fg mb-2">What data PawTabs accesses</h2>
+          <p>PawTabs uses standard Chrome extension APIs to read information about your tabs and windows so it can display, group, search, and rearrange them. Specifically:</p>
+          <ul class="list-disc pl-5 mt-2 space-y-1">
+            <li>Tab metadata: title, URL, favicon, pinned state, audio state, discarded state, last-accessed timestamp, window membership</li>
+            <li>Window metadata: window IDs, tab counts, focus state</li>
+            <li>Recently closed tabs list (via <code>chrome.sessions</code>)</li>
+          </ul>
+          <p class="mt-3">PawTabs does NOT access:</p>
+          <ul class="list-disc pl-5 mt-2 space-y-1">
+            <li>Page contents (HTML, text, form data)</li>
+            <li>Cookies</li>
+            <li>Browsing history beyond Chrome's standard "recently closed" API</li>
+            <li>Passwords, autofill data, or any sensitive browser-stored credentials</li>
+          </ul>
+        </section>
+
+        <section>
+          <h2 class="text-[18px] font-semibold text-paw-fg mb-2">What data PawTabs stores (locally)</h2>
+          <p>The extension uses <code>chrome.storage.local</code> to persist your choices on your device:</p>
+          <ul class="list-disc pl-5 mt-2 space-y-1">
+            <li>Your tags and notes attached to specific tabs</li>
+            <li>Saved snapshots (window + tab structure for restore)</li>
+            <li>Wizard backups (your saved sessions/groups/page metadata snapshots)</li>
+            <li>Window custom names and colors</li>
+            <li>Your preferences (theme, grouping, sort, wizard thresholds)</li>
+          </ul>
+          <p class="mt-3">All of this lives only in your browser, on the machine you installed PawTabs on. Uninstalling the extension removes all PawTabs storage.</p>
+        </section>
+
+        <section>
+          <h2 class="text-[18px] font-semibold text-paw-fg mb-2">What PawTabs does NOT do</h2>
+          <ul class="list-disc pl-5 space-y-1">
+            <li>Send any data to any server (no network requests are made by the extension)</li>
+            <li>Use cookies</li>
+            <li>Track you across sites or sessions</li>
+            <li>Sync data between devices</li>
+            <li>Include analytics or telemetry SDKs</li>
+          </ul>
+        </section>
+
+        <section>
+          <h2 class="text-[18px] font-semibold text-paw-fg mb-2">Permissions explained</h2>
+          <table>
+            <thead>
+              <tr><th>Permission</th><th>Why PawTabs needs it</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><code>tabs</code>, <code>tabGroups</code></td><td>Read and manage tabs and tab groups</td></tr>
+              <tr><td><code>windows</code></td><td>Read window structure; move tabs between windows</td></tr>
+              <tr><td><code>storage</code></td><td>Save your tags, notes, snapshots, and preferences locally</td></tr>
+              <tr><td><code>sessions</code></td><td>Show Chrome's recently closed tabs and reopen them</td></tr>
+              <tr><td><code>activeTab</code></td><td>Act on the currently focused tab from the popup</td></tr>
+              <tr><td><code>alarms</code></td><td>Periodic auto-snapshots on the interval you set</td></tr>
+              <tr><td><code>scripting</code></td><td>Required for the Manifest V3 extension to load its UI</td></tr>
+              <tr><td><code>history</code>, <code>topSites</code></td><td>Provide dashboard insights about your browsing</td></tr>
+              <tr><td>Host <code>&lt;all_urls&gt;</code></td><td>Read tab URLs and titles across all sites</td></tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section>
+          <h2 class="text-[18px] font-semibold text-paw-fg mb-2">Contact</h2>
+          <p>For questions about this policy, open an issue at the extension's source repository.</p>
+        </section>
+      </div>
+    </main>
+
+    <footer class="py-10 border-t border-paw-border mt-14">
+      <div class="max-w-3xl mx-auto px-6 flex items-center justify-between text-[12px] text-paw-subtle">
+        <span>© PawTabs</span>
+        <a href="index.html" class="hover:text-paw-fg transition-colors">Home</a>
+      </div>
+    </footer>
+  </body>
+</html>
