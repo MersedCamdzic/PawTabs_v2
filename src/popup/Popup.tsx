@@ -6,6 +6,7 @@ import {
   GridFour,
   Broom,
   BookmarkSimple,
+  Question,
 } from "@phosphor-icons/react";
 import { useTabSnapshot } from "./hooks";
 import { TabGroupSection } from "./components/TabGroupSection";
@@ -33,6 +34,11 @@ const SessionsModal = lazy(() =>
 const SettingsModal = lazy(() =>
   import("./components/SettingsModal").then((m) => ({
     default: m.SettingsModal,
+  })),
+);
+const HelpModal = lazy(() =>
+  import("./components/HelpModal").then((m) => ({
+    default: m.HelpModal,
   })),
 );
 const TabDetailsModal = lazy(() =>
@@ -66,6 +72,7 @@ export function Popup() {
   const [wizardOpen, setWizardOpen] = useState(false);
   const [sessionsOpen, setSessionsOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [detailsTab, setDetailsTab] = useState<PawTab | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
@@ -219,6 +226,12 @@ export function Popup() {
           <h1 class="text-[13px] font-semibold tracking-tight">PawTabs</h1>
         </div>
         <div class="flex items-center gap-1">
+          <IconButton
+            label="How PawTabs works"
+            onClick={() => setHelpOpen(true)}
+          >
+            <Question size={16} weight="regular" />
+          </IconButton>
           <IconButton
             label="Saved sessions"
             onClick={() => setSessionsOpen(true)}
@@ -438,6 +451,9 @@ export function Popup() {
             open={settingsOpen}
             onClose={() => setSettingsOpen(false)}
           />
+        )}
+        {helpOpen && (
+          <HelpModal open={helpOpen} onClose={() => setHelpOpen(false)} />
         )}
         {detailsTab !== null && (
           <TabDetailsModal
