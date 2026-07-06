@@ -1,7 +1,7 @@
 import { saveSession, restoreSession } from "./sessions";
 import { setPreference, getPreferences } from "./preferences";
 import { storage } from "./storage";
-import { SUGGESTED_TABS_TO_OPEN } from "./demo-seed";
+import { SUGGESTED_TABS_TO_OPEN, seedDemoData } from "./demo-seed";
 
 export interface DemoModeState {
   active: boolean;
@@ -14,6 +14,13 @@ export async function isDemoModeActive(): Promise<boolean> {
 }
 
 export async function enterDemoMode(): Promise<void> {
+  // Auto-seed demo storage if it hasn't been populated — one click
+  // does everything a screenshot session needs.
+  const paws = (await storage.get("pawedUrls")) ?? {};
+  if (Object.keys(paws).length === 0) {
+    await seedDemoData();
+  }
+
   const backup = await saveSession(
     `Pre-demo backup — ${new Date().toLocaleString()}`,
     false,

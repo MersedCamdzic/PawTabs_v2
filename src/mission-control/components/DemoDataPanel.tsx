@@ -49,7 +49,7 @@ export function DemoDataPanel({ onDone }: { onDone?: () => void }) {
       await config.fn();
       setSaveStatus(
         action === "seed"
-          ? "Demo data loaded ✓"
+          ? "Demo data loaded ✓ — now click Enter demo mode to open the tabs"
           : action === "clear"
             ? "All data cleared"
             : action === "enter"
@@ -141,10 +141,11 @@ export function DemoDataPanel({ onDone }: { onDone?: () => void }) {
         message={
           pending === "seed" ? (
             <>
-              Replaces your current pawed URLs, tags, notes, snapshots,
-              backups and window colors with a realistic sample set
-              (Amazon, Google, CNN, GitHub, Notion, Figma, Linear,
-              Spotify, arXiv…). Open Chrome tabs stay open.
+              Fills PawTabs storage with realistic sample paw, tags,
+              notes, snapshots and window colors — no Chrome tabs are
+              opened. To actually see the demo tabs on screen, use{" "}
+              <span class="font-semibold text-fg">Enter demo mode</span>{" "}
+              below (it auto-seeds if you haven't loaded data yet).
             </>
           ) : pending === "clear" ? (
             <>
