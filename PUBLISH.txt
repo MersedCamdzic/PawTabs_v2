@@ -1,10 +1,31 @@
 ================================================================
-PawTabs v2.1.0 — Chrome Web Store publishing checklist
+PawTabs v2.2.0 — Chrome Web Store publishing checklist
 ================================================================
 
-Built ZIP:  pawtabs-v2.1.0.zip  (~354 KB, source maps excluded)
-Manifest:   v3, version "2.1.0"
+Built ZIP:  pawtabs-v2.2.0.zip  (~375 KB, source maps excluded, 40 files)
+Manifest:   v3, version "2.2.0"
+New perm:   `alarms` (added since 2.1.0 — powers optional auto-save)
 Repo:       this folder (no git remote yet — set one before tagging)
+
+----------------------------------------------------------------
+0. WHAT'S NEW IN 2.2.0 (paste into store "What's new" field)
+----------------------------------------------------------------
+
+  • Auto-save snapshots on a schedule (minutes / hours / days).
+    Oldest auto-saves are pruned so storage stays lean.
+  • Smart restore for large snapshots. Tabs open as instant
+    lazy placeholders and only load when clicked — restoring
+    90 tabs no longer freezes Chrome.
+  • Restore modes: per-window (match original layout), single
+    window (everything into one), or reuse-if-exists. Optional
+    "Close current windows first" wipes state before restore.
+  • Demo mode: try PawTabs on rich sample data without losing
+    your current session — PawTabs snapshots your tabs, opens
+    the demo set, and restores your originals on exit.
+  • Help modal (? in the popup header) walks through every
+    icon, tag, note, and session feature.
+  • Windows / Tags / Pawed / Pinned views now refresh
+    immediately after adding a tag or note.
 
 ----------------------------------------------------------------
 1. PRE-FLIGHT (do once before any upload)
@@ -15,6 +36,24 @@ Repo:       this folder (no git remote yet — set one before tagging)
       → select the `dist/` folder (NOT the zip).
       Click around: popup, MC, group actions, snapshots, sessions,
       cleanup wizard, tab details modal, bulk actions.
+
+  [ ] 2.2.0-specific smoke: enable auto-save with a 1-minute
+      cadence, confirm the "Last saved" pill updates + oldest
+      auto-session is pruned when max is reached, then disable
+      and confirm no more auto-sessions appear.
+
+  [ ] 2.2.0-specific smoke: restore a snapshot in each of the
+      three modes; confirm tabs come up as lazy placeholders
+      and only navigate when clicked. Try "Close current
+      windows first" and confirm the wipe happens.
+
+  [ ] 2.2.0-specific smoke: from Mission Control → Demo, click
+      "Enter demo mode", confirm your tabs are backed up and
+      demo windows open. Click "Exit demo mode" and confirm
+      originals restore.
+
+  [ ] 2.2.0-specific smoke: click ? in popup header, verify
+      Help modal opens and every section renders.
 
   [ ] Confirm window-color theming still works in popup group headers
       AND in tab details "Move to window" picker.
@@ -40,7 +79,7 @@ Repo:       this folder (no git remote yet — set one before tagging)
   [ ] Set up a publisher profile.
 
   For PawTabs:
-  [ ] Click "New item" → upload pawtabs-v2.1.0.zip
+  [ ] Click "New item" → upload pawtabs-v2.2.0.zip
       (for updates: open existing PawTabs listing → "Package" → upload)
 
   Fill in the listing — copy/paste from marketing/CHROME_WEBSTORE_LISTING.md:
@@ -62,7 +101,11 @@ Repo:       this folder (no git remote yet — set one before tagging)
     [ ] Permissions justification — copy reasons from
         marketing/PERMISSIONS.md, one line per permission:
           tabs, tabGroups, scripting, activeTab, storage,
-          history, sessions, topSites, windows, <all_urls>
+          history, sessions, topSites, windows, alarms,
+          <all_urls>
+        ⚠ `alarms` is new in 2.2.0 — the Web Store will ask
+        for a fresh justification even though the rest are
+        unchanged.
     [ ] "Are you using remote code?"           → NO
     [ ] "Does your extension handle data?"     → YES (local only)
     [ ] "Do you sell/transfer user data?"      → NO
@@ -111,9 +154,11 @@ Repo:       this folder (no git remote yet — set one before tagging)
 
   [ ] Note the published URL (chrome.google.com/webstore/detail/<id>)
   [ ] Add the URL to README or repo description.
+  [ ] Update website/index.html — replace the `#` placeholder
+      hrefs on the "Install" buttons with the store URL.
   [ ] If using git remote: tag this release:
-          git tag v2.1.0
-          git push origin v2.1.0
+          git tag v2.2.0
+          git push origin v2.2.0
   [ ] Update marketing/CHROME_WEBSTORE_LISTING.md with the live URL.
 
 ----------------------------------------------------------------

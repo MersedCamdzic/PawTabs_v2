@@ -1,6 +1,6 @@
 # Privacy Policy — PawTabs
 
-_Last updated: 2026-06-22_
+_Last updated: 2026-07-06_
 
 ## Summary
 
@@ -52,6 +52,7 @@ All of this lives only in your browser, on the machine you installed PawTabs on.
 | `activeTab` | Act on the currently focused tab from the popup |
 | `scripting` | Required for the Manifest V3 extension to load its UI |
 | `history`, `topSites` | Provide dashboard insights about your browsing |
+| `alarms` | Fire the auto-save snapshot on your chosen interval (only when enabled) |
 | Host `<all_urls>` | Read tab URLs and titles across all sites |
 
 ## Contact

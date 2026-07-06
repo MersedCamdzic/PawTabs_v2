@@ -44,6 +44,10 @@ Reserved for future "most visited" suggestions in the dashboard. Currently used 
 
 Read window structure (IDs, focus, tab counts) for the Windows view and to move tabs between windows (`chrome.windows.create`, `chrome.windows.update`).
 
+## alarms
+
+Powers the optional auto-save feature. When the user enables auto-save in Settings, PawTabs registers a single `chrome.alarms` alarm (interval configurable in minutes / hours / days) that wakes the service worker to save a snapshot of open tabs. No network calls happen during the wake-up; the snapshot is written to `chrome.storage.local`. If auto-save is disabled, no alarms are scheduled.
+
 ---
 
 ## Host permissions

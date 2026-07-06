@@ -22,12 +22,14 @@ export function RestorePromptModal({ open, session, onClose, onDone }: Props) {
   const [progress, setProgress] = useState<RestoreProgress | null>(null);
   const [running, setRunning] = useState(false);
   const [closeExisting, setCloseExisting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     if (!open) {
       setProgress(null);
       setRunning(false);
+      setErrorMsg(null);
       abortRef.current?.abort();
       abortRef.current = null;
     }
@@ -43,6 +45,7 @@ export function RestorePromptModal({ open, session, onClose, onDone }: Props) {
     const controller = new AbortController();
     abortRef.current = controller;
     setRunning(true);
+    setErrorMsg(null);
     setProgress({ done: 0, total: session.tabs.length });
     try {
       await restoreSession(session, {
@@ -57,7 +60,11 @@ export function RestorePromptModal({ open, session, onClose, onDone }: Props) {
       onDone?.();
       onClose();
     } catch (err) {
-      if ((err as Error).name !== "AbortError") console.error(err);
+      const e = err as Error;
+      if (e.name !== "AbortError") {
+        console.error("[PawTabs] restore failed:", e);
+        setErrorMsg(e.message || "Unknown error — check the console.");
+      }
     } finally {
       setRunning(false);
     }
@@ -111,6 +118,21 @@ export function RestorePromptModal({ open, session, onClose, onDone }: Props) {
         {session.tabs.length} tabs from {windowCount} window
         {windowCount === 1 ? "" : "s"}. How should they open?
       </div>
+
+      {errorMsg && !running && (
+        <div class="mb-3 p-3 bg-danger-subtle/40 border border-danger/40 rounded-md">
+          <div class="text-[12px] font-semibold text-danger mb-1">
+            Restore failed
+          </div>
+          <div class="text-[11px] text-danger leading-snug break-words">
+            {errorMsg}
+          </div>
+          <div class="text-[10px] text-fg-subtle mt-1.5">
+            Right-click PawTabs → Inspect popup / Inspect Mission Control →
+            Console for the full stack trace.
+          </div>
+        </div>
+      )}
 
       {running && progress && (
         <div class="mb-3 p-3 bg-accent-subtle/40 border border-accent/30 rounded-md">
@@ -250,43 +272,42 @@ function RestoreOption(props: {
           : "border-border bg-bg hover:border-border-strong"
       }`}
     >
-      <button
-        type="button"
-        onClick={props.onSelect}
-        class="w-full flex items-start gap-2.5 p-3 text-left"
-      >
-        <span
-          class={`size-4 mt-0.5 rounded-full border-2 shrink-0 inline-flex items-center justify-center ${
-            props.selected
-              ? "border-accent bg-accent"
-              : "border-border bg-bg"
-          }`}
-        >
-          {props.selected && (
-            <span class="size-1.5 rounded-full bg-white" />
-          )}
-        </span>
-        <span
-          class={`shrink-0 mt-0.5 ${props.selected ? "text-accent" : "text-fg-subtle"}`}
-        >
-          {props.icon}
-        </span>
-        <span class="flex-1 min-w-0">
-          <span
-            class={`text-[12px] font-semibold block ${props.selected ? "text-accent" : "text-fg"}`}
-          >
-            {props.title}
-          </span>
-          <span class="text-[11px] text-fg-muted mt-0.5 block leading-snug">
-            {props.summary}
-          </span>
-        </span>
+      <div class="flex items-start gap-2.5 p-3">
         <button
           type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            props.onToggleInfo();
-          }}
+          onClick={props.onSelect}
+          class="flex-1 min-w-0 flex items-start gap-2.5 text-left"
+        >
+          <span
+            class={`size-4 mt-0.5 rounded-full border-2 shrink-0 inline-flex items-center justify-center ${
+              props.selected
+                ? "border-accent bg-accent"
+                : "border-border bg-bg"
+            }`}
+          >
+            {props.selected && (
+              <span class="size-1.5 rounded-full bg-white" />
+            )}
+          </span>
+          <span
+            class={`shrink-0 mt-0.5 ${props.selected ? "text-accent" : "text-fg-subtle"}`}
+          >
+            {props.icon}
+          </span>
+          <span class="flex-1 min-w-0">
+            <span
+              class={`text-[12px] font-semibold block ${props.selected ? "text-accent" : "text-fg"}`}
+            >
+              {props.title}
+            </span>
+            <span class="text-[11px] text-fg-muted mt-0.5 block leading-snug">
+              {props.summary}
+            </span>
+          </span>
+        </button>
+        <button
+          type="button"
+          onClick={props.onToggleInfo}
           aria-label="More info"
           title="More info"
           class={`size-6 shrink-0 inline-flex items-center justify-center rounded transition-colors ${
@@ -297,7 +318,7 @@ function RestoreOption(props: {
         >
           <Info size={12} weight={props.infoOpen ? "fill" : "regular"} />
         </button>
-      </button>
+      </div>
       {props.infoOpen && (
         <div class="px-3 pb-3 -mt-1 text-[11px] text-fg-subtle leading-relaxed">
           {props.detail}

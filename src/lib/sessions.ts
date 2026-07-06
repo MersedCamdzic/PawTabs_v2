@@ -95,40 +95,32 @@ function lazyPlaceholderUrl(tab: SessionTab): string {
   return `data:text/html;charset=utf-8,${encodeURIComponent(html)}`;
 }
 
+function tabTargetUrl(tab: SessionTab, lazy: boolean): string {
+  return lazy ? lazyPlaceholderUrl(tab) : tab.url;
+}
+
+async function stashPendingUrl(tabId: number, url: string): Promise<void> {
+  try {
+    await chrome.storage.local.set({ [`pawtabs_pending_${tabId}`]: url });
+  } catch {
+    // ignore
+  }
+}
+
 async function createLazyTab(
   windowId: number | undefined,
   tab: SessionTab,
   lazy: boolean,
 ): Promise<void> {
-  if (lazy) {
-    // Create a data: URL placeholder — no network hit, no loader.
-    const created = await chrome.tabs.create({
-      windowId,
-      url: lazyPlaceholderUrl(tab),
-      active: false,
-      pinned: Boolean(tab.pinned),
-    });
-    if (!created?.id) return;
-    // Per-tab key so parallel Promise.all writes don't race and clobber
-    // each other (the old single-map read-modify-write only kept one
-    // entry per batch).
-    try {
-      await chrome.storage.local.set({
-        [`pawtabs_pending_${created.id}`]: tab.url,
-      });
-    } catch {
-      // ignore
-    }
-    return;
-  }
   const created = await chrome.tabs.create({
     windowId,
-    url: tab.url,
+    url: tabTargetUrl(tab, lazy),
     active: false,
     pinned: Boolean(tab.pinned),
   });
   if (!created?.id) return;
-  if (tab.pinned) {
+  if (lazy) await stashPendingUrl(created.id, tab.url);
+  if (tab.pinned && !lazy) {
     try {
       await chrome.tabs.update(created.id, { pinned: true });
     } catch {
@@ -168,13 +160,38 @@ async function createBatched(
   }
 }
 
+async function createWindowSeededWithFirstTab(
+  first: SessionTab,
+): Promise<number | undefined> {
+  // We MUST use the real URL as the seed. Chrome refuses `about:blank`
+  // and `data:` URLs in `chrome.windows.create({ url })` — window
+  // creation silently no-ops which then makes the rest of the batched
+  // restore skip. Using the tab's real URL for the seed is safe (it's
+  // whatever URL the user had open when they saved the snapshot).
+  //
+  // Trade-off: the first tab of each window will actually load (not
+  // lazy). For a typical restore that's still just N tabs (one per
+  // source window) doing real navigation — the other 90-ish stay
+  // lazy. Chrome handles that fine.
+  const win = await chrome.windows.create({
+    url: first.url,
+    focused: false,
+  });
+  return win?.id;
+}
+
 export async function restoreSession(
   session: SavedSession,
   options: RestoreOptions = {},
 ): Promise<void> {
   const mode: RestoreMode = options.mode ?? "per-window";
-  const restorable = session.tabs.filter((t) => isRestorable(t.url));
-  if (restorable.length === 0) return;
+  const restorable = (session.tabs ?? []).filter((t) =>
+    isRestorable(t.url),
+  );
+  if (restorable.length === 0) {
+    options.onProgress?.({ done: 0, total: 0 });
+    return;
+  }
   const progressBase = { done: 0, total: restorable.length };
   options.onProgress?.({ done: 0, total: restorable.length });
 
@@ -185,25 +202,22 @@ export async function restoreSession(
     : [];
 
   if (mode === "single-window") {
-    // Create a shell window with a placeholder tab first, then batch
-    // the rest into it. Prevents Chrome from trying to load 90 URLs at
-    // once.
-    const win = await chrome.windows.create({
-      url: "about:blank",
-      focused: false,
+    const [first, ...rest] = restorable;
+    const winId = await createWindowSeededWithFirstTab(first);
+    if (winId === undefined) {
+      throw new Error(
+        "PawTabs restore: Chrome refused to create the target window.",
+      );
+    }
+    progressBase.done += 1;
+    options.onProgress?.({
+      done: progressBase.done,
+      total: progressBase.total,
+      currentUrl: first.url,
     });
-    if (!win?.id) return;
-    const shellTabs = await chrome.tabs.query({ windowId: win.id });
-    await createBatched(win.id, restorable, options, progressBase);
-    // Clean up the placeholder blank tab
-    for (const t of shellTabs) {
-      if (t.id !== undefined) {
-        try {
-          await chrome.tabs.remove(t.id);
-        } catch {
-          // ignore
-        }
-      }
+    await createBatched(winId, rest, options, progressBase);
+    if (existingWindowIdsToClose.length > 0) {
+      await closeAll(existingWindowIdsToClose);
     }
     return;
   }
@@ -222,6 +236,7 @@ export async function restoreSession(
     openWindows.map((w) => w.id).filter((id): id is number => id !== undefined),
   );
 
+  let anyWindowCreated = false;
   for (const [sourceWid, tabs] of byWindow.entries()) {
     if (tabs.length === 0) continue;
     if (options.signal?.aborted) {
@@ -230,34 +245,40 @@ export async function restoreSession(
 
     if (mode === "reuse-if-exists" && openIds.has(sourceWid)) {
       await createBatched(sourceWid, tabs, options, progressBase);
+      anyWindowCreated = true;
       continue;
     }
 
-    const win = await chrome.windows.create({
-      url: "about:blank",
-      focused: false,
+    const [first, ...rest] = tabs;
+    const winId = await createWindowSeededWithFirstTab(first);
+    if (winId === undefined) continue;
+    anyWindowCreated = true;
+    progressBase.done += 1;
+    options.onProgress?.({
+      done: progressBase.done,
+      total: progressBase.total,
+      currentUrl: first.url,
     });
-    if (!win?.id) continue;
-    const shellTabs = await chrome.tabs.query({ windowId: win.id });
-    await createBatched(win.id, tabs, options, progressBase);
-    for (const t of shellTabs) {
-      if (t.id !== undefined) {
-        try {
-          await chrome.tabs.remove(t.id);
-        } catch {
-          // ignore
-        }
-      }
-    }
+    await createBatched(winId, rest, options, progressBase);
+  }
+
+  if (!anyWindowCreated) {
+    throw new Error(
+      "PawTabs restore: Chrome refused to open any target window.",
+    );
   }
 
   if (existingWindowIdsToClose.length > 0) {
-    for (const id of existingWindowIdsToClose) {
-      try {
-        await chrome.windows.remove(id);
-      } catch {
-        // ignore
-      }
+    await closeAll(existingWindowIdsToClose);
+  }
+}
+
+async function closeAll(ids: number[]): Promise<void> {
+  for (const id of ids) {
+    try {
+      await chrome.windows.remove(id);
+    } catch {
+      // ignore — user may have closed it manually
     }
   }
 }
