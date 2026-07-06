@@ -16,7 +16,6 @@ import type { Insights } from "@/lib/stats";
 import { formatRelativeTime } from "@/lib/sessions";
 import { focusTab } from "@/lib/chrome";
 import { getRootDomain } from "@/lib/utils";
-import { DemoDataPanel } from "../DemoDataPanel";
 import type { PawTab } from "@/types";
 import type { View } from "../Sidebar";
 
@@ -226,10 +225,6 @@ export function OverviewView({
           )}
         </Section>
       </div>
-
-      <Section label="Demo / testing">
-        <DemoDataPanel />
-      </Section>
     </div>
   );
 }

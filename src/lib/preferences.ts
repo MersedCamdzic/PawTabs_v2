@@ -25,7 +25,6 @@ export const DEFAULT_PREFERENCES: Preferences = {
     maxCount: 10,
     lastRunAt: 0,
   },
-  demoBackupSessionId: null,
 };
 
 export async function getPreferences(): Promise<Preferences> {

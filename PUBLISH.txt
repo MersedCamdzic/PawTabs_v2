@@ -1,9 +1,9 @@
 ================================================================
-PawTabs v2.3.0 — Chrome Web Store publishing checklist
+PawTabs v2.3.1 — Chrome Web Store publishing checklist
 ================================================================
 
-Built ZIP:  pawtabs-v2.3.0.zip  (source maps excluded)
-Manifest:   v3, version "2.3.0"
+Built ZIP:  pawtabs-v2.3.1.zip  (source maps excluded)
+Manifest:   v3, version "2.3.1"
 No new perm: `history` was already granted in 2.1.0 for Overview
              insights — 2.3.0's new History view uses the same
              permission, so reviewers don't need to re-justify.
@@ -97,7 +97,7 @@ Repo:       https://github.com/MersedCamdzic/PawTabs_v2
   [ ] Set up a publisher profile.
 
   For PawTabs:
-  [ ] Click "New item" → upload pawtabs-v2.3.0.zip
+  [ ] Click "New item" → upload pawtabs-v2.3.1.zip
       (for updates: open existing PawTabs listing → "Package" → upload)
 
   Fill in the listing — copy/paste from marketing/CHROME_WEBSTORE_LISTING.md:

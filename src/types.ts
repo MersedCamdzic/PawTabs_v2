@@ -102,7 +102,6 @@ export interface Preferences {
   theme: Theme;
   wizardThresholds: WizardThresholds;
   autoSession: AutoSessionConfig;
-  demoBackupSessionId?: string | null;
 }
 
 export interface PawedEntry {
