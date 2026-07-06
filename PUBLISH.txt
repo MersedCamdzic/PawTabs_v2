@@ -1,31 +1,49 @@
 ================================================================
-PawTabs v2.2.0 — Chrome Web Store publishing checklist
+PawTabs v2.3.0 — Chrome Web Store publishing checklist
 ================================================================
 
-Built ZIP:  pawtabs-v2.2.0.zip  (~375 KB, source maps excluded, 40 files)
-Manifest:   v3, version "2.2.0"
-New perm:   `alarms` (added since 2.1.0 — powers optional auto-save)
-Repo:       this folder (no git remote yet — set one before tagging)
+Built ZIP:  pawtabs-v2.3.0.zip  (source maps excluded)
+Manifest:   v3, version "2.3.0"
+No new perm: `history` was already granted in 2.1.0 for Overview
+             insights — 2.3.0's new History view uses the same
+             permission, so reviewers don't need to re-justify.
+Repo:       https://github.com/MersedCamdzic/PawTabs_v2
 
 ----------------------------------------------------------------
-0. WHAT'S NEW IN 2.2.0 (paste into store "What's new" field)
+0. WHAT'S NEW IN 2.3.0 (paste into store "What's new" field)
+----------------------------------------------------------------
+
+  • New Mission Control view: History. Search Chrome's browsing
+    history with date-range chips (24h / 7d / 30d / All time)
+    plus PawTabs' regular search box.
+  • Row layout mirrors the rest of Mission Control: paw counts,
+    tag counts, note counts, columns 1-4, sort by newest/oldest
+    /title. Currently-open URLs show a green live indicator so
+    you can tell what's active vs. gone.
+  • Click any entry to open the tab-details modal — paw, tag,
+    note, or jump to the tab if it's still open (falls back to
+    reopen in a new tab if closed).
+  • Bulk cleanup: 'Clear filtered' deletes only the currently
+    shown entries from Chrome history; 'Clear all history'
+    nukes everything (both behind confirm modals).
+  • Auto-refresh via chrome.history.onVisited — new visits
+    appear within a second without a manual refresh click.
+  • Paginated fetch (1000 per page, up to 20k) so heavy
+    history isn't silently truncated by Chrome's API cap.
+
+----------------------------------------------------------------
+0.5. WHAT WAS NEW IN 2.2.0 (previous "What's new")
 ----------------------------------------------------------------
 
   • Auto-save snapshots on a schedule (minutes / hours / days).
-    Oldest auto-saves are pruned so storage stays lean.
-  • Smart restore for large snapshots. Tabs open as instant
-    lazy placeholders and only load when clicked — restoring
-    90 tabs no longer freezes Chrome.
-  • Restore modes: per-window (match original layout), single
-    window (everything into one), or reuse-if-exists. Optional
-    "Close current windows first" wipes state before restore.
-  • Demo mode: try PawTabs on rich sample data without losing
-    your current session — PawTabs snapshots your tabs, opens
-    the demo set, and restores your originals on exit.
-  • Help modal (? in the popup header) walks through every
-    icon, tag, note, and session feature.
-  • Windows / Tags / Pawed / Pinned views now refresh
-    immediately after adding a tag or note.
+  • Smart lazy restore for large snapshots (no more Chrome
+    freeze on 90-tab restore).
+  • Restore modes: per-window / single-window / reuse-if-exists,
+    with optional "Close current windows first".
+  • Demo mode workflow with automatic backup + restore.
+  • Help modal in the popup header.
+  • Windows / Tags / Pawed / Pinned views refresh immediately
+    after tag/note edits.
 
 ----------------------------------------------------------------
 1. PRE-FLIGHT (do once before any upload)
@@ -79,7 +97,7 @@ Repo:       this folder (no git remote yet — set one before tagging)
   [ ] Set up a publisher profile.
 
   For PawTabs:
-  [ ] Click "New item" → upload pawtabs-v2.2.0.zip
+  [ ] Click "New item" → upload pawtabs-v2.3.0.zip
       (for updates: open existing PawTabs listing → "Package" → upload)
 
   Fill in the listing — copy/paste from marketing/CHROME_WEBSTORE_LISTING.md:

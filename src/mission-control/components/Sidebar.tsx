@@ -7,6 +7,7 @@ import {
   Tag,
   BookmarkSimple,
   ClockCounterClockwise,
+  ClockClockwise,
   Broom,
 } from "@phosphor-icons/react";
 import type { ComponentChildren, JSX } from "preact";
@@ -20,6 +21,7 @@ export type View =
   | "tags"
   | "sessions"
   | "recently-closed"
+  | "history"
   | "backups"
   | "settings";
 
@@ -116,6 +118,12 @@ export function Sidebar({ view, onChange, onOpenCleanup, counts }: Props) {
           label="Recently closed"
           active={view === "recently-closed"}
           onClick={() => onChange("recently-closed")}
+        />
+        <NavItem
+          icon={<ClockClockwise size={14} />}
+          label="History"
+          active={view === "history"}
+          onClick={() => onChange("history")}
         />
       </nav>
 

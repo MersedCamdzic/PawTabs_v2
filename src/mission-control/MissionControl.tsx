@@ -30,6 +30,7 @@ import { TagsView } from "./components/views/TagsView";
 import { SessionsView } from "./components/views/SessionsView";
 import { BackupsView } from "./components/views/BackupsView";
 import { RecentlyClosedView } from "./components/views/RecentlyClosedView";
+import { HistoryView } from "./components/views/HistoryView";
 import { WindowsView } from "./components/views/WindowsView";
 import { useTabSnapshot } from "./hooks";
 import { computeInsights } from "@/lib/stats";
@@ -73,6 +74,11 @@ const VIEW_META: Record<View, { title: string; subtitle: string }> = {
     subtitle:
       "Chrome's own list of tabs you closed recently — click to reopen.",
   },
+  history: {
+    title: "History",
+    subtitle:
+      "Search Chrome's full browsing history. Click any entry to paw, tag, or reopen.",
+  },
   backups: {
     title: "Wizard backups",
     subtitle:
@@ -106,6 +112,13 @@ export function MissionControl() {
   const [rcReopenSignal, setRcReopenSignal] = useState(0);
   const [rcConfirmClearOpen, setRcConfirmClearOpen] = useState(false);
   const [rcConfirmReopenOpen, setRcConfirmReopenOpen] = useState(false);
+  const [historyVisibleCount, setHistoryVisibleCount] = useState(0);
+  const [historyClearFilteredSignal, setHistoryClearFilteredSignal] =
+    useState(0);
+  const [historyClearAllSignal, setHistoryClearAllSignal] = useState(0);
+  const [historyConfirmFilteredOpen, setHistoryConfirmFilteredOpen] =
+    useState(false);
+  const [historyConfirmAllOpen, setHistoryConfirmAllOpen] = useState(false);
   const [urlDataSignal, setUrlDataSignal] = useState(0);
   const bumpAll = () => {
     reload();
@@ -390,6 +403,55 @@ export function MissionControl() {
                     />
                   </div>
                 </>
+              ) : view === "history" ? (
+                <>
+                  <div class="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (historyVisibleCount === 0) return;
+                        setHistoryConfirmFilteredOpen(true);
+                      }}
+                      disabled={historyVisibleCount === 0}
+                      class="h-9 px-3 inline-flex items-center gap-1.5 text-[12px] font-medium rounded-md border border-warning/30 text-warning bg-warning-subtle hover:border-warning hover:bg-warning hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                      title="Delete only the entries currently visible from Chrome history"
+                    >
+                      <Trash size={13} weight="fill" />
+                      Clear filtered
+                      <span class="text-[10px] font-mono px-1.5 h-4 inline-flex items-center rounded bg-warning/15 text-warning">
+                        {historyVisibleCount}
+                      </span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setHistoryConfirmAllOpen(true)}
+                      class="h-9 px-3 inline-flex items-center gap-1.5 text-[12px] font-medium rounded-md border border-danger/30 text-danger bg-danger-subtle hover:border-danger hover:bg-danger hover:text-white transition-colors"
+                      title="Delete ALL Chrome browsing history"
+                    >
+                      <Trash size={13} weight="fill" />
+                      Clear all history
+                    </button>
+                  </div>
+                  <span
+                    class="w-px h-6 bg-border mx-1"
+                    aria-hidden="true"
+                  />
+                  <div class="flex items-center gap-1.5">
+                    <SnapshotSortDropdown
+                      value={currentSnapshotSort}
+                      onChange={setCurrentSnapshotSort}
+                      options={[
+                        { value: "date-desc", label: "Newest first" },
+                        { value: "date-asc", label: "Oldest first" },
+                        { value: "name", label: "Title (A→Z)" },
+                      ]}
+                    />
+                    <ColumnsPicker
+                      value={currentSnapshotColumns}
+                      onChange={setCurrentSnapshotColumns}
+                    />
+                  </div>
+                </>
               ) : undefined
             }
           />
@@ -520,6 +582,21 @@ export function MissionControl() {
           />
         )}
 
+        {view === "history" && (
+          <HistoryView
+            query={query}
+            sortBy={currentSnapshotSort}
+            columns={currentSnapshotColumns}
+            openTabs={snapshot?.tabs ?? []}
+            clearFilteredSignal={historyClearFilteredSignal}
+            clearAllSignal={historyClearAllSignal}
+            refreshSignal={urlDataSignal}
+            onVisibleCountChange={setHistoryVisibleCount}
+            onOpenLiveDetails={setDetailsTab}
+            onOpenClosedDetails={setClosedDetailsTab}
+          />
+        )}
+
         {view === "settings" && (
           <div class="px-8 py-8 max-w-md">
             <div class="text-[13px] text-fg-muted">
@@ -596,6 +673,49 @@ export function MissionControl() {
           setRcConfirmReopenOpen(false);
         }}
         onCancel={() => setRcConfirmReopenOpen(false)}
+      />
+
+      <ConfirmModal
+        open={historyConfirmFilteredOpen}
+        title="Clear filtered history"
+        message={
+          <>
+            Permanently delete{" "}
+            <span class="font-semibold text-fg">
+              {historyVisibleCount} entr
+              {historyVisibleCount === 1 ? "y" : "ies"}
+            </span>{" "}
+            from Chrome browsing history? This affects only the entries
+            currently shown by your search + date range. Cannot be undone.
+          </>
+        }
+        confirmLabel="Delete filtered"
+        tone="danger"
+        onConfirm={() => {
+          setHistoryClearFilteredSignal((n) => n + 1);
+          setHistoryConfirmFilteredOpen(false);
+        }}
+        onCancel={() => setHistoryConfirmFilteredOpen(false)}
+      />
+
+      <ConfirmModal
+        open={historyConfirmAllOpen}
+        title="Clear ALL Chrome history"
+        message={
+          <>
+            Permanently delete your{" "}
+            <span class="font-semibold text-fg">entire</span> Chrome
+            browsing history? This nukes every URL Chrome remembers, not
+            just the ones filtered here. Cannot be undone.
+          </>
+        }
+        confirmLabel="Delete everything"
+        tone="danger"
+        onConfirm={() => {
+          setHistoryClearAllSignal((n) => n + 1);
+          setHistoryConfirmAllOpen(false);
+        }}
+        onCancel={() => setHistoryConfirmAllOpen(false)}
       />
 
       <Suspense fallback={null}>

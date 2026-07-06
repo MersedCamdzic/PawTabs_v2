@@ -3,8 +3,8 @@ import { defineManifest } from "@crxjs/vite-plugin";
 export default defineManifest({
   manifest_version: 3,
   name: "PawTabs",
-  version: "2.2.0",
-  description: "Manage tabs and windows: group, tag, note, auto-snapshot, and safely restore with lazy tab loading.",
+  version: "2.3.0",
+  description: "Tab & window manager: group, tag, note, auto-snapshot, safely restore, plus full Chrome history search.",
   permissions: [
     "tabs",
     "tabGroups",
