@@ -55,8 +55,8 @@ export async function fetchAllTabs(): Promise<TabSnapshot> {
 }
 
 export async function focusTab(tabId: number, windowId: number): Promise<void> {
-  await chrome.windows.update(windowId, { focused: true });
   await chrome.tabs.update(tabId, { active: true });
+  await chrome.windows.update(windowId, { focused: true });
 }
 
 export async function closeTab(tabId: number): Promise<void> {

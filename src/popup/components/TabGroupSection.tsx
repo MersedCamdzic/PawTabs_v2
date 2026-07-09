@@ -43,6 +43,7 @@ export function TabGroupSection({
       key={tab.id}
       tab={tab}
       isCurrent={tab.id === currentTabId}
+      showCurrentBadge={tab.id === currentTabId}
       onAction={onAction}
       onOpenDetails={onOpenDetails}
       selected={selectedIds.has(tab.id)}

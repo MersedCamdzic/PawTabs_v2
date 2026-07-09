@@ -24,6 +24,7 @@ import type { PawTab } from "@/types";
 interface Props {
   tab: PawTab;
   isCurrent?: boolean;
+  showCurrentBadge?: boolean;
   onAction: () => void;
   onOpenDetails: (tab: PawTab) => void;
   selected: boolean;
@@ -34,6 +35,7 @@ interface Props {
 export function TabRow({
   tab,
   isCurrent = false,
+  showCurrentBadge = false,
   onAction,
   onOpenDetails,
   selected,
@@ -95,7 +97,9 @@ export function TabRow({
 
   const rowClass = selected
     ? "bg-accent-subtle/60 hover:bg-accent-subtle"
-    : "hover:bg-surface focus:bg-surface";
+    : showCurrentBadge
+      ? "bg-accent-subtle/20 hover:bg-accent-subtle/40 focus:bg-accent-subtle/40"
+      : "hover:bg-surface focus:bg-surface";
 
   return (
     <div
@@ -129,6 +133,14 @@ export function TabRow({
           </svg>
         )}
       </button>
+
+      {showCurrentBadge && (
+        <span
+          title="Current tab"
+          aria-label="Current tab"
+          class="shrink-0 inline-block size-1.5 rounded-full bg-accent animate-pulse-soft"
+        />
+      )}
 
       <Favicon url={tab.favIconUrl} />
 

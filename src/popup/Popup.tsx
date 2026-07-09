@@ -310,12 +310,12 @@ export function Popup() {
       <div class="border-t border-border" />
 
       {currentTab && (
-        <div class="px-3 pt-2.5 pb-1.5">
-          <div class="text-[9px] uppercase tracking-wider text-fg-subtle font-semibold mb-1 px-1 flex items-center gap-1.5">
+        <div class="px-2 pt-2.5 pb-1.5">
+          <div class="text-[9px] uppercase tracking-wider text-fg-subtle font-semibold mb-1 px-2 flex items-center gap-1.5">
             <span class="inline-block size-1.5 rounded-full bg-accent animate-pulse-soft" />
             Current tab
           </div>
-          <div class="border border-accent/30 bg-accent-subtle/30 rounded-md p-0.5">
+          <div class="border border-accent/30 bg-accent-subtle/30 rounded-md">
             <TabRow
               tab={currentTab}
               isCurrent
