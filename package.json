@@ -1,6 +1,6 @@
 {
   "name": "pawtabs",
-  "version": "2.3.3",
+  "version": "2.3.12",
   "description": "Modern tab and window manager for Chrome — group, tag, note, and clean up your tabs.",
   "private": true,
   "type": "module",
